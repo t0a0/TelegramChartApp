@@ -35,15 +35,16 @@ class TGCAChartsViewController: UIViewController {
     let names = columnIds.map{chart.name(forIdentifier: $0)!}
     let colors = columnIds.map{chart.color(forIdentifier: $0)!}
     
-    let normalTextAttributes = [NSAttributedString.Key.foregroundColor : UIColor.black]
-    let startString = NSMutableAttributedString(string: "Chart: [", attributes: normalTextAttributes)
+    func astr(_ str: String, color: UIColor = .black) -> NSMutableAttributedString {
+      return NSMutableAttributedString(string: str, attributes: [NSAttributedString.Key.foregroundColor : color])
+    }
+    
+    let startString = astr("Chart: [")
     for i in 0..<columnIds.count {
-      let idStr = NSAttributedString(string: columnIds[i], attributes: normalTextAttributes)
-      let nameStr = NSAttributedString(string: names[i], attributes: [NSAttributedString.Key.foregroundColor : colors[i]])
-      startString.append(idStr)
-      startString.append(NSAttributedString(string: ": ", attributes: normalTextAttributes))
-      startString.append(nameStr)
-      startString.append(NSAttributedString(string: i == columnIds.count - 1 ? "]" : ", ", attributes: normalTextAttributes))
+      startString.append(astr(columnIds[i]))
+      startString.append(astr(": "))
+      startString.append(astr(names[i], color: colors[i]))
+      startString.append(astr(i == columnIds.count - 1 ? "]" : ", "))
     }
     return startString
   }
