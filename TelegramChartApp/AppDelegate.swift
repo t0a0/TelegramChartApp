@@ -18,8 +18,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     if let data = try? Data(contentsOf: Bundle.main.url(forResource: "chart_data", withExtension: "json")!)  {
       do {
         let charts = try JSONDecoder().decode(JsonCharts.self, from: data)
-        print(charts)
-      }catch {
+      } catch {
         print(error)
       }
       

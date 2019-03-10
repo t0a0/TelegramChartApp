@@ -26,8 +26,8 @@ class TGCATrimmerView: UIView {
   
   weak var delegate: TGCATrimmerViewDelegate?
   
-  /// The minimum range in percentage allowed for the trimming. Between 0.0 and 100.0.
-  var minimumRangeLength: CGFloat = 25.0 {
+  /// The minimum range in percentage allowed for the trimming. Between 0.0 and 1.0.
+  var minimumRangeLength: CGFloat = 0.25 {
     willSet {
       self.minimumRangeLength = max(minRangeValue, min(newValue, maxRangeValue))
       //TODO: what if was set when already small
@@ -176,6 +176,7 @@ class TGCATrimmerView: UIView {
   }
   
   func notifyRangeChanged() {
+    print(currentRange)
     delegate?.chartSlider(self, didChangeDisplayRange: currentRange)
   }
   
