@@ -15,6 +15,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    if let data = try? Data(contentsOf: Bundle.main.url(forResource: "chart_data", withExtension: "json")!)  {
+      do {
+        let charts = try JSONDecoder().decode(JsonCharts.self, from: data)
+        print(charts)
+      }catch {
+        print(error)
+      }
+      
+    }
+    
     // Override point for customization after application launch.
     return true
   }
