@@ -17,7 +17,7 @@ class TGCAChartView: UIView {
   //TODO: Limit it by overriding will set
   var displayRange: ClosedRange<CGFloat> = 0.0...1.0 {
     didSet {
-//      for chart in charts {
+      for chart in charts {
 //        let nds = chart.normalizedDataSet
 //        let newPath = bezierLine(for: ds.dataSet, boundingXRange: boundingXRange)
 //        let pathAnimation = CABasicAnimation(keyPath: "path")
@@ -27,7 +27,7 @@ class TGCAChartView: UIView {
 //        pathAnimation.isRemovedOnCompletion = false
 //        ds.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
 //        ds.shapeLayer.path = newPath.cgPath
-//      }
+      }
     }
   }
   
@@ -104,11 +104,11 @@ class TGCAChartView: UIView {
   
   
   func drawGraph(for dataSet: DataSet, color: CGColor) -> CAShapeLayer {
-    return CAShapeLayer()
-//    let line = bezierLine(for: dataSet)
+//    let line = bezierLine(for: dataSet, boundingXRange: dataSet.minX...dataSet.maxX)
 //    let sp = shapeLayer(withPath: line.cgPath, color: color)
 //    layer.addSublayer(sp)
 //    return sp
+    return CAShapeLayer()
   }
   
   func addDataSet(_ dataSet: DataSet, color: UIColor) {
