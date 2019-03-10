@@ -17,7 +17,7 @@ protocol TGCATrimmerViewDelegate: class {
    - chartSlider ad asda sd
    - from (0, minimumRangeLength) to (100 - minimumRangeLength, 100)
    */
-  func chartSlider(_ chartSlider: TGCATrimmerView, didChangeDisplayRange: ClosedRange<CGFloat>)
+  func chartSlider(_ chartSlider: TGCATrimmerView, didChangeDisplayRange range: ClosedRange<CGFloat>)
   
 }
 
@@ -39,7 +39,7 @@ class TGCATrimmerView: UIView {
   var shoulderWidth: CGFloat = 15.0
   
   private let minRangeValue: CGFloat = 0.0
-  private let maxRangeValue: CGFloat = 100.0
+  private let maxRangeValue: CGFloat = 1.0
   // MARK: - Subviews
   private let trimmedAreaView = UIView()
   private let leftShoulderView = TGCATrimmerLeftShoulderView()

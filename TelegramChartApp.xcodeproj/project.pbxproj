@@ -10,8 +10,10 @@
 		1657643322343A5600173E97 /* TGCAChartView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1657643222343A5600173E97 /* TGCAChartView.xib */; };
 		1657643622343B5B00173E97 /* TGCAChartTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657643422343B5B00173E97 /* TGCAChartTableViewCell.swift */; };
 		1657643722343B5B00173E97 /* TGCAChartTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1657643522343B5B00173E97 /* TGCAChartTableViewCell.xib */; };
+		1657643922343F2B00173E97 /* DataSetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657643822343F2B00173E97 /* DataSetModel.swift */; };
 		1657643D22349B0000173E97 /* TGCATrimmerShoulderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657643C22349B0000173E97 /* TGCATrimmerShoulderView.swift */; };
 		1657643F2234A0FE00173E97 /* TGCATrimmerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657643E2234A0FE00173E97 /* TGCATrimmerView.swift */; };
+		165764432235398200173E97 /* TGCADataSetService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 165764422235398200173E97 /* TGCADataSetService.swift */; };
 		1657644622354E1600173E97 /* chart_data.json in Resources */ = {isa = PBXBuildFile; fileRef = 1657644522354E1600173E97 /* chart_data.json */; };
 		1657644922354F4100173E97 /* UIColor+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657644822354F4100173E97 /* UIColor+Hex.swift */; };
 		1657644B223551DC00173E97 /* TGCAJsonModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657644A223551DC00173E97 /* TGCAJsonModels.swift */; };
@@ -48,8 +50,10 @@
 		1657643222343A5600173E97 /* TGCAChartView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TGCAChartView.xib; sourceTree = "<group>"; };
 		1657643422343B5B00173E97 /* TGCAChartTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartTableViewCell.swift; sourceTree = "<group>"; };
 		1657643522343B5B00173E97 /* TGCAChartTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TGCAChartTableViewCell.xib; sourceTree = "<group>"; };
+		1657643822343F2B00173E97 /* DataSetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataSetModel.swift; sourceTree = "<group>"; };
 		1657643C22349B0000173E97 /* TGCATrimmerShoulderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCATrimmerShoulderView.swift; sourceTree = "<group>"; };
 		1657643E2234A0FE00173E97 /* TGCATrimmerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCATrimmerView.swift; sourceTree = "<group>"; };
+		165764422235398200173E97 /* TGCADataSetService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCADataSetService.swift; sourceTree = "<group>"; };
 		1657644522354E1600173E97 /* chart_data.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = chart_data.json; sourceTree = "<group>"; };
 		1657644822354F4100173E97 /* UIColor+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+Hex.swift"; sourceTree = "<group>"; };
 		1657644A223551DC00173E97 /* TGCAJsonModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAJsonModels.swift; sourceTree = "<group>"; };
@@ -123,6 +127,23 @@
 			path = Extensions;
 			sourceTree = "<group>";
 		};
+		1657644C22356BAA00173E97 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				1657643822343F2B00173E97 /* DataSetModel.swift */,
+				1657644A223551DC00173E97 /* TGCAJsonModels.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		1657644D22356BB800173E97 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				165764422235398200173E97 /* TGCADataSetService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
 		167FCAC222343348001CA7E5 = {
 			isa = PBXGroup;
 			children = (
@@ -155,7 +176,8 @@
 				167FCAD52234334A001CA7E5 /* Assets.xcassets */,
 				167FCAD72234334A001CA7E5 /* LaunchScreen.storyboard */,
 				167FCADA2234334A001CA7E5 /* Info.plist */,
-				1657644A223551DC00173E97 /* TGCAJsonModels.swift */,
+				1657644C22356BAA00173E97 /* Models */,
+				1657644D22356BB800173E97 /* Services */,
 				1657644422354E0B00173E97 /* Resources */,
 			);
 			path = TelegramChartApp;
@@ -332,7 +354,9 @@
 				1657643F2234A0FE00173E97 /* TGCATrimmerView.swift in Sources */,
 				1657643622343B5B00173E97 /* TGCAChartTableViewCell.swift in Sources */,
 				167FCACF22343348001CA7E5 /* AppDelegate.swift in Sources */,
+				165764432235398200173E97 /* TGCADataSetService.swift in Sources */,
 				167FCB012234379F001CA7E5 /* TGCAButtonTableViewCell.swift in Sources */,
+				1657643922343F2B00173E97 /* DataSetModel.swift in Sources */,
 				167FCAFD22343523001CA7E5 /* TGCAChartView.swift in Sources */,
 				1657644922354F4100173E97 /* UIColor+Hex.swift in Sources */,
 			);

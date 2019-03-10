@@ -35,6 +35,31 @@ struct JsonCharts: Codable {
     let colors: [String:String]
     let names: [String:String]
     
+    var xColumn: JsonColumn {
+      let filter = columns.filter{$0.label.elementsEqual("x")}
+      guard let xc = filter.first else {
+        fatalError("Could not find \"x\" column in chart")
+      }
+      return xc
+    }
+    
+    var yColumns: [JsonColumn] {
+      let cols = columns.filter{!$0.label.elementsEqual("x")}
+      assert(cols.count > 0, "No \"y\" columns found in chart")
+      return cols
+    }
+    
+    func name(forLabel label: String) -> String? {
+      return names[label]
+    }
+    
+    func color(forLabel label: String) -> UIColor? {
+      guard let color = colors[label], let intHex = Int("0x" + color) else {
+        return nil
+      }
+      return UIColor(rgb: intHex)
+    }
+    
     enum CodingKeys : String, CodingKey {
       case columns
       case types
@@ -43,23 +68,25 @@ struct JsonCharts: Codable {
     }
     
     struct JsonColumn: Codable {
-      var label: String
+      let label: String
       let values: [CGFloat]
       
       init(from decoder: Decoder) throws {
+        //TODO: make prettier
         var vals = [CGFloat]()
-        var label = "unknown"
         var container = try decoder.unkeyedContainer()
+        var la: String? = nil
+        if let lbl = try? container.decode(String.self) {
+          la = lbl
+        }
         while !container.isAtEnd {
-          if let lbl = try? container.decode(String.self) {
-            label = lbl
-          } else if let value = try? container.decode(CGFloat.self){
+          if let value = try? container.decode(CGFloat.self){
             vals.append(value)
           } else {
             _ = try? container.decode(DummyCodable.self) // <-- TRICK
           }
         }
-        self.label = label
+        self.label = la!
         self.values = vals
       }
     }

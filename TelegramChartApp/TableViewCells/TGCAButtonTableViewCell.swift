@@ -13,6 +13,8 @@ class TGCAButtonTableViewCell: UITableViewCell {
   
   static let defaultReuseId = "buttonCell"
   
+  var onClickHandler: (()->())?
+  
   override func awakeFromNib() {
     super.awakeFromNib()
     // Initialization code
@@ -24,6 +26,7 @@ class TGCAButtonTableViewCell: UITableViewCell {
     // Configure the view for the selected state
   }
   @IBAction func onClick(_ sender: Any) {
+    onClickHandler?()
   }
   
 }
