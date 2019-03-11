@@ -69,16 +69,16 @@ struct ChartValueVector {
 
 struct NormalizedValueVector {
   
-  let normalizedVector: ValueVector
+  let vector: ValueVector
   let normalizationRange: ClosedRange<CGFloat>
-  let normalizedMax: CGFloat
-  let normalizedMin: CGFloat
+  let max: CGFloat
+  let min: CGFloat
   
   init(normalizedVector: ValueVector, normalizationRange: ClosedRange<CGFloat>) {
-    self.normalizedVector = normalizedVector
+    self.vector = normalizedVector
     self.normalizationRange = normalizationRange
-    self.normalizedMax = normalizedVector.max() ?? 0
-    self.normalizedMin = normalizedVector.min() ?? 0
+    self.max = normalizedVector.max() ?? 0
+    self.min = normalizedVector.min() ?? 0
   }
   
 }

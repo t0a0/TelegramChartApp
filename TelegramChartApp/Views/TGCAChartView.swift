@@ -77,13 +77,13 @@ class TGCAChartView: UIView {
     line.lineJoinStyle = .round
     
     func point(for i: Int) -> CGPoint {
-      return CGPoint(x: xVector.normalizedVector[i], y: yVector.normalizedVector[i])
+      return CGPoint(x: xVector.vector[i], y: yVector.vector[i])
     }
     
     let firstPoint = point(for: 0)
     line.move(to: firstPoint)
     
-    for i in 1..<xVector.normalizedVector.count {
+    for i in 1..<xVector.vector.count {
       line.addLine(to: point(for: i))
     }
     return line
