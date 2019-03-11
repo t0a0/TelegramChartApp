@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-func normalizeVector(_ vector: ValueVector, for normalizationRange: ClosedRange<CGFloat>) -> NormalizedValueVector {
+func normalizedVector(from vector: ValueVector, withNormalizationRange normalizationRange: ClosedRange<CGFloat> = ZORange) -> NormalizedValueVector {
   let maxValue = vector.max() ?? 0
   let minValue = vector.min() ?? 0
   guard maxValue != minValue else {

@@ -57,8 +57,8 @@ class TGCAChartView: UIView {
   }
   
   func configure(with chart: LinearChart) {
-    let xVector = chart.xVector.normalizedVector
-    let yVectors = chart.yVectors.map{$0.normalizedVector}
+    let xVector = chart.xVector.nVector
+    let yVectors = chart.yVectors.map{$0.nVector}
     
     var draws = [Drawing]()
     

@@ -33,7 +33,7 @@ struct LinearChart {
 struct ChartPositionVector {
   
   let vector: ValueVector
-  let normalizedVector: NormalizedValueVector
+  let nVector: NormalizedValueVector
   
   let max: CGFloat
   let min: CGFloat
@@ -42,7 +42,7 @@ struct ChartPositionVector {
     self.vector = vector
     self.max = vector.max() ?? 0
     self.min = vector.min() ?? 0
-    self.normalizedVector = normalizeVector(vector, for: 0...1.0)
+    self.nVector = normalizedVector(from: vector)
   }
   
 }
@@ -52,7 +52,7 @@ struct ChartValueVector {
   let metaData: ChartValueVectorMetaData
   
   let vector: ValueVector
-  let normalizedVector: NormalizedValueVector
+  let nVector: NormalizedValueVector
   
   let max: CGFloat
   let min: CGFloat
@@ -62,7 +62,7 @@ struct ChartValueVector {
     self.vector = vector
     self.max = vector.max() ?? 0
     self.min = vector.min() ?? 0
-    self.normalizedVector = normalizeVector(vector, for: 0...1.0)
+    self.nVector = normalizedVector(from: vector)
   }
   
 }
