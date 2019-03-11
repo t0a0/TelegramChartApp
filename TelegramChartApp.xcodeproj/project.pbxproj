@@ -10,20 +10,18 @@
 		1657643322343A5600173E97 /* TGCAChartView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1657643222343A5600173E97 /* TGCAChartView.xib */; };
 		1657643622343B5B00173E97 /* TGCAChartTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657643422343B5B00173E97 /* TGCAChartTableViewCell.swift */; };
 		1657643722343B5B00173E97 /* TGCAChartTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1657643522343B5B00173E97 /* TGCAChartTableViewCell.xib */; };
-		1657643922343F2B00173E97 /* DataSetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657643822343F2B00173E97 /* DataSetModel.swift */; };
 		1657643D22349B0000173E97 /* TGCATrimmerShoulderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657643C22349B0000173E97 /* TGCATrimmerShoulderView.swift */; };
 		1657643F2234A0FE00173E97 /* TGCATrimmerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657643E2234A0FE00173E97 /* TGCATrimmerView.swift */; };
-		165764432235398200173E97 /* TGCADataSetService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 165764422235398200173E97 /* TGCADataSetService.swift */; };
 		1657644622354E1600173E97 /* chart_data.json in Resources */ = {isa = PBXBuildFile; fileRef = 1657644522354E1600173E97 /* chart_data.json */; };
 		1657644922354F4100173E97 /* UIColor+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657644822354F4100173E97 /* UIColor+Hex.swift */; };
-		1657644B223551DC00173E97 /* TGCAJsonModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657644A223551DC00173E97 /* TGCAJsonModels.swift */; };
 		16576450223575C800173E97 /* TGCAChartsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657644F223575C800173E97 /* TGCAChartsViewController.swift */; };
 		165764522235AFB400173E97 /* TGCAChartAnnotation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 165764512235AFB400173E97 /* TGCAChartAnnotation.swift */; };
 		165764542235BB8700173E97 /* TGCAVectorNormalizationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 165764532235BB8700173E97 /* TGCAVectorNormalizationService.swift */; };
 		165764562235C77100173E97 /* TGCAChartDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 165764552235C77100173E97 /* TGCAChartDetailViewController.swift */; };
 		165764582235D70700173E97 /* UIImage+Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 165764572235D70700173E97 /* UIImage+Color.swift */; };
+		1657645A2236F81400173E97 /* TGCAChartStructs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 165764592236F81400173E97 /* TGCAChartStructs.swift */; };
+		1657645C2237019700173E97 /* TGCAJsonToChartService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657645B2237019700173E97 /* TGCAJsonToChartService.swift */; };
 		167FCACF22343348001CA7E5 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167FCACE22343348001CA7E5 /* AppDelegate.swift */; };
-		167FCAD122343348001CA7E5 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167FCAD022343348001CA7E5 /* ViewController.swift */; };
 		167FCAD422343348001CA7E5 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 167FCAD222343348001CA7E5 /* Main.storyboard */; };
 		167FCAD62234334A001CA7E5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 167FCAD52234334A001CA7E5 /* Assets.xcassets */; };
 		167FCAD92234334A001CA7E5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 167FCAD72234334A001CA7E5 /* LaunchScreen.storyboard */; };
@@ -55,21 +53,19 @@
 		1657643222343A5600173E97 /* TGCAChartView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TGCAChartView.xib; sourceTree = "<group>"; };
 		1657643422343B5B00173E97 /* TGCAChartTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartTableViewCell.swift; sourceTree = "<group>"; };
 		1657643522343B5B00173E97 /* TGCAChartTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TGCAChartTableViewCell.xib; sourceTree = "<group>"; };
-		1657643822343F2B00173E97 /* DataSetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataSetModel.swift; sourceTree = "<group>"; };
 		1657643C22349B0000173E97 /* TGCATrimmerShoulderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCATrimmerShoulderView.swift; sourceTree = "<group>"; };
 		1657643E2234A0FE00173E97 /* TGCATrimmerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCATrimmerView.swift; sourceTree = "<group>"; };
-		165764422235398200173E97 /* TGCADataSetService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCADataSetService.swift; sourceTree = "<group>"; };
 		1657644522354E1600173E97 /* chart_data.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = chart_data.json; sourceTree = "<group>"; };
 		1657644822354F4100173E97 /* UIColor+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+Hex.swift"; sourceTree = "<group>"; };
-		1657644A223551DC00173E97 /* TGCAJsonModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAJsonModels.swift; sourceTree = "<group>"; };
 		1657644F223575C800173E97 /* TGCAChartsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartsViewController.swift; sourceTree = "<group>"; };
 		165764512235AFB400173E97 /* TGCAChartAnnotation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartAnnotation.swift; sourceTree = "<group>"; };
 		165764532235BB8700173E97 /* TGCAVectorNormalizationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAVectorNormalizationService.swift; sourceTree = "<group>"; };
 		165764552235C77100173E97 /* TGCAChartDetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartDetailViewController.swift; sourceTree = "<group>"; };
 		165764572235D70700173E97 /* UIImage+Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+Color.swift"; sourceTree = "<group>"; };
+		165764592236F81400173E97 /* TGCAChartStructs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartStructs.swift; sourceTree = "<group>"; };
+		1657645B2237019700173E97 /* TGCAJsonToChartService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAJsonToChartService.swift; sourceTree = "<group>"; };
 		167FCACB22343348001CA7E5 /* TelegramChartApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TelegramChartApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		167FCACE22343348001CA7E5 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		167FCAD022343348001CA7E5 /* ViewController.swift */ = {isa = PBXFileReference; indentWidth = 2; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; tabWidth = 2; };
 		167FCAD322343348001CA7E5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		167FCAD52234334A001CA7E5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		167FCAD82234334A001CA7E5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -141,9 +137,8 @@
 		1657644C22356BAA00173E97 /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				1657643822343F2B00173E97 /* DataSetModel.swift */,
-				1657644A223551DC00173E97 /* TGCAJsonModels.swift */,
 				165764512235AFB400173E97 /* TGCAChartAnnotation.swift */,
+				165764592236F81400173E97 /* TGCAChartStructs.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -151,8 +146,8 @@
 		1657644D22356BB800173E97 /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				165764422235398200173E97 /* TGCADataSetService.swift */,
 				165764532235BB8700173E97 /* TGCAVectorNormalizationService.swift */,
+				1657645B2237019700173E97 /* TGCAJsonToChartService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -160,7 +155,6 @@
 		1657644E2235757F00173E97 /* ViewControllers */ = {
 			isa = PBXGroup;
 			children = (
-				167FCAD022343348001CA7E5 /* ViewController.swift */,
 				1657644F223575C800173E97 /* TGCAChartsViewController.swift */,
 				165764552235C77100173E97 /* TGCAChartDetailViewController.swift */,
 			);
@@ -373,17 +367,15 @@
 			files = (
 				1657643D22349B0000173E97 /* TGCATrimmerShoulderView.swift in Sources */,
 				16576450223575C800173E97 /* TGCAChartsViewController.swift in Sources */,
-				167FCAD122343348001CA7E5 /* ViewController.swift in Sources */,
 				165764522235AFB400173E97 /* TGCAChartAnnotation.swift in Sources */,
-				1657644B223551DC00173E97 /* TGCAJsonModels.swift in Sources */,
+				1657645C2237019700173E97 /* TGCAJsonToChartService.swift in Sources */,
 				1657643F2234A0FE00173E97 /* TGCATrimmerView.swift in Sources */,
+				1657645A2236F81400173E97 /* TGCAChartStructs.swift in Sources */,
 				1657643622343B5B00173E97 /* TGCAChartTableViewCell.swift in Sources */,
 				165764562235C77100173E97 /* TGCAChartDetailViewController.swift in Sources */,
 				167FCACF22343348001CA7E5 /* AppDelegate.swift in Sources */,
 				165764582235D70700173E97 /* UIImage+Color.swift in Sources */,
-				165764432235398200173E97 /* TGCADataSetService.swift in Sources */,
 				167FCB012234379F001CA7E5 /* TGCAButtonTableViewCell.swift in Sources */,
-				1657643922343F2B00173E97 /* DataSetModel.swift in Sources */,
 				167FCAFD22343523001CA7E5 /* TGCAChartView.swift in Sources */,
 				1657644922354F4100173E97 /* UIColor+Hex.swift in Sources */,
 				165764542235BB8700173E97 /* TGCAVectorNormalizationService.swift in Sources */,

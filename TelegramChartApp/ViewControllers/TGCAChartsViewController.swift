@@ -14,37 +14,29 @@ class TGCAChartsViewController: UIViewController {
   
   @IBOutlet weak var tableView: UITableView!
   
-  var charts = [JsonCharts.JsonChart]()
+  var charts = [LinearChart]()
   
   override func viewDidLoad() {
     super.viewDidLoad()
     title = "Charts"
-    if let data = try? Data(contentsOf: Bundle.main.url(forResource: "chart_data", withExtension: "json")!)  {
-      do {
-        self.charts = try JSONDecoder().decode(JsonCharts.self, from: data).charts
-      } catch {
-        let alert = UIAlertController(title: "Oops", message: error.localizedDescription, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: nil))
-        present(alert, animated: true)
-      }
+    guard let charts = TGCAJsonToChartService().parse() else {
+      return
     }
+    self.charts = charts
   }
   
-  func attributedString(for chart: JsonCharts.JsonChart) -> NSAttributedString {
-    let columnIds = chart.yColumns.map{$0.identifier}
-    let names = columnIds.map{chart.name(forIdentifier: $0)!}
-    let colors = columnIds.map{chart.color(forIdentifier: $0)!}
-    
+  func attributedString(for chart: LinearChart) -> NSAttributedString {
     func astr(_ str: String, color: UIColor = .black) -> NSMutableAttributedString {
       return NSMutableAttributedString(string: str, attributes: [NSAttributedString.Key.foregroundColor : color])
     }
     
     let startString = astr("Chart: [")
-    for i in 0..<columnIds.count {
-      startString.append(astr(columnIds[i]))
+    for i in 0..<chart.yVectors.count {
+      let yV = chart.yVectors[i]
+      startString.append(astr(yV.metaData.identifier))
       startString.append(astr(": "))
-      startString.append(astr(names[i], color: colors[i]))
-      startString.append(astr(i == columnIds.count - 1 ? "]" : ", "))
+      startString.append(astr(yV.metaData.name, color: yV.metaData.color))
+      startString.append(astr(i == chart.yVectors.count - 1 ? "]" : ", "))
     }
     return startString
   }
@@ -61,7 +53,7 @@ extension TGCAChartsViewController: UITableViewDataSource {
     let cell = tableView.dequeueReusableCell(withIdentifier: cell_reuseId_chartInfo)!
     let chart = charts[indexPath.row]
     cell.textLabel?.attributedText = attributedString(for: chart)
-    cell.detailTextLabel?.text = "X values count: \(chart.xColumn.values.count)"
+    cell.detailTextLabel?.text = "X values count: \(chart.xVector.vector.count)"
     cell.accessoryType = .disclosureIndicator
     return cell
   }
@@ -69,24 +61,25 @@ extension TGCAChartsViewController: UITableViewDataSource {
 }
 
 extension TGCAChartsViewController: UITableViewDelegate {
+  
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    let vectorService = TGCAVectorNormalizationService(normalizationRange: 0.0...300.0)
-    let chart = charts[indexPath.row]
-    let yCols = chart.yColumns
-    let yVectors = vectorService.normalizeVectors(yCols.map{$0.values})
-    
-    var normalizedYVectors = [TGCANormalizedChartDataVector]()
-    for i in 0..<yCols.count {
-      let yCol = yCols[i]
-      let nv = TGCANormalizedChartDataVector(vector: yVectors[i], identifier: yCol.identifier, color: chart.color(forIdentifier: yCol.identifier) ?? .black, normalizationRange: vectorService.normalizationRange)
-      normalizedYVectors.append(nv)
-    }
-    let normalizedChart = TGCANormalizedChart(yVectors: normalizedYVectors, xVector: TGCAVectorNormalizationService(normalizationRange: 0.0...375.0).normalizeVector(chart.xColumn.values))
-    
+//    let vectorService = TGCAVectorNormalizationService(normalizationRange: 0.0...300.0)
+//    let chart = charts[indexPath.row]
+//    let yCols = chart.yColumns
+//    let yVectors = vectorService.normalizeVectors(yCols.map{$0.values})
+//
+//    var normalizedYVectors = [TGCANormalizedChartDataVector]()
+//    for i in 0..<yCols.count {
+//      let yCol = yCols[i]
+//      let nv = TGCANormalizedChartDataVector(vector: yVectors[i], identifier: yCol.identifier, color: chart.color(forIdentifier: yCol.identifier) ?? .black, normalizationRange: vectorService.normalizationRange)
+//      normalizedYVectors.append(nv)
+//    }
+//    let normalizedChart = TGCANormalizedChart(yVectors: normalizedYVectors, xVector: TGCAVectorNormalizationService(normalizationRange: 0.0...375.0).normalizeVector(chart.xColumn.values))
+//
     guard let vc = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "TGCAChartDetailViewController") as? TGCAChartDetailViewController else {
       return
     }
-    vc.normalizedChart = normalizedChart
+    vc.chart = charts[indexPath.row]
     navigationController?.pushViewController(vc, animated: true)
   }
   

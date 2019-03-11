@@ -46,7 +46,7 @@ class TGCAChartView: UIView {
     }
   }
   
-  private var chart: TGCANormalizedChart?
+  private var chart: LinearChart?
   private var drawings: [Drawing]?
   
   
@@ -56,34 +56,34 @@ class TGCAChartView: UIView {
     let shapeLayer: CAShapeLayer
   }
   
-  func configure(with chart: TGCANormalizedChart) {
-    let xVector = chart.xVector
-    let yVectors = chart.yVectors.map{$0.vector}
+  func configure(with chart: LinearChart) {
+    let xVector = chart.xVector.normalizedVector
+    let yVectors = chart.yVectors.map{$0.normalizedVector}
     
     var draws = [Drawing]()
     
     for i in 0..<yVectors.count {
       let line = bezierLine(xVector: xVector, yVector: yVectors[i])
-      let sp = shapeLayer(withPath: line.cgPath, color: chart.yVectors[i].color.cgColor)
+      let sp = shapeLayer(withPath: line.cgPath, color: chart.yVectors[i].metaData.color.cgColor)
       layer.addSublayer(sp)
-      draws.append(Drawing(identifier: chart.yVectors[i].identifier, line: line, shapeLayer: sp))
+      draws.append(Drawing(identifier: chart.yVectors[i].metaData.identifier, line: line, shapeLayer: sp))
     }
     self.chart = chart
     self.drawings = draws
   }
   
-  func bezierLine(xVector: NormalizedDataVector, yVector: NormalizedDataVector) -> UIBezierPath {
+  func bezierLine(xVector: NormalizedValueVector, yVector: NormalizedValueVector) -> UIBezierPath {
     let line = UIBezierPath()
     line.lineJoinStyle = .round
     
     func point(for i: Int) -> CGPoint {
-      return CGPoint(x: xVector[i], y: yVector[i])
+      return CGPoint(x: xVector.normalizedVector[i], y: yVector.normalizedVector[i])
     }
     
     let firstPoint = point(for: 0)
     line.move(to: firstPoint)
     
-    for i in 1..<xVector.count {
+    for i in 1..<xVector.normalizedVector.count {
       line.addLine(to: point(for: i))
     }
     return line
@@ -126,7 +126,7 @@ class TGCAChartView: UIView {
   
   private var boundingXRange: ClosedRange<CGFloat> = CGFloat(-500.0)...CGFloat(500.0) {
     didSet {
-      for ds in dataSets {
+//      for ds in dataSets {
 //        let newPath = bezierLine(for: ds.dataSet, boundingXRange: boundingXRange)
 //        let pathAnimation = CABasicAnimation(keyPath: "path")
 //        pathAnimation.fromValue = ds.shapeLayer.path
@@ -135,30 +135,30 @@ class TGCAChartView: UIView {
 //        pathAnimation.isRemovedOnCompletion = false
 //        ds.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
 //        ds.shapeLayer.path = newPath.cgPath
-      }
+//      }
     }
   }
   
-  var dataSets = [(dataSet: DataSet, shapeLayer: CAShapeLayer)](){
-    didSet {
-      maxX = dataSets.map{$0.dataSet.maxX}.max()!
-      maxY = dataSets.map{$0.dataSet.maxY}.max()!
-    }
-  }
+//  var dataSets = [(dataSet: DataSet, shapeLayer: CAShapeLayer)](){
+//    didSet {
+//      maxX = dataSets.map{$0.dataSet.maxX}.max()!
+//      maxY = dataSets.map{$0.dataSet.maxY}.max()!
+//    }
+//  }
   
   
   
-  func drawGraph(for dataSet: DataSet, color: CGColor) -> CAShapeLayer {
+//  func drawGraph(for dataSet: DataSet, color: CGColor) -> CAShapeLayer {
 //    let line = bezierLine(for: dataSet, boundingXRange: dataSet.minX...dataSet.maxX)
 //    let sp = shapeLayer(withPath: line.cgPath, color: color)
 //    layer.addSublayer(sp)
 //    return sp
-    return CAShapeLayer()
-  }
+//    return CAShapeLayer()
+//  }
   
-  func addDataSet(_ dataSet: DataSet, color: UIColor) {
-    dataSets.append((dataSet, drawGraph(for: dataSet, color: color.cgColor)))
-    
+//  func addDataSet(_ dataSet: DataSet, color: UIColor) {
+//    dataSets.append((dataSet, drawGraph(for: dataSet, color: color.cgColor)))
+  
 //    let pathAnimation = CABasicAnimation(keyPath: "path")
 //    pathAnimation.toValue = line2.cgPath
 //    pathAnimation.autoreverses = true
@@ -200,7 +200,7 @@ class TGCAChartView: UIView {
 //
 //      a -= 1
 //    }
-  }
+//  }
   
   func addXAxisLayers() -> [(shape: CAShapeLayer, text: CATextLayer)]{
     

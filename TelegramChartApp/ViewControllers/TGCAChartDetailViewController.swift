@@ -14,7 +14,7 @@ class TGCAChartDetailViewController: UIViewController {
   @IBOutlet weak var trimmerView: TGCATrimmerView!
   @IBOutlet weak var tableView: UITableView!
   
-  var normalizedChart: TGCANormalizedChart?
+  var chart: LinearChart?
   
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -23,7 +23,8 @@ class TGCAChartDetailViewController: UIViewController {
     tableView.register(UITableViewCell.self, forCellReuseIdentifier: "chartColumnLabelCell")
     title = "Statistics"
     navigationController?.interactivePopGestureRecognizer?.isEnabled = false
-    
+    tableView.showsVerticalScrollIndicator = false
+    tableView.showsHorizontalScrollIndicator = false
     trimmerView.delegate = self
   }
   
@@ -41,7 +42,7 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
     switch section {
     case 0:
-      guard let chart = normalizedChart else {
+      guard let chart = chart else {
         return 0
       }
       return chart.yVectors.count + 1
@@ -55,30 +56,31 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
     if indexPath.section == 0 {
       if indexPath.row == 0 {
         let cell = tableView.dequeueReusableCell(withIdentifier: TGCAChartTableViewCell.defaultReuseId) as! TGCAChartTableViewCell
-        if let normalizedChart = normalizedChart {
-          cell.chartView.configure(with: normalizedChart)
+        if let chart = chart {
+          cell.chartView.configure(with: chart)
         }
         cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: CGFloat.greatestFiniteMagnitude)
         cell.directionalLayoutMargins = .zero
+        cell.selectionStyle = .none
         return cell
       } else {
         let cell = tableView.dequeueReusableCell(withIdentifier: "chartColumnLabelCell")!
         //TODO: FIX LABEL POSITION
-        cell.imageView?.image = UIImage.from(color: normalizedChart!.yVectors[indexPath.row - 1].color, size: CGSize(width: 12, height: 12))
+        if let chart = chart {
+          cell.imageView?.image = UIImage.from(color: chart.yVectors[indexPath.row - 1].metaData.color, size: CGSize(width: 12, height: 12))
+        }
         cell.imageView?.layer.cornerRadius = 3.0
         cell.imageView?.clipsToBounds = true
         //TODO: THIS IS NOT CORRECT, SHOULD USE REL IDENTIFIER NOT LABEL
-        cell.textLabel?.text = normalizedChart!.yVectors[indexPath.row - 1].identifier
+        cell.textLabel?.text = chart?.yVectors[indexPath.row - 1].metaData.identifier
         cell.accessoryType = .checkmark
         return cell
       }
     } else {
       let cell = tableView.dequeueReusableCell(withIdentifier: TGCAButtonTableViewCell.defaultReuseId) as! TGCAButtonTableViewCell
+      cell.selectionStyle = .none
       return cell
     }
-  }
-  func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-    return section == 0 ? "Followers" : nil
   }
   
   func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
