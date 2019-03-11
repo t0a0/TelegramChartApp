@@ -16,11 +16,12 @@
 		1657644922354F4100173E97 /* UIColor+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657644822354F4100173E97 /* UIColor+Hex.swift */; };
 		16576450223575C800173E97 /* TGCAChartsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657644F223575C800173E97 /* TGCAChartsViewController.swift */; };
 		165764522235AFB400173E97 /* TGCAChartAnnotation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 165764512235AFB400173E97 /* TGCAChartAnnotation.swift */; };
-		165764542235BB8700173E97 /* TGCAVectorNormalizationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 165764532235BB8700173E97 /* TGCAVectorNormalizationService.swift */; };
 		165764562235C77100173E97 /* TGCAChartDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 165764552235C77100173E97 /* TGCAChartDetailViewController.swift */; };
 		165764582235D70700173E97 /* UIImage+Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 165764572235D70700173E97 /* UIImage+Color.swift */; };
 		1657645A2236F81400173E97 /* TGCAChartStructs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 165764592236F81400173E97 /* TGCAChartStructs.swift */; };
 		1657645C2237019700173E97 /* TGCAJsonToChartService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657645B2237019700173E97 /* TGCAJsonToChartService.swift */; };
+		1657645E2237135000173E97 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657645D2237135000173E97 /* Constants.swift */; };
+		16576460223713D400173E97 /* GlobalFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657645F223713D400173E97 /* GlobalFunctions.swift */; };
 		167FCACF22343348001CA7E5 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167FCACE22343348001CA7E5 /* AppDelegate.swift */; };
 		167FCAD422343348001CA7E5 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 167FCAD222343348001CA7E5 /* Main.storyboard */; };
 		167FCAD62234334A001CA7E5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 167FCAD52234334A001CA7E5 /* Assets.xcassets */; };
@@ -59,11 +60,12 @@
 		1657644822354F4100173E97 /* UIColor+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+Hex.swift"; sourceTree = "<group>"; };
 		1657644F223575C800173E97 /* TGCAChartsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartsViewController.swift; sourceTree = "<group>"; };
 		165764512235AFB400173E97 /* TGCAChartAnnotation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartAnnotation.swift; sourceTree = "<group>"; };
-		165764532235BB8700173E97 /* TGCAVectorNormalizationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAVectorNormalizationService.swift; sourceTree = "<group>"; };
 		165764552235C77100173E97 /* TGCAChartDetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartDetailViewController.swift; sourceTree = "<group>"; };
 		165764572235D70700173E97 /* UIImage+Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+Color.swift"; sourceTree = "<group>"; };
 		165764592236F81400173E97 /* TGCAChartStructs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartStructs.swift; sourceTree = "<group>"; };
 		1657645B2237019700173E97 /* TGCAJsonToChartService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAJsonToChartService.swift; sourceTree = "<group>"; };
+		1657645D2237135000173E97 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		1657645F223713D400173E97 /* GlobalFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalFunctions.swift; sourceTree = "<group>"; };
 		167FCACB22343348001CA7E5 /* TelegramChartApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TelegramChartApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		167FCACE22343348001CA7E5 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		167FCAD322343348001CA7E5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -146,7 +148,6 @@
 		1657644D22356BB800173E97 /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				165764532235BB8700173E97 /* TGCAVectorNormalizationService.swift */,
 				1657645B2237019700173E97 /* TGCAJsonToChartService.swift */,
 			);
 			path = Services;
@@ -196,6 +197,8 @@
 				1657644C22356BAA00173E97 /* Models */,
 				1657644D22356BB800173E97 /* Services */,
 				1657644422354E0B00173E97 /* Resources */,
+				1657645D2237135000173E97 /* Constants.swift */,
+				1657645F223713D400173E97 /* GlobalFunctions.swift */,
 			);
 			path = TelegramChartApp;
 			sourceTree = "<group>";
@@ -367,6 +370,7 @@
 			files = (
 				1657643D22349B0000173E97 /* TGCATrimmerShoulderView.swift in Sources */,
 				16576450223575C800173E97 /* TGCAChartsViewController.swift in Sources */,
+				16576460223713D400173E97 /* GlobalFunctions.swift in Sources */,
 				165764522235AFB400173E97 /* TGCAChartAnnotation.swift in Sources */,
 				1657645C2237019700173E97 /* TGCAJsonToChartService.swift in Sources */,
 				1657643F2234A0FE00173E97 /* TGCATrimmerView.swift in Sources */,
@@ -376,9 +380,9 @@
 				167FCACF22343348001CA7E5 /* AppDelegate.swift in Sources */,
 				165764582235D70700173E97 /* UIImage+Color.swift in Sources */,
 				167FCB012234379F001CA7E5 /* TGCAButtonTableViewCell.swift in Sources */,
+				1657645E2237135000173E97 /* Constants.swift in Sources */,
 				167FCAFD22343523001CA7E5 /* TGCAChartView.swift in Sources */,
 				1657644922354F4100173E97 /* UIColor+Hex.swift in Sources */,
-				165764542235BB8700173E97 /* TGCAVectorNormalizationService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

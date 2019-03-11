@@ -22,7 +22,7 @@ class TGCAChartView: UIView {
   @IBOutlet var contentView: UIView!
   
   //TODO: Limit it by overriding will set
-  var displayRange: ClosedRange<CGFloat> = 0.0...1.0 {
+  var displayRange: ClosedRange<CGFloat> = ZORange {
     didSet {
       guard let drawings = drawings, let chart = chart else {
         return
