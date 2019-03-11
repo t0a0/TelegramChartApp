@@ -46,7 +46,24 @@ class TGCAChartView: UIView {
     }
   }
   
-  private var chart: LinearChart?
+  private var yValueRange: ClosedRange<CGFloat> = 0...0
+  
+  private var chart: LinearChart! {
+    didSet {
+      setNeedsLayout()
+      let yVectors = chart.nyVectorGroup.vectors.map{$0.map{$0 * 300}}
+      let xVector = chart.xVector.nVector.vector.map{$0 * 375}
+      var draws = [Drawing]()
+      
+      for i in 0..<yVectors.count {
+        let line = bezierLine(xVector: xVector, yVector: yVectors[i])
+        let sp = shapeLayer(withPath: line.cgPath, color: chart.yVectors[i].metaData.color.cgColor)
+        layer.addSublayer(sp)
+        draws.append(Drawing(identifier: chart.yVectors[i].metaData.identifier, line: line, shapeLayer: sp))
+      }
+      self.drawings = draws
+    }
+  }
   private var drawings: [Drawing]?
   
   
@@ -57,33 +74,21 @@ class TGCAChartView: UIView {
   }
   
   func configure(with chart: LinearChart) {
-    let xVector = chart.xVector.nVector
-    let yVectors = chart.yVectors.map{$0.nVector}
-    
-    var draws = [Drawing]()
-    
-    for i in 0..<yVectors.count {
-      let line = bezierLine(xVector: xVector, yVector: yVectors[i])
-      let sp = shapeLayer(withPath: line.cgPath, color: chart.yVectors[i].metaData.color.cgColor)
-      layer.addSublayer(sp)
-      draws.append(Drawing(identifier: chart.yVectors[i].metaData.identifier, line: line, shapeLayer: sp))
-    }
     self.chart = chart
-    self.drawings = draws
   }
   
-  func bezierLine(xVector: NormalizedValueVector, yVector: NormalizedValueVector) -> UIBezierPath {
+  func bezierLine(xVector: ValueVector, yVector: ValueVector) -> UIBezierPath {
     let line = UIBezierPath()
     line.lineJoinStyle = .round
     
     func point(for i: Int) -> CGPoint {
-      return CGPoint(x: xVector.vector[i], y: yVector.vector[i])
+      return CGPoint(x: xVector[i], y: 300 - yVector[i])
     }
     
     let firstPoint = point(for: 0)
     line.move(to: firstPoint)
     
-    for i in 1..<xVector.vector.count {
+    for i in 1..<xVector.count {
       line.addLine(to: point(for: i))
     }
     return line

@@ -24,3 +24,21 @@ func normalizedVector(from vector: ValueVector, withNormalizationRange normaliza
   }
   return NormalizedValueVector(normalizedVector: normalizedVector, normalizationRange: normalizationRange)
 }
+
+func normalizedVectorGroup(from vectors: [ValueVector], withNormalizationRange normalizationRange: ClosedRange<CGFloat> = ZORange) -> NormalizedValueVectorGroup {
+  let absMin = vectors.map{$0.min() ?? 0}.min() ?? 0
+  let absMax = vectors.map{$0.max() ?? 0}.max() ?? 0
+  
+  guard absMax != absMin else {
+    return NormalizedValueVectorGroup(vectors: vectors.map{$0.map{_ in 0}}, normalizationRange: normalizationRange)
+  }
+  let positiveVectors = vectors.map{absMin >= 0 ? $0 : $0.map{$0 - absMin}}
+  let normalizedVectors = positiveVectors.map{$0.map{
+    (($0 - absMin) / (absMax - absMin)) *
+      (normalizationRange.upperBound - normalizationRange.lowerBound) +
+      normalizationRange.lowerBound
+    }}
+  
+  return NormalizedValueVectorGroup(vectors: normalizedVectors, normalizationRange: normalizationRange)
+  
+}

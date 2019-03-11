@@ -19,6 +19,9 @@ struct LinearChart {
   let yVectors: [ChartValueVector]
   let xVector: ChartPositionVector
   
+  /// TODO: comment
+  let nyVectorGroup: NormalizedValueVectorGroup
+
   init(yVectors: [ChartValueVector], xVector: ChartPositionVector, title: String? = nil) {
     for yVector in yVectors {
       assert(yVector.vector.count == xVector.vector.count, "Trying to init Chart with unmatching (X,Y) points count.")
@@ -26,6 +29,7 @@ struct LinearChart {
     self.yVectors = yVectors
     self.xVector = xVector
     self.title = title
+    self.nyVectorGroup = normalizedVectorGroup(from: yVectors.map{$0.vector})
   }
   
 }
@@ -71,14 +75,15 @@ struct NormalizedValueVector {
   
   let vector: ValueVector
   let normalizationRange: ClosedRange<CGFloat>
-  let max: CGFloat
-  let min: CGFloat
-  
+
   init(normalizedVector: ValueVector, normalizationRange: ClosedRange<CGFloat>) {
     self.vector = normalizedVector
     self.normalizationRange = normalizationRange
-    self.max = normalizedVector.max() ?? 0
-    self.min = normalizedVector.min() ?? 0
   }
   
+}
+
+struct NormalizedValueVectorGroup {
+  let vectors: [ValueVector]
+  let normalizationRange: ClosedRange<CGFloat>
 }
