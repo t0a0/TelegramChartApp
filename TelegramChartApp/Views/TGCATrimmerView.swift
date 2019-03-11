@@ -29,7 +29,7 @@ class TGCATrimmerView: UIView {
   /// The minimum range in percentage allowed for the trimming. Between 0.0 and 1.0.
   var minimumRangeLength: CGFloat = 0.25 {
     willSet {
-      self.minimumRangeLength = max(minRangeValue, min(newValue, maxRangeValue))
+      self.minimumRangeLength = max(0, min(newValue, 1))
       //TODO: what if was set when already small
       //TODO: also maximum range?
       
@@ -39,7 +39,7 @@ class TGCATrimmerView: UIView {
   var shoulderWidth: CGFloat = 15.0
   
   private let minRangeValue: CGFloat = 0.0
-  private let maxRangeValue: CGFloat = 1.0
+  private let maxRangeValue: CGFloat = 375.0
   // MARK: - Subviews
   private let trimmedAreaView = UIView()
   private let leftShoulderView = TGCATrimmerLeftShoulderView()
@@ -192,8 +192,12 @@ class TGCATrimmerView: UIView {
     rightConstraint?.constant = newConstraint
   }
   
+  private var translatedMinimumRangeLenth: CGFloat {
+    return minimumRangeLength * (maxRangeValue - minRangeValue) + minRangeValue
+  }
+  
   private var minimumDistanceBetweenShoulders: CGFloat {
-    return frame.width * minimumRangeLength / maxRangeValue
+    return frame.width * translatedMinimumRangeLenth / maxRangeValue
   }
   
   private func resetHandleViewPosition() {

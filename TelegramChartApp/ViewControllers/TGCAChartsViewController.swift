@@ -70,7 +70,24 @@ extension TGCAChartsViewController: UITableViewDataSource {
 
 extension TGCAChartsViewController: UITableViewDelegate {
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    let vectorService = TGCAVectorNormalizationService(normalizationRange: 0.0...300.0)
+    let chart = charts[indexPath.row]
+    let yCols = chart.yColumns
+    let yVectors = vectorService.normalizeVectors(yCols.map{$0.values})
     
+    var normalizedYVectors = [TGCANormalizedChartDataVector]()
+    for i in 0..<yCols.count {
+      let yCol = yCols[i]
+      let nv = TGCANormalizedChartDataVector(vector: yVectors[i], identifier: yCol.identifier, color: chart.color(forIdentifier: yCol.identifier) ?? .black, normalizationRange: vectorService.normalizationRange)
+      normalizedYVectors.append(nv)
+    }
+    let normalizedChart = TGCANormalizedChart(yVectors: normalizedYVectors, xVector: TGCAVectorNormalizationService(normalizationRange: 0.0...375.0).normalizeVector(chart.xColumn.values))
+    
+    guard let vc = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "TGCAChartDetailViewController") as? TGCAChartDetailViewController else {
+      return
+    }
+    vc.normalizedChart = normalizedChart
+    navigationController?.pushViewController(vc, animated: true)
   }
   
 }

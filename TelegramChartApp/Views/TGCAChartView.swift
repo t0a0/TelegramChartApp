@@ -9,15 +9,30 @@
 import UIKit
 import QuartzCore
 
+protocol TGCAChartViewDelegate: class {
+  
+  func chartView(_ chartView: TGCAChartView, requestsChartLabelDataForPoint point: CGPoint) -> TGCAChartAnnotation
+  
+}
+
 class TGCAChartView: UIView {
   
-  @IBOutlet var contentView: UIView!
+  weak var delegate: TGCAChartViewDelegate?
   
+  @IBOutlet var contentView: UIView!
   
   //TODO: Limit it by overriding will set
   var displayRange: ClosedRange<CGFloat> = 0.0...1.0 {
     didSet {
-      for chart in charts {
+      guard let drawings = drawings, let chart = chart else {
+        return
+      }
+      
+      for drawing in drawings {
+        
+      }
+      
+//      for dr in charts {
 //        let nds = chart.normalizedDataSet
 //        let newPath = bezierLine(for: ds.dataSet, boundingXRange: boundingXRange)
 //        let pathAnimation = CABasicAnimation(keyPath: "path")
@@ -27,49 +42,79 @@ class TGCAChartView: UIView {
 //        pathAnimation.isRemovedOnCompletion = false
 //        ds.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
 //        ds.shapeLayer.path = newPath.cgPath
-      }
+//      }
     }
   }
   
-  struct Chart {
-    let normalizedDataSet: NormalizedDataSet
+  private var chart: TGCANormalizedChart?
+  private var drawings: [Drawing]?
+  
+  
+  private struct Drawing {
     let identifier: String
-    let color: UIColor
+    let line: UIBezierPath
+    let shapeLayer: CAShapeLayer
   }
   
-  var charts = [Chart]() {
-    didSet {
-      for chart in charts {
-        let chartLine = bezierLine(for: chart.normalizedDataSet)
-      }
+  func configure(with chart: TGCANormalizedChart) {
+    let xVector = chart.xVector
+    let yVectors = chart.yVectors.map{$0.vector}
+    
+    var draws = [Drawing]()
+    
+    for i in 0..<yVectors.count {
+      let line = bezierLine(xVector: xVector, yVector: yVectors[i])
+      let sp = shapeLayer(withPath: line.cgPath, color: chart.yVectors[i].color.cgColor)
+      layer.addSublayer(sp)
+      draws.append(Drawing(identifier: chart.yVectors[i].identifier, line: line, shapeLayer: sp))
     }
+    self.chart = chart
+    self.drawings = draws
   }
   
-  func bezierLine(for nDataSet: NormalizedDataSet) -> UIBezierPath {
-    let availableWidth = frame.width
-    let availableHeight = frame.height
-    //TODO: include 1 to the left and 1 to the right for proper display?
-    let includedPoints = nDataSet.points.filter{boundingXRange.contains($0.x)}
-    
-    let ymin = includedPoints.minY
-    let ymax = includedPoints.maxY
-    
-    let distance = availableWidth/CGFloat(includedPoints.count)
-    let notIncludedPointCount = CGFloat(nDataSet.points.count - includedPoints.count)
-    
+  func bezierLine(xVector: NormalizedDataVector, yVector: NormalizedDataVector) -> UIBezierPath {
     let line = UIBezierPath()
-    let firstPoint = nDataSet.points.first!
-    line.move(to: CGPoint(x: distance * notIncludedPointCount * -1,
-                          y: ((firstPoint.y - ymin) / (ymax - ymin)) * availableHeight))
+    line.lineJoinStyle = .round
     
-    var a = notIncludedPointCount - 1
-    for point in nDataSet.points[1..<nDataSet.points.count] {
-      line.addLine(to: CGPoint(x: distance * a * -1,
-                               y: ((point.y - ymin) / (ymax - ymin)) * availableHeight))
-      a -= 1
+    func point(for i: Int) -> CGPoint {
+      return CGPoint(x: xVector[i], y: yVector[i])
+    }
+    
+    let firstPoint = point(for: 0)
+    line.move(to: firstPoint)
+    
+    for i in 1..<xVector.count {
+      line.addLine(to: point(for: i))
     }
     return line
   }
+  
+//  func bezierLine(for nDataSet: NormalizedDataSet) -> UIBezierPath {
+//    let availableWidth = 320
+//    let availableHeight = frame.height
+//    //TODO: include 1 to the left and 1 to the right for proper display?
+//    let includedPoints = nDataSet.points.filter{boundingXRange.contains($0.x)}
+//
+//    let ymin = includedPoints.minY
+//    let ymax = includedPoints.maxY
+//
+//    let distance = availableWidth/CGFloat(includedPoints.count)
+//    let notIncludedPointCount = CGFloat(nDataSet.points.count - includedPoints.count)
+//
+//    let line = UIBezierPath()
+//    line.lineJoinStyle = .round
+//    let firstPoint = nDataSet.points.first!
+//    line.move(to: CGPoint(x: distance * notIncludedPointCount * -1,
+//                          y: ((firstPoint.y - ymin) / (ymax - ymin)) * availableHeight))
+//
+//    var a = notIncludedPointCount - 1
+//    for point in nDataSet.points[1..<nDataSet.points.count] {
+//      line.addLine(to: CGPoint(x: distance * a * -1,
+//                               y: ((point.y - ymin) / (ymax - ymin)) * availableHeight))
+//      a -= 1
+//    }
+//    return line
+//  }
   
   //MARK: - configure
   func changeDisplayedRange(_ range: ClosedRange<CGFloat>) {

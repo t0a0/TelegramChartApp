@@ -128,3 +128,25 @@ extension Array where Element == DataSet {
   }
   
 }
+
+typealias DataVector = [CGFloat]
+typealias NormalizedDataVector = [CGFloat]
+
+struct TGCANormalizedChart {
+  let yVectors: [TGCANormalizedChartDataVector]
+  let xVector: NormalizedDataVector
+  
+  init(yVectors: [TGCANormalizedChartDataVector], xVector: NormalizedDataVector) {
+    for yVector in yVectors {
+      assert(yVector.vector.count == xVector.count, "Trying to init NormalizedChartData with unmatching points count.")
+    }
+    self.yVectors = yVectors
+    self.xVector = xVector
+  }
+}
+struct TGCANormalizedChartDataVector {
+  let vector: NormalizedDataVector
+  let identifier: String
+  let color: UIColor
+  let normalizationRange: ClosedRange<CGFloat>
+}
