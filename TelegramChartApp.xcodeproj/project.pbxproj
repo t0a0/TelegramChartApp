@@ -22,6 +22,7 @@
 		1657645C2237019700173E97 /* TGCAJsonToChartService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657645B2237019700173E97 /* TGCAJsonToChartService.swift */; };
 		1657645E2237135000173E97 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657645D2237135000173E97 /* Constants.swift */; };
 		16576460223713D400173E97 /* GlobalFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657645F223713D400173E97 /* GlobalFunctions.swift */; };
+		1657646222385F3700173E97 /* TGCAGradientMaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657646122385F3700173E97 /* TGCAGradientMaskView.swift */; };
 		167FCACF22343348001CA7E5 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167FCACE22343348001CA7E5 /* AppDelegate.swift */; };
 		167FCAD422343348001CA7E5 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 167FCAD222343348001CA7E5 /* Main.storyboard */; };
 		167FCAD62234334A001CA7E5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 167FCAD52234334A001CA7E5 /* Assets.xcassets */; };
@@ -66,6 +67,7 @@
 		1657645B2237019700173E97 /* TGCAJsonToChartService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAJsonToChartService.swift; sourceTree = "<group>"; };
 		1657645D2237135000173E97 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		1657645F223713D400173E97 /* GlobalFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalFunctions.swift; sourceTree = "<group>"; };
+		1657646122385F3700173E97 /* TGCAGradientMaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAGradientMaskView.swift; sourceTree = "<group>"; };
 		167FCACB22343348001CA7E5 /* TelegramChartApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TelegramChartApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		167FCACE22343348001CA7E5 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		167FCAD322343348001CA7E5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -115,6 +117,7 @@
 				1657643222343A5600173E97 /* TGCAChartView.xib */,
 				1657643C22349B0000173E97 /* TGCATrimmerShoulderView.swift */,
 				1657643E2234A0FE00173E97 /* TGCATrimmerView.swift */,
+				1657646122385F3700173E97 /* TGCAGradientMaskView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -377,6 +380,7 @@
 				1657645A2236F81400173E97 /* TGCAChartStructs.swift in Sources */,
 				1657643622343B5B00173E97 /* TGCAChartTableViewCell.swift in Sources */,
 				165764562235C77100173E97 /* TGCAChartDetailViewController.swift in Sources */,
+				1657646222385F3700173E97 /* TGCAGradientMaskView.swift in Sources */,
 				167FCACF22343348001CA7E5 /* AppDelegate.swift in Sources */,
 				165764582235D70700173E97 /* UIImage+Color.swift in Sources */,
 				167FCB012234379F001CA7E5 /* TGCAButtonTableViewCell.swift in Sources */,
