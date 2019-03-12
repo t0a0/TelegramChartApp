@@ -90,6 +90,10 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
 
 extension TGCAChartDetailViewController: UITableViewDelegate {
   
+  func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+    return section == 0 ? chart?.title : nil
+  }
+  
 }
 
 extension TGCAChartDetailViewController: TGCATrimmerViewDelegate {
