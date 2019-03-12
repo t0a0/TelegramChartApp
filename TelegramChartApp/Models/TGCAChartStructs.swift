@@ -32,6 +32,51 @@ struct LinearChart {
     self.nyVectorGroup = normalizedVectorGroup(from: yVectors.map{$0.vector})
   }
   
+  func translatedBounds(for xRange: ClosedRange<CGFloat>) -> ClosedRange<Int> {
+    assert(ZORange ~= xRange.lowerBound && ZORange ~= xRange.upperBound, "Only subranges of 0...1 are allowed to use in this method")
+    return Int(xRange.lowerBound * CGFloat(xVector.vector.count-1))...Int(xRange.upperBound * CGFloat(xVector.vector.count-1))
+  }
+  
+  /// xRange - subRange of 0...1.0.
+  func normalizedYVectors(in xRange: ClosedRange<CGFloat>, outOfRangeSubstitionValue: CGFloat = 0.5) -> ([ValueVector], [ValueVector]) {
+    assert(ZORange ~= xRange.lowerBound && ZORange ~= xRange.upperBound, "Only subranges of 0...1 are allowed to use in this method")
+    let lowerBoundIdx = Int(xRange.lowerBound * CGFloat(xVector.vector.count-1))
+    let upperBoundIdx = Int(xRange.upperBound * CGFloat(xVector.vector.count-1))
+    let grp = normalizedVectorGroup(from: yVectors.map{Array($0.vector[lowerBoundIdx...upperBoundIdx])})
+    var resultingVectors = [ValueVector]()
+//    return (grp.vectors, yVectors.map{Array($0.vector[lowerBoundIdx...upperBoundIdx])})
+    for i in 0..<yVectors.count {
+      let a = Array(repeating: 0.5, count: lowerBoundIdx) + grp.vectors[i] + Array(repeating: 0.5, count: xVector.vector.count - 1 - upperBoundIdx)
+//      print(a.count)
+//      print(a)
+      resultingVectors.append(a)
+    }
+    return (resultingVectors, yVectors.map{Array($0.vector[lowerBoundIdx...upperBoundIdx])})
+  }
+  
+  func normalizedXVector(in xRange: ClosedRange<CGFloat>) -> ValueVector {
+    assert(ZORange ~= xRange.lowerBound && ZORange ~= xRange.upperBound, "Only subranges of 0...1 are allowed to use in this method")
+    let lowerBoundIdx = Int(xRange.lowerBound * CGFloat(xVector.vector.count-1)) //33
+    let upperBoundIdx = Int(xRange.upperBound * CGFloat(xVector.vector.count-1)) //66
+    return Array(repeating: -1, count: lowerBoundIdx) + normalizedVector(from: Array(xVector.vector[lowerBoundIdx...upperBoundIdx])).vector + Array(repeating: 2, count: xVector.vector.count - 1 - upperBoundIdx)
+  }
+  
+  func normalizedYVectors(for bounds: ClosedRange<Int>) -> [ValueVector] {
+    let grp = normalizedVectorGroup(from: yVectors.map{Array($0.vector[bounds])})
+    var resultingVectors = [ValueVector]()
+    return grp.vectors
+    for i in 0..<yVectors.count {
+      let a = Array(repeating: 0.5, count: bounds.lowerBound) + grp.vectors[i] + Array(repeating: 0.5, count: xVector.vector.count - 1 - bounds.upperBound)
+      //      print(a.count)
+      //      print(a)
+      resultingVectors.append(a)
+    }
+    return resultingVectors
+  }
+  
+  func normalizedXVector(for bounds: ClosedRange<Int>) -> ValueVector {
+    return normalizedVector(from: Array(xVector.vector[bounds])).vector
+  }
 }
 
 struct ChartPositionVector {

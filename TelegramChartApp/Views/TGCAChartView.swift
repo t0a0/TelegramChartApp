@@ -16,33 +16,46 @@ protocol TGCAChartViewDelegate: class {
 }
 
 class TGCAChartView: UIView {
-  
+  private struct Drawing {
+    let identifier: String
+    let line: UIBezierPath
+    let shapeLayer: CAShapeLayer
+  }
   weak var delegate: TGCAChartViewDelegate?
   
   @IBOutlet var contentView: UIView!
   
-  //TODO: Limit it by overriding will set
+  var lastYRange: ClosedRange<CGFloat> = 0...0
+  
+  /// From 0 to 1.0.
   var displayRange: ClosedRange<CGFloat> = ZORange {
     didSet {
       guard let drawings = drawings, let chart = chart else {
         return
       }
-      
-      for drawing in drawings {
-        
+
+      let bounds = chart.translatedBounds(for: displayRange)
+      let normalizedYVectors = chart.normalizedYVectors(in: displayRange)
+      let max = normalizedYVectors.1.map{$0.max() ?? 0}.max() ?? 0
+      let min = normalizedYVectors.1.map{$0.min() ?? 0}.min() ?? 0
+      let newRange = min...max
+      if lastYRange == newRange {
+//        return
       }
-      
-//      for dr in charts {
-//        let nds = chart.normalizedDataSet
-//        let newPath = bezierLine(for: ds.dataSet, boundingXRange: boundingXRange)
-//        let pathAnimation = CABasicAnimation(keyPath: "path")
-//        pathAnimation.fromValue = ds.shapeLayer.path
-//        pathAnimation.fillMode = .forwards
-//        pathAnimation.toValue = newPath.cgPath
-//        pathAnimation.isRemovedOnCompletion = false
-//        ds.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
-//        ds.shapeLayer.path = newPath.cgPath
-//      }
+      lastYRange = newRange
+      let normalizedXVector = chart.normalizedXVector(in: displayRange)
+      for i in 0..<drawings.count {
+        let drawing = drawings[i]
+        let yVector = normalizedYVectors.0[i].map{300 - ($0 * 300)}
+        let newPath = bezierLine(xVector: normalizedXVector.map{$0 * 375}, yVector: yVector)
+        let pathAnimation = CABasicAnimation(keyPath: "path")
+        pathAnimation.fromValue = drawing.shapeLayer.path
+        pathAnimation.fillMode = .forwards
+        pathAnimation.toValue = newPath.cgPath
+        pathAnimation.isRemovedOnCompletion = false
+        drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
+        drawing.shapeLayer.path = newPath.cgPath
+      }
     }
   }
   
@@ -51,7 +64,7 @@ class TGCAChartView: UIView {
   private var chart: LinearChart! {
     didSet {
       setNeedsLayout()
-      let yVectors = chart.nyVectorGroup.vectors.map{$0.map{$0 * 300}}
+      let yVectors = chart.nyVectorGroup.vectors.map{$0.map{300 - ($0 * 300)}}
       let xVector = chart.xVector.nVector.vector.map{$0 * 375}
       var draws = [Drawing]()
       
@@ -64,14 +77,13 @@ class TGCAChartView: UIView {
       self.drawings = draws
     }
   }
-  private var drawings: [Drawing]?
+  private var drawings: [Drawing]!
   
-  
-  private struct Drawing {
-    let identifier: String
-    let line: UIBezierPath
-    let shapeLayer: CAShapeLayer
+
+  func hide(withID identifier: String) {
+    
   }
+  
   
   func configure(with chart: LinearChart) {
     self.chart = chart
@@ -82,7 +94,7 @@ class TGCAChartView: UIView {
     line.lineJoinStyle = .round
     
     func point(for i: Int) -> CGPoint {
-      return CGPoint(x: xVector[i], y: 300 - yVector[i])
+      return CGPoint(x: xVector[i], y: yVector[i])
     }
     
     let firstPoint = point(for: 0)
