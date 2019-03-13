@@ -133,20 +133,15 @@ func oddlyNormalizedVectorGroup(from vectors: [ValueVector], skippingIndexes ski
   
   var maxxxGood:CGFloat = 0
   var minnnGood:CGFloat = 1
-  var maxxxBad:CGFloat = 0
-  var minnnBad:CGFloat = 1
   for i in 0..<allNormalized.vectors.count {
-    if indexesToSkip.contains(i) {
-      maxxxBad = max(maxxxBad, allNormalized.vectors[i].max()!)
-      minnnBad = min(minnnBad, allNormalized.vectors[i].min()!)
-    } else {
+    if !indexesToSkip.contains(i) {
       maxxxGood = max(maxxxGood, allNormalized.vectors[i].max()!)
       minnnGood = min(minnnGood, allNormalized.vectors[i].min()!)
     }
   }
   let normalizedPresentVectors = normalizedVectorGroup(from: presentVectors).vectors
   
-  // Now we need to return an array of vectors at the same order that it was given, where non-skipped vectors are normalized against each other, and skipped ones are scaled against original present vectors and then also normalized to 0...1. But they will have values bigger than 1 (since they are "oddly" normalized.
+  // Now we need to return an array of vectors with the same order that was given, where non-skipped vectors are normalized in 0...1 and skipped ones are scaled against newly calculated present vectors.
   var iterationIndexInNormalizedPresentVectors = 0
   for i in 0..<positiveVectors.count {
     if indexesToSkip.contains(i) {
