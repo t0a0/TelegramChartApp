@@ -94,6 +94,9 @@ extension TGCAChartDetailViewController: UITableViewDelegate {
     return section == 0 ? chart?.title : nil
   }
   
+  func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    chartCell?.chartView.hide(at: indexPath.row - 1)
+  }
 }
 
 extension TGCAChartDetailViewController: TGCATrimmerViewDelegate {

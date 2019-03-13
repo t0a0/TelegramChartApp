@@ -23,6 +23,12 @@ class TGCAChartView: UIView {
   }
   weak var delegate: TGCAChartViewDelegate?
   
+  
+  override func awakeFromNib() {
+    super.awakeFromNib()
+    layer.masksToBounds = true
+  }
+  
   @IBOutlet var contentView: UIView!
   
   var lastYRange: ClosedRange<CGFloat> = 0...0
@@ -50,11 +56,12 @@ class TGCAChartView: UIView {
         let newPath = bezierLine(xVector: normalizedXVector.map{$0 * 375}, yVector: yVector)
         let pathAnimation = CABasicAnimation(keyPath: "path")
         pathAnimation.fromValue = drawing.shapeLayer.path
-        pathAnimation.fillMode = .forwards
-        pathAnimation.toValue = newPath.cgPath
-        pathAnimation.isRemovedOnCompletion = false
-        drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
         drawing.shapeLayer.path = newPath.cgPath
+//        pathAnimation.fillMode = .forwards
+        pathAnimation.toValue = drawing.shapeLayer.path
+        pathAnimation.duration = 0.25
+//        pathAnimation.isRemovedOnCompletion = false
+        drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
       }
     }
   }
@@ -80,8 +87,29 @@ class TGCAChartView: UIView {
   private var drawings: [Drawing]!
   
 
-  func hide(withID identifier: String) {
-    
+  func hide(at index: Int) {
+    let normalizedYVectors = chart.oddlyNormalizedYVectors(in: displayRange, excludedIdxs: [index])
+    let normalizedXVector = chart.normalizedXVector(in: displayRange)
+    for i in 0..<drawings.count {
+      let drawing = drawings[i]
+      let yVector = normalizedYVectors.0[i].map{300 - ($0 * 300)}
+      let newPath = bezierLine(xVector: normalizedXVector.map{$0 * 375}, yVector: yVector)
+      let pathAnimation = CABasicAnimation(keyPath: "path")
+      pathAnimation.fromValue = drawing.shapeLayer.path
+      drawing.shapeLayer.path = newPath.cgPath
+      pathAnimation.toValue = drawing.shapeLayer.path
+      pathAnimation.duration = 0.25
+      drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
+      
+      if i == index {
+        let opacityAnimation = CABasicAnimation(keyPath: "opacity")
+        opacityAnimation.fromValue = drawing.shapeLayer.opacity
+        drawing.shapeLayer.opacity = 0
+        opacityAnimation.toValue = drawing.shapeLayer.opacity
+        opacityAnimation.duration = 0.25
+        drawing.shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
+      }
+    }
   }
   
   

@@ -32,6 +32,22 @@ struct LinearChart {
     self.nyVectorGroup = normalizedVectorGroup(from: yVectors.map{$0.vector})
   }
   
+  func oddlyNormalizedYVectors(in xRange: ClosedRange<CGFloat>, excludedIdxs: [Int]) -> ([ValueVector], [ValueVector]) {
+    let lowerBoundIdx = Int(xRange.lowerBound * CGFloat(xVector.vector.count-1))
+    let upperBoundIdx = Int(xRange.upperBound * CGFloat(xVector.vector.count-1))
+    let grp = oddlyNormalizedVectorGroup(from: yVectors.map{Array($0.vector[lowerBoundIdx...upperBoundIdx])}, skippingIndexes: excludedIdxs)
+    var resultingVectors = [ValueVector]()
+    //    return (grp.vectors, yVectors.map{Array($0.vector[lowerBoundIdx...upperBoundIdx])})
+    for i in 0..<yVectors.count {
+      let a = Array(repeating: 0.5, count: lowerBoundIdx) + grp.vectors[i] + Array(repeating: 0.5, count: xVector.vector.count - 1 - upperBoundIdx)
+      //      print(a.count)
+      //      print(a)
+      resultingVectors.append(a)
+    }
+    return (resultingVectors, yVectors.map{Array($0.vector[lowerBoundIdx...upperBoundIdx])})
+  }
+  
+  
   func translatedBounds(for xRange: ClosedRange<CGFloat>) -> ClosedRange<Int> {
     assert(ZORange ~= xRange.lowerBound && ZORange ~= xRange.upperBound, "Only subranges of 0...1 are allowed to use in this method")
     return Int(xRange.lowerBound * CGFloat(xVector.vector.count-1))...Int(xRange.upperBound * CGFloat(xVector.vector.count-1))
@@ -131,4 +147,10 @@ struct NormalizedValueVector {
 struct NormalizedValueVectorGroup {
   let vectors: [ValueVector]
   let normalizationRange: ClosedRange<CGFloat>
+}
+
+
+struct OddlyNormalizedValueVectorGroup {
+  let vectors: [ValueVector]
+  let excludedIdxs: [Int]
 }
