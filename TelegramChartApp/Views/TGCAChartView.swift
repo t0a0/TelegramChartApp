@@ -40,15 +40,35 @@ class TGCAChartView: UIView {
         return
       }
 
-      let bounds = chart.translatedBounds(for: displayRange)
-      let normalizedYVectors = chart.normalizedYVectors(in: displayRange)
-      let max = normalizedYVectors.1.map{$0.max() ?? 0}.max() ?? 0
-      let min = normalizedYVectors.1.map{$0.min() ?? 0}.min() ?? 0
-      let newRange = min...max
-      if lastYRange == newRange {
+//      let bounds = chart.translatedBounds(for: displayRange)
+//      let normalizedYVectors = chart.normalizedYVectors(in: displayRange)
+//      let normalizedXVector = chart.normalizedXVector(in: displayRange)
+
+//      let max = normalizedYVectors.1.map{$0.max() ?? 0}.max() ?? 0
+//      let min = normalizedYVectors.1.map{$0.min() ?? 0}.min() ?? 0
+//      let newRange = min...max
+//      if lastYRange == newRange {
 //        return
+//      }
+//      lastYRange = newRange
+//      for i in 0..<drawings.count {
+//        let drawing = drawings[i]
+//        let yVector = normalizedYVectors.0[i].map{300 - ($0 * 300)}
+//        let newPath = bezierLine(xVector: normalizedXVector.map{$0 * 375}, yVector: yVector)
+//        let pathAnimation = CABasicAnimation(keyPath: "path")
+//        pathAnimation.fromValue = drawing.shapeLayer.path
+//        drawing.shapeLayer.path = newPath.cgPath
+////        pathAnimation.fillMode = .forwards
+//        pathAnimation.toValue = drawing.shapeLayer.path
+//        pathAnimation.duration = 0.25
+////        pathAnimation.isRemovedOnCompletion = false
+//        drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
+//      }
+      var excluded = [Int]()
+      for i in 0..<hiddens.count {
+        if hiddens[i] {excluded.append(i)}
       }
-      lastYRange = newRange
+      let normalizedYVectors = chart.oddlyNormalizedYVectors(in: displayRange, excludedIdxs: excluded)
       let normalizedXVector = chart.normalizedXVector(in: displayRange)
       for i in 0..<drawings.count {
         let drawing = drawings[i]
@@ -57,16 +77,15 @@ class TGCAChartView: UIView {
         let pathAnimation = CABasicAnimation(keyPath: "path")
         pathAnimation.fromValue = drawing.shapeLayer.path
         drawing.shapeLayer.path = newPath.cgPath
-//        pathAnimation.fillMode = .forwards
         pathAnimation.toValue = drawing.shapeLayer.path
         pathAnimation.duration = 0.25
-//        pathAnimation.isRemovedOnCompletion = false
         drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
-      }
+    }
     }
   }
   
   private var yValueRange: ClosedRange<CGFloat> = 0...0
+  private var hiddens: [Bool]!
   
   private var chart: LinearChart! {
     didSet {
@@ -82,13 +101,20 @@ class TGCAChartView: UIView {
         draws.append(Drawing(identifier: chart.yVectors[i].metaData.identifier, line: line, shapeLayer: sp))
       }
       self.drawings = draws
+      self.hiddens = Array(repeating: false, count: chart.yVectors.count)
     }
   }
   private var drawings: [Drawing]!
   
 
   func hide(at index: Int) {
-    let normalizedYVectors = chart.oddlyNormalizedYVectors(in: displayRange, excludedIdxs: [index])
+    let originalHidden = hiddens[index]
+    hiddens[index].toggle()
+    var excluded = [Int]()
+    for i in 0..<hiddens.count {
+      if hiddens[i] {excluded.append(i)}
+    }
+    let normalizedYVectors = chart.oddlyNormalizedYVectors(in: displayRange, excludedIdxs: excluded)
     let normalizedXVector = chart.normalizedXVector(in: displayRange)
     for i in 0..<drawings.count {
       let drawing = drawings[i]
@@ -104,7 +130,7 @@ class TGCAChartView: UIView {
       if i == index {
         let opacityAnimation = CABasicAnimation(keyPath: "opacity")
         opacityAnimation.fromValue = drawing.shapeLayer.opacity
-        drawing.shapeLayer.opacity = 0
+        drawing.shapeLayer.opacity = originalHidden ? 1 : 0
         opacityAnimation.toValue = drawing.shapeLayer.opacity
         opacityAnimation.duration = 0.25
         drawing.shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
