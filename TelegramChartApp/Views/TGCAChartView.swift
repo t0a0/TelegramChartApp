@@ -125,6 +125,7 @@ class TGCAChartView: UIView {
       drawing.shapeLayer.path = newPath.cgPath
       pathAnimation.toValue = drawing.shapeLayer.path
       pathAnimation.duration = 0.25
+      pathAnimation.timingFunction = CAMediaTimingFunction(name: .easeIn)
       drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
       
       if i == index {
@@ -133,6 +134,9 @@ class TGCAChartView: UIView {
         drawing.shapeLayer.opacity = originalHidden ? 1 : 0
         opacityAnimation.toValue = drawing.shapeLayer.opacity
         opacityAnimation.duration = 0.25
+        // TODO: LOOK INTO FADING TIME
+        opacityAnimation.timingFunction = CAMediaTimingFunction(name: .easeIn)
+
         drawing.shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
       }
     }
