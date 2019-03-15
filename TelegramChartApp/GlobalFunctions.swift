@@ -51,54 +51,6 @@ func normalizedVectorGroup(from vectors: [ValueVector], withNormalizationRange n
   
 }
 
-
-//func oddlyNormalizedVectorGroup(from vectors: [ValueVector], skippingIndexes skipIdxs: [Int] = []) -> OddlyNormalizedValueVectorGroup {
-//  let indexesToSkip = Set(skipIdxs).sorted() //remove duplicates and sort ascending. This is important!
-//
-//  //  assert((indexesToSkip.max() ?? 0) < vectors.count && (indexesToSkip.min() ?? 0) < vectors.count, "Skipping indexes array contains value > vectors.count") TODO: this assert check is correct, but do i need it?
-//
-//  var minimum: CGFloat = 0
-//  var maximum: CGFloat = 0
-//  for i in 0..<vectors.count {
-//    if indexesToSkip.contains(i) { continue }
-//    minimum = min(minimum, vectors[i].min() ?? 0)
-//    maximum = max(maximum, vectors[i].max() ?? 0)
-//  }
-//
-//  //TODO: WHAT TO DO IF THEY ARE MAX AND MIN ARE SAME
-//  guard minimum != maximum else {
-//    fatalError()
-//  }
-//  var positiveVectors = minimum >= 0 ? vectors : vectors.map{$0.map{$0 - minimum}}
-//  if minimum < 0 {
-//    minimum -= minimum
-//    maximum -= minimum
-//  }
-//
-//  // Present vectors are the ones that we don't skip. We normalize them together.
-//  var presentVectors = [ValueVector]()
-//  for i in 0..<positiveVectors.count {
-//    if indexesToSkip.contains(i) { continue }
-//    presentVectors.append(positiveVectors[i])
-//  }
-//  let normalizedPresentVectors = normalizedVectorGroup(from: presentVectors).vectors
-//
-//  // Now we need to return an array of vectors at the same order that it was given, where non-skipped vectors are normalized against each other, and skipped ones are scaled against original present vectors and then also normalized to 0...1. But they will have values bigger than 1 (since they are "oddly" normalized.
-//  var iterationIndexInNormalizedPresentVectors = 0
-//  for i in 0..<positiveVectors.count {
-//    if indexesToSkip.contains(i) {
-//      //TODO: this is not correct, but i dont know
-//      positiveVectors[i] = normalizedVector(from: positiveVectors[i]).vector.map{$0 / (maximum/positiveVectors[i].max()!)}
-//    }
-//    else {
-//      positiveVectors[i] = normalizedPresentVectors[iterationIndexInNormalizedPresentVectors]
-//      // Keeping the correct order
-//      iterationIndexInNormalizedPresentVectors += 1
-//    }
-//  }
-//
-//  return OddlyNormalizedValueVectorGroup(vectors: positiveVectors, excludedIdxs: indexesToSkip)
-//}
 func oddlyNormalizedVectorGroup(from vectors: [ValueVector], skippingIndexes skipIdxs: [Int] = []) -> OddlyNormalizedValueVectorGroup {
   let indexesToSkip = Set(skipIdxs).sorted() //remove duplicates and sort ascending. This is important!
   
@@ -112,9 +64,8 @@ func oddlyNormalizedVectorGroup(from vectors: [ValueVector], skippingIndexes ski
     maximum = max(maximum, vectors[i].max() ?? 0)
   }
   
-  //TODO: WHAT TO DO IF THEY ARE MAX AND MIN ARE SAME
   guard minimum != maximum else {
-    fatalError()
+    return OddlyNormalizedValueVectorGroup(vectors: vectors.map{Array(repeating: 0.5, count: $0.count)}, excludedIdxs: skipIdxs)
   }
   var positiveVectors = minimum >= 0 ? vectors : vectors.map{$0.map{$0 - minimum}}
   if minimum < 0 {
