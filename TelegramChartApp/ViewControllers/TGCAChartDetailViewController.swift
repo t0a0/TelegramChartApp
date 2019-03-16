@@ -164,7 +164,14 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
   }
   
   func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-    return indexPath.section == 0 && indexPath.row == 0 ? 300 : 44.0
+    if indexPath.section == 0 {
+      if indexPath.row == 0 {
+        return 300.0
+      } else if indexPath.row == 1 {
+        return 60.0
+      }
+    }
+    return 44.0
   }
   
 }
