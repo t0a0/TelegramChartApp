@@ -40,7 +40,7 @@ class TGCAChartView: UIView {
   
   override var bounds: CGRect {
     didSet {
-      chartBounds = CGRect(x: bounds.origin.x + graphLineWidth + 40,
+      chartBounds = CGRect(x: bounds.origin.x + graphLineWidth,
                            y: bounds.origin.y + graphLineWidth,
                            width: bounds.width - graphLineWidth * 2,
                            height: bounds.height - graphLineWidth * 2)
@@ -67,6 +67,11 @@ class TGCAChartView: UIView {
     let identifier: String
     let line: UIBezierPath
     let shapeLayer: CAShapeLayer
+    private(set) var points: [CGPoint]
+    
+    mutating func update(withPoints points: [CGPoint]) {
+      self.points = points
+    }
   }
   weak var delegate: TGCAChartViewDelegate?
 
@@ -79,7 +84,7 @@ class TGCAChartView: UIView {
   /// From 0 to 1.0.
   var displayRange: ClosedRange<CGFloat> = ZORange {
     didSet {
-      guard let drawings = drawings, let chart = chart else {
+      guard var drawings = drawings, let chart = chart else {
         return
       }
 
@@ -99,15 +104,29 @@ class TGCAChartView: UIView {
       }
       
       for i in 0..<drawings.count {
-        let drawing = drawings[i]
+        var drawing = drawings[i]
+        
+        
         let yVector = normalizedYVectors.resultingVectors[i].map{chartBounds.size.height - ($0 * chartBounds.size.height) + chartBounds.origin.y}
-        let newPath = bezierLine(xVector: normalizedXVector.map{$0 * chartBounds.size.width + chartBounds.origin.x}, yVector: yVector)
+        let xVector = normalizedXVector.map{$0 * chartBounds.size.width + chartBounds.origin.x}
+        
+        func point(for j: Int) -> CGPoint {
+          return CGPoint(x: xVector[j], y: yVector[j])
+        }
+        var points = [CGPoint]()
+        for k in 0..<xVector.count {
+          points.append(point(for: k))
+        }
+        drawing.update(withPoints: points)
+        
+        let newPath = bezierLine(xVector: xVector, yVector: yVector)
         let pathAnimation = CABasicAnimation(keyPath: "path")
         pathAnimation.fromValue = drawing.shapeLayer.path
         drawing.shapeLayer.path = newPath.cgPath
         pathAnimation.toValue = drawing.shapeLayer.path
         pathAnimation.duration = 0.25
         drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
+        self.drawings![i] = drawing
     }
     }
   }
@@ -122,10 +141,22 @@ class TGCAChartView: UIView {
       var draws = [Drawing]()
       
       for i in 0..<yVectors.count {
-        let line = bezierLine(xVector: xVector, yVector: yVectors[i])
+        let yVector = yVectors[i]
+        
+        
+        func point(for j: Int) -> CGPoint {
+          return CGPoint(x: xVector[j], y: yVector[j])
+        }
+        var points = [CGPoint]()
+        for k in 0..<xVector.count {
+          points.append(point(for: k))
+        }
+        
+        
+        let line = bezierLine(xVector: xVector, yVector: yVector)
         let sp = shapeLayer(withPath: line.cgPath, color: chart.yVectors[i].metaData.color.cgColor, lineWidth: graphLineWidth)
         layer.addSublayer(sp)
-        draws.append(Drawing(identifier: chart.yVectors[i].metaData.identifier, line: line, shapeLayer: sp))
+        draws.append(Drawing(identifier: chart.yVectors[i].metaData.identifier, line: line, shapeLayer: sp, points: points))
       }
       self.drawings = draws
       self.hiddens = Array(repeating: false, count: chart.yVectors.count)
@@ -177,22 +208,7 @@ class TGCAChartView: UIView {
     }
   }
   
-  func bezierLine(xVector: ValueVector, yVector: ValueVector) -> UIBezierPath {
-    let line = UIBezierPath()
-    line.lineJoinStyle = .round
-    
-    func point(for i: Int) -> CGPoint {
-      return CGPoint(x: xVector[i], y: yVector[i])
-    }
-    
-    let firstPoint = point(for: 0)
-    line.move(to: firstPoint)
-    
-    for i in 1..<xVector.count {
-      line.addLine(to: point(for: i))
-    }
-    return line
-  }
+  
   
   typealias SupportAxis = (lineLayer: CAShapeLayer, labelLayer: CATextLayer, value: CGFloat)
   
@@ -271,15 +287,42 @@ class TGCAChartView: UIView {
     
   }
   
+  func bezierLine(xVector: ValueVector, yVector: ValueVector) -> UIBezierPath {
+    let line = UIBezierPath()
+    
+    func point(for i: Int) -> CGPoint {
+      return CGPoint(x: xVector[i], y: yVector[i])
+    }
+    
+    let firstPoint = point(for: 0)
+    line.move(to: firstPoint)
+    
+    for i in 1..<xVector.count {
+      line.addLine(to: point(for: i))
+    }
+    return line
+  }
   
+  func bezierLine(from fromPoint: CGPoint, to toPoint: CGPoint) -> UIBezierPath {
+    let line = UIBezierPath()
+    line.move(to: fromPoint)
+    line.addLine(to: toPoint)
+    return line
+  }
   
-  func shapeLayer(withPath path: CGPath, color: CGColor, lineWidth: CGFloat = 2) -> CAShapeLayer{
+  func bezierCircle(at point: CGPoint) -> UIBezierPath {
+    let rect = CGRect(x: point.x - 4, y: point.y - 4, width: 8, height: 8)
+    return UIBezierPath(ovalIn: rect)
+  }
+  
+  func shapeLayer(withPath path: CGPath, color: CGColor, lineWidth: CGFloat = 2, fillColor: CGColor? = nil) -> CAShapeLayer{
     let shapeLayer = CAShapeLayer()
     shapeLayer.path = path
     shapeLayer.strokeColor = color
     shapeLayer.lineWidth = lineWidth
-    shapeLayer.lineJoin = .bevel
-    shapeLayer.fillColor = nil
+    shapeLayer.lineJoin = .round
+    shapeLayer.lineCap = .round
+    shapeLayer.fillColor = fillColor
     return shapeLayer
   }
   
@@ -297,14 +340,48 @@ class TGCAChartView: UIView {
   // MARK: - Touches
   
   override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-    guard let touchLocation = touches.first?.location(in: self) else {
-      return
-    }
-    if chartBounds.contains(touchLocation) {
-      print("contains")
+    guard
+      let touchLocation = touches.first?.location(in: self),
+      chartBounds.contains(touchLocation)
+      else {
+        return
     }
     
+    //TODO: Something wrong with calculation, on the right part of the screen index is + 1 from the touched one
+    
+    func closestIndex(for touchLocation: CGPoint) -> Int {
+      let xPositionInChartBounds = touchLocation.x - chartBounds.origin.x
+      let translatedToDisplayRange = (displayRange.upperBound - displayRange.lowerBound) * (xPositionInChartBounds / chartBounds.width) + displayRange.lowerBound
+      let index = round(CGFloat(chart.xVector.vector.count - 1) * translatedToDisplayRange)
+      print(index)
+      return Int(index)
+    }
+    
+//    func xLocationInChartBounds(of index: Int) -> CGFloat {
+//      let displayRangeLocation = (CGFloat(index) / CGFloat(chart.xVector.vector.count - 1))
+//      let currentDisplayRangeLocation = (displayRangeLocation - displayRange.lowerBound)/(displayRange.upperBound - displayRange.lowerBound)
+//      return (chartBounds.width * currentDisplayRangeLocation) + chartBounds.origin.x
+//    }
+//
+    let index = closestIndex(for: touchLocation)
+    
+    
+    for i in 0..<drawings.count {
+      let drawing = drawings[i]
+      let point = drawing.points[index]
+     
+      
+      let line = bezierLine(from: CGPoint(x: point.x, y: chartBounds.origin.y + chartBounds.height), to: CGPoint(x: point.x, y: chartBounds.origin.y))
+      let shapeLayerr = shapeLayer(withPath: line.cgPath, color: UIColor.blue.cgColor, lineWidth: 1.0)
+      layer.addSublayer(shapeLayerr)
+      
+      let circle = bezierCircle(at: point)
+      let circleShape = shapeLayer(withPath: circle.cgPath, color: chart.yVectors[i].metaData.color.cgColor, lineWidth: graphLineWidth, fillColor: UIApplication.myDelegate.currentTheme.foregroundColor.cgColor)
+      layer.addSublayer(circleShape)
+    }
   }
+  
+  
   
   override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
     print("moved")
