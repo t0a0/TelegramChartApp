@@ -35,11 +35,12 @@ class TGCAChartView: UIView {
     contentView.frame = self.bounds
     contentView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
     layer.masksToBounds = true
+    isMultipleTouchEnabled = false
   }
   
   override var bounds: CGRect {
     didSet {
-      chartBounds = CGRect(x: bounds.origin.x + graphLineWidth,
+      chartBounds = CGRect(x: bounds.origin.x + graphLineWidth + 40,
                            y: bounds.origin.y + graphLineWidth,
                            width: bounds.width - graphLineWidth * 2,
                            height: bounds.height - graphLineWidth * 2)
@@ -99,8 +100,8 @@ class TGCAChartView: UIView {
       
       for i in 0..<drawings.count {
         let drawing = drawings[i]
-        let yVector = normalizedYVectors.resultingVectors[i].map{chartBounds.size.height - ($0 * chartBounds.size.height)}
-        let newPath = bezierLine(xVector: normalizedXVector.map{$0 * chartBounds.size.width}, yVector: yVector)
+        let yVector = normalizedYVectors.resultingVectors[i].map{chartBounds.size.height - ($0 * chartBounds.size.height) + chartBounds.origin.y}
+        let newPath = bezierLine(xVector: normalizedXVector.map{$0 * chartBounds.size.width + chartBounds.origin.x}, yVector: yVector)
         let pathAnimation = CABasicAnimation(keyPath: "path")
         pathAnimation.fromValue = drawing.shapeLayer.path
         drawing.shapeLayer.path = newPath.cgPath
@@ -116,8 +117,8 @@ class TGCAChartView: UIView {
   
   private var chart: LinearChart! {
     didSet {
-      let yVectors = chart.nyVectorGroup.vectors.map{$0.map{chartBounds.size.height - ($0 * chartBounds.size.height)}}
-      let xVector = chart.xVector.nVector.vector.map{$0 * chartBounds.size.width}
+      let yVectors = chart.nyVectorGroup.vectors.map{$0.map{chartBounds.size.height - ($0 * chartBounds.size.height) + chartBounds.origin.y}}
+      let xVector = chart.xVector.nVector.vector.map{$0 * chartBounds.size.width + chartBounds.origin.x}
       var draws = [Drawing]()
       
       for i in 0..<yVectors.count {
@@ -143,8 +144,8 @@ class TGCAChartView: UIView {
     let normalizedXVector = chart.normalizedXVector(in: displayRange)
     for i in 0..<drawings.count {
       let drawing = drawings[i]
-      let yVector = normalizedYVectors.resultingVectors[i].map{chartBounds.size.height - ($0 * chartBounds.size.height)}
-      let newPath = bezierLine(xVector: normalizedXVector.map{$0 * chartBounds.size.width}, yVector: yVector)
+      let yVector = normalizedYVectors.resultingVectors[i].map{chartBounds.size.height + chartBounds.origin.y - ($0 * chartBounds.size.height)}
+      let newPath = bezierLine(xVector: normalizedXVector.map{$0 * chartBounds.size.width + chartBounds.origin.x}, yVector: yVector)
       let pathAnimation = CABasicAnimation(keyPath: "path")
       pathAnimation.fromValue = drawing.shapeLayer.path
       drawing.shapeLayer.path = newPath.cgPath
@@ -293,4 +294,27 @@ class TGCAChartView: UIView {
     return textLayer
   }
   
+  // MARK: - Touches
+  
+  override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+    guard let touchLocation = touches.first?.location(in: self) else {
+      return
+    }
+    if chartBounds.contains(touchLocation) {
+      print("contains")
+    }
+    
+  }
+  
+  override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+    print("moved")
+  }
+  
+  override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+    print("ended")
+  }
+  
+  override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+    print("cancelled")
+  }
 }

@@ -20,10 +20,10 @@
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hnY-Vz-E7S" customClass="TGCAChartView" customModule="TelegramChartApp" customModuleProvider="target">
-                        <rect key="frame" x="16" y="2" width="288" height="24.5"/>
+                        <rect key="frame" x="14" y="2" width="290" height="24.5"/>
                     </view>
                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="XS0-gR-gw2" customClass="TGCATrimmerView" customModule="TelegramChartApp" customModuleProvider="target">
-                        <rect key="frame" x="16" y="0.0" width="288" height="28.5"/>
+                        <rect key="frame" x="14" y="0.0" width="290" height="28.5"/>
                     </view>
                 </subviews>
                 <constraints>
@@ -31,7 +31,7 @@
                     <constraint firstAttribute="trailing" secondItem="XS0-gR-gw2" secondAttribute="trailing" constant="16" id="U8E-0I-2Cj"/>
                     <constraint firstItem="XS0-gR-gw2" firstAttribute="leading" secondItem="hnY-Vz-E7S" secondAttribute="leading" id="ZR1-xZ-a7J"/>
                     <constraint firstAttribute="bottom" secondItem="XS0-gR-gw2" secondAttribute="bottom" constant="15" id="dEk-Hw-bAM"/>
-                    <constraint firstItem="XS0-gR-gw2" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" constant="16" id="grf-5T-xWk"/>
+                    <constraint firstItem="XS0-gR-gw2" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" constant="14" id="grf-5T-xWk"/>
                     <constraint firstItem="hnY-Vz-E7S" firstAttribute="bottom" secondItem="XS0-gR-gw2" secondAttribute="bottom" constant="-2" id="pWl-El-2Rc"/>
                     <constraint firstItem="XS0-gR-gw2" firstAttribute="trailing" secondItem="hnY-Vz-E7S" secondAttribute="trailing" id="thz-Op-9B7"/>
                     <constraint firstItem="XS0-gR-gw2" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" id="uVy-9s-2Mm"/>
