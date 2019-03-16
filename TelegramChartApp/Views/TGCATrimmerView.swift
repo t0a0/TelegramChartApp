@@ -153,9 +153,37 @@ class TGCATrimmerView: UIView {
   }
   
   private func setupGestures() {
-    for shoulderView in [trimmedAreaView, leftShoulderView, rightShoulderView] {
+    for view in [trimmedAreaView, leftShoulderView, rightShoulderView] {
       let panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(handlePanGesture(_:)))
-      shoulderView.addGestureRecognizer(panGestureRecognizer)
+      view.addGestureRecognizer(panGestureRecognizer)
+    }
+  }
+  
+  private func deactivateShoulderGestureRecognizers() {
+    for shoulderView in [leftShoulderView, rightShoulderView] {
+      if let gestureRecognizers = shoulderView.gestureRecognizers {
+        for gesture in gestureRecognizers {
+          gesture.isEnabled = false
+        }
+      }
+    }
+  }
+  
+  private func deactivateTrimmedAreaGestureRecognizers() {
+    if let gestureRecognizers = trimmedAreaView.gestureRecognizers {
+      for gesture in gestureRecognizers {
+        gesture.isEnabled = false
+      }
+    }
+  }
+  
+  private func reactivateGestureRecognizers() {
+    for view in [trimmedAreaView, leftShoulderView, rightShoulderView] {
+      if let gestureRecognizers = view.gestureRecognizers {
+        for gesture in gestureRecognizers {
+          gesture.isEnabled = true
+        }
+      }
     }
   }
   
@@ -167,10 +195,13 @@ class TGCATrimmerView: UIView {
       
     case .began:
       if isLeftGesture {
+        deactivateTrimmedAreaGestureRecognizers()
         currentLeftConstraint = leftConstraint!.constant
       } else if isRightGesture {
+        deactivateTrimmedAreaGestureRecognizers()
         currentRightConstraint = rightConstraint!.constant
       } else {
+        deactivateShoulderGestureRecognizers()
         currentLeftConstraint = leftConstraint!.constant
         currentRightConstraint = rightConstraint!.constant
       }
@@ -188,6 +219,7 @@ class TGCATrimmerView: UIView {
       layoutIfNeeded()
       notifyRangeChanged()
     case .cancelled, .ended, .failed:
+      reactivateGestureRecognizers()
       notifyRangeChanged()
     default: break
     }
