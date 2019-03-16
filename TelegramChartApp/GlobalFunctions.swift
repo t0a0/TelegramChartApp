@@ -51,7 +51,7 @@ func normalizedVectorGroup(from vectors: [ValueVector], withNormalizationRange n
   
 }
 
-func oddlyNormalizedVectorGroup(from vectors: [ValueVector], skippingIndexes skipIdxs: [Int] = []) -> OddlyNormalizedValueVectorGroup {
+func oddlyNormalizedVectorGroup(from vectors: [ValueVector], skippingIndexes skipIdxs: [Int] = []) -> (oddGroup: OddlyNormalizedValueVectorGroup, yRange: ClosedRange<CGFloat> ) {
   let indexesToSkip = Set(skipIdxs).sorted() //remove duplicates and sort ascending. This is important!
   
   //  assert((indexesToSkip.max() ?? 0) < vectors.count && (indexesToSkip.min() ?? 0) < vectors.count, "Skipping indexes array contains value > vectors.count") TODO: this assert check is correct, but do i need it?
@@ -65,7 +65,7 @@ func oddlyNormalizedVectorGroup(from vectors: [ValueVector], skippingIndexes ski
   }
   
   guard minimum != maximum else {
-    return OddlyNormalizedValueVectorGroup(vectors: vectors.map{Array(repeating: 0.5, count: $0.count)}, excludedIdxs: skipIdxs)
+    return (OddlyNormalizedValueVectorGroup(vectors: vectors.map{Array(repeating: 0.5, count: $0.count)}, excludedIdxs: skipIdxs), minimum...maximum*2)
   }
   var positiveVectors = minimum >= 0 ? vectors : vectors.map{$0.map{$0 - minimum}}
   if minimum < 0 {
@@ -104,6 +104,6 @@ func oddlyNormalizedVectorGroup(from vectors: [ValueVector], skippingIndexes ski
       iterationIndexInNormalizedPresentVectors += 1
     }
   }
-  
-  return OddlyNormalizedValueVectorGroup(vectors: positiveVectors, excludedIdxs: indexesToSkip)
+  //TODO: min max here are made to be positive, would be a problem if there werenegative values on the graph
+  return (OddlyNormalizedValueVectorGroup(vectors: positiveVectors, excludedIdxs: indexesToSkip), minimum...maximum)
 }

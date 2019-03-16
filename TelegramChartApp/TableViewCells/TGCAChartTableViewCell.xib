@@ -20,15 +20,14 @@
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="w3S-ey-A4O" customClass="TGCAChartView" customModule="TelegramChartApp" customModuleProvider="target">
-                        <rect key="frame" x="0.0" y="0.0" width="320" height="43.5"/>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <rect key="frame" x="10" y="10" width="300" height="23.5"/>
                     </view>
                 </subviews>
                 <constraints>
-                    <constraint firstAttribute="trailing" secondItem="w3S-ey-A4O" secondAttribute="trailing" id="3qi-s0-o44"/>
-                    <constraint firstAttribute="bottom" secondItem="w3S-ey-A4O" secondAttribute="bottom" id="USl-8M-vfU"/>
-                    <constraint firstItem="w3S-ey-A4O" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" id="nn5-Ws-rAQ"/>
-                    <constraint firstItem="w3S-ey-A4O" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" id="uhz-ec-XyG"/>
+                    <constraint firstAttribute="trailing" secondItem="w3S-ey-A4O" secondAttribute="trailing" constant="10" id="3qi-s0-o44"/>
+                    <constraint firstAttribute="bottom" secondItem="w3S-ey-A4O" secondAttribute="bottom" constant="10" id="USl-8M-vfU"/>
+                    <constraint firstItem="w3S-ey-A4O" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" constant="10" id="nn5-Ws-rAQ"/>
+                    <constraint firstItem="w3S-ey-A4O" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" constant="10" id="uhz-ec-XyG"/>
                 </constraints>
             </tableViewCellContentView>
             <viewLayoutGuide key="safeArea" id="njF-e1-oar"/>

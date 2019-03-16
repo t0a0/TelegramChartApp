@@ -32,19 +32,21 @@ struct LinearChart {
     self.nyVectorGroup = normalizedVectorGroup(from: yVectors.map{$0.vector})
   }
   
-  func oddlyNormalizedYVectors(in xRange: ClosedRange<CGFloat>, excludedIdxs: [Int]) -> ([ValueVector], [ValueVector]) {
+  func oddlyNormalizedYVectors(in xRange: ClosedRange<CGFloat>, excludedIdxs: [Int]) -> (resultingVectors: [ValueVector], originalCutVectors: [ValueVector], resltingYRange: ClosedRange<CGFloat>) {
     let lowerBoundIdx = Int(xRange.lowerBound * CGFloat(xVector.vector.count-1))
     let upperBoundIdx = Int(xRange.upperBound * CGFloat(xVector.vector.count-1))
-    let grp = oddlyNormalizedVectorGroup(from: yVectors.map{Array($0.vector[lowerBoundIdx...upperBoundIdx])}, skippingIndexes: excludedIdxs)
+    
+    let cutOffYVectors = yVectors.map{Array($0.vector[lowerBoundIdx...upperBoundIdx])}
+    let grp = oddlyNormalizedVectorGroup(from: cutOffYVectors, skippingIndexes: excludedIdxs)
     var resultingVectors = [ValueVector]()
     //    return (grp.vectors, yVectors.map{Array($0.vector[lowerBoundIdx...upperBoundIdx])})
     for i in 0..<yVectors.count {
-      let a = Array(repeating: 0.5, count: lowerBoundIdx) + grp.vectors[i] + Array(repeating: 0.5, count: xVector.vector.count - 1 - upperBoundIdx)
+      let a = Array(repeating: 0.5, count: lowerBoundIdx) + grp.oddGroup.vectors[i] + Array(repeating: 0.5, count: xVector.vector.count - 1 - upperBoundIdx)
       //      print(a.count)
       //      print(a)
       resultingVectors.append(a)
     }
-    return (resultingVectors, yVectors.map{Array($0.vector[lowerBoundIdx...upperBoundIdx])})
+    return (resultingVectors, cutOffYVectors, grp.yRange)
   }
   
   

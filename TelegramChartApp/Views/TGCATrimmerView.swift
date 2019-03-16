@@ -69,7 +69,7 @@ class TGCATrimmerView: UIView {
     layer.zPosition = 1
     setupTrimmedAreaView()
     setupShoulderViews()
-    setupMaskView()
+    setupMaskViews()
     setupGestures()
   }
   
@@ -96,7 +96,7 @@ class TGCATrimmerView: UIView {
     leftShoulderView.widthAnchor.constraint(equalToConstant: shoulderWidth).isActive = true
     leftShoulderView.leftAnchor.constraint(equalTo: trimmedAreaView.leftAnchor).isActive = true
     leftShoulderView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
-    leftShoulderView.backgroundColor = UIColor.red.withAlphaComponent(0.5)
+    leftShoulderView.backgroundColor = UIColor.lightGray.withAlphaComponent(0.5)
     
     rightShoulderView.isUserInteractionEnabled = true
     rightShoulderView.layer.cornerRadius = 2.0
@@ -106,13 +106,13 @@ class TGCATrimmerView: UIView {
     rightShoulderView.widthAnchor.constraint(equalToConstant: shoulderWidth).isActive = true
     rightShoulderView.rightAnchor.constraint(equalTo: trimmedAreaView.rightAnchor).isActive = true
     rightShoulderView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
-    rightShoulderView.backgroundColor = UIColor.red.withAlphaComponent(0.5)
+    rightShoulderView.backgroundColor = UIColor.lightGray.withAlphaComponent(0.5)
 
   }
   
-  private func setupMaskView() {
+  private func setupMaskViews() {
     leftMaskView.isUserInteractionEnabled = false
-    leftMaskView.backgroundColor = .blue
+    leftMaskView.backgroundColor = .lightGray
     leftMaskView.alpha = 0.7
     leftMaskView.translatesAutoresizingMaskIntoConstraints = false
     insertSubview(leftMaskView, belowSubview: leftShoulderView)
@@ -122,7 +122,7 @@ class TGCATrimmerView: UIView {
     leftMaskView.rightAnchor.constraint(equalTo: leftShoulderView.centerXAnchor).isActive = true
     
     rightMaskView.isUserInteractionEnabled = false
-    rightMaskView.backgroundColor = .blue
+    rightMaskView.backgroundColor = .lightGray
     rightMaskView.alpha = 0.7
     rightMaskView.translatesAutoresizingMaskIntoConstraints = false
     insertSubview(rightMaskView, belowSubview: rightShoulderView)
@@ -174,18 +174,18 @@ class TGCATrimmerView: UIView {
   }
   
   private func notifyRangeChanged() {
-    print(currentRange)
+    print(currentRange.upperBound - currentRange.lowerBound)
     delegate?.chartSlider(self, didChangeDisplayRange: currentRange)
   }
   
   private func updateLeftConstraint(with translation: CGPoint) {
-    let maxConstraint = max(rightShoulderView.frame.origin.x - shoulderWidth - minimumDistanceBetweenShoulders, 0)
+    let maxConstraint = max(rightShoulderView.frame.origin.x + shoulderWidth - minimumDistanceBetweenShoulders, 0)
     let newConstraint = min(max(0, currentLeftConstraint + translation.x), maxConstraint)
     leftConstraint?.constant = newConstraint
   }
   
   private func updateRightConstraint(with translation: CGPoint) {
-    let maxConstraint = min(2 * shoulderWidth - frame.width + leftShoulderView.frame.origin.x + minimumDistanceBetweenShoulders, 0)
+    let maxConstraint = min(leftShoulderView.frame.origin.x + minimumDistanceBetweenShoulders - frame.size.width, 0)
     let newConstraint = max(min(0, currentRightConstraint + translation.x), maxConstraint)
     rightConstraint?.constant = newConstraint
   }

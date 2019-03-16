@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="14460.31" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14460.20"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" id="KGk-i7-Jjw" customClass="TGCAChartTrimTableViewCell" customModule="TelegramChartApp" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="KGk-i7-Jjw" id="H2p-sc-9uM">
+                <rect key="frame" x="0.0" y="0.0" width="320" height="43.5"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hnY-Vz-E7S" customClass="TGCAChartView" customModule="TelegramChartApp" customModuleProvider="target">
+                        <rect key="frame" x="16" y="0.0" width="288" height="43.5"/>
+                    </view>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="XS0-gR-gw2" customClass="TGCATrimmerView" customModule="TelegramChartApp" customModuleProvider="target">
+                        <rect key="frame" x="16" y="0.0" width="288" height="43.5"/>
+                    </view>
+                </subviews>
+                <constraints>
+                    <constraint firstAttribute="bottom" secondItem="hnY-Vz-E7S" secondAttribute="bottom" id="Oas-Ee-tRx"/>
+                    <constraint firstItem="hnY-Vz-E7S" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" id="RVU-a1-kcw"/>
+                    <constraint firstAttribute="trailing" secondItem="hnY-Vz-E7S" secondAttribute="trailing" constant="16" id="Wx1-a0-OxV"/>
+                    <constraint firstItem="XS0-gR-gw2" firstAttribute="leading" secondItem="hnY-Vz-E7S" secondAttribute="leading" id="ZR1-xZ-a7J"/>
+                    <constraint firstAttribute="bottom" secondItem="XS0-gR-gw2" secondAttribute="bottom" id="dEk-Hw-bAM"/>
+                    <constraint firstItem="hnY-Vz-E7S" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" constant="16" id="eh5-9q-Rxx"/>
+                    <constraint firstItem="XS0-gR-gw2" firstAttribute="trailing" secondItem="hnY-Vz-E7S" secondAttribute="trailing" id="thz-Op-9B7"/>
+                    <constraint firstItem="XS0-gR-gw2" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" id="uVy-9s-2Mm"/>
+                </constraints>
+            </tableViewCellContentView>
+            <viewLayoutGuide key="safeArea" id="njF-e1-oar"/>
+            <connections>
+                <outlet property="chartView" destination="hnY-Vz-E7S" id="bcu-5k-vPH"/>
+                <outlet property="trimmerView" destination="XS0-gR-gw2" id="LtU-4A-O3W"/>
+            </connections>
+        </tableViewCell>
+    </objects>
+</document>

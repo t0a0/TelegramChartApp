@@ -75,7 +75,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="VIH-Cz-6rw" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="370" y="291"/>
+            <point key="canvasLocation" x="394" y="327"/>
         </scene>
         <!--Chart Detail View Controller-->
         <scene sceneID="tne-QT-ifu">
@@ -93,21 +93,12 @@
                                     <outlet property="delegate" destination="BYZ-38-t0r" id="FeS-QM-UkP"/>
                                 </connections>
                             </tableView>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="zcy-48-IwB" customClass="TGCATrimmerView" customModule="TelegramChartApp" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="573" width="375" height="44"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="44" id="f3f-Md-jVu"/>
-                                </constraints>
-                            </view>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstItem="bKF-CN-bfq" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="0sO-Mq-ho0"/>
-                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="zcy-48-IwB" secondAttribute="bottom" constant="50" id="7WZ-Mb-eAo"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="bKF-CN-bfq" secondAttribute="bottom" id="AJU-5p-xxE"/>
                             <constraint firstItem="bKF-CN-bfq" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="Jrr-Vu-2b3"/>
-                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="zcy-48-IwB" secondAttribute="trailing" id="JyI-Kw-qNq"/>
-                            <constraint firstItem="zcy-48-IwB" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="Lzj-Cg-UOM"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="bKF-CN-bfq" secondAttribute="trailing" id="tvK-50-ckK"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
@@ -115,17 +106,16 @@
                     <navigationItem key="navigationItem" id="S7c-lq-9ii"/>
                     <connections>
                         <outlet property="tableView" destination="bKF-CN-bfq" id="toy-Go-B7m"/>
-                        <outlet property="trimmerView" destination="zcy-48-IwB" id="76h-CZ-amx"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="902" y="362"/>
+            <point key="canvasLocation" x="1121" y="327"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="eMB-pa-DrK">
             <objects>
-                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="YTJ-sD-PaS" sceneMemberID="viewController">
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="YTJ-sD-PaS" customClass="TGCANavigationController" customModule="TelegramChartApp" customModuleProvider="target" sceneMemberID="viewController">
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="B9p-PW-UD4">
                         <rect key="frame" x="0.0" y="20" width="375" height="44"/>
