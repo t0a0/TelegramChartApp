@@ -18,12 +18,17 @@ class TGCAChartsViewController: UIViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
-    subscribe()
-    title = "Charts"
     guard let charts = TGCAJsonToChartService().parse() else {
+      let alert = UIAlertController(title: "Could not parse JSON", message: nil, preferredStyle: .alert)
+      alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: nil))
+      present(alert, animated: true, completion: nil)
       return
     }
     self.charts = charts
+    
+    applyCurrentTheme()
+    subscribe()
+    title = "Charts"
   }
   
   deinit {
@@ -89,13 +94,26 @@ extension TGCAChartsViewController: UITableViewDelegate {
 extension TGCAChartsViewController: ThemeChangeObserving {
   
   func handleThemeChangedNotification() {
-    let theme = UIApplication.myDelegate.currentTheme
-    UIView.animate(withDuration: 0.25) {
-      self.tableView.backgroundColor = theme.backgroundColor
-      self.tableView.separatorColor = theme.axisColor
-      self.tableView.tintColor = theme.accentColor
-    }
+    applyCurrentTheme(animated: true)
     tableView.reloadData()
   }
   
+  func applyCurrentTheme(animated: Bool = false) {
+    let theme = UIApplication.myDelegate.currentTheme
+    
+    func applyChanges() {
+      tableView.backgroundColor = theme.backgroundColor
+      tableView.separatorColor = theme.axisColor
+      tableView.tintColor = theme.accentColor
+    }
+    
+    if animated {
+      UIView.animate(withDuration: 0.25) {
+        applyChanges()
+      }
+    } else {
+      applyChanges()
+    }
+    
+  }
 }

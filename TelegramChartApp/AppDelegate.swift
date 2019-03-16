@@ -16,7 +16,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     currentTheme = currentTheme.identifier == ThemeIdentifier.normal ? TGCAColorTheme.dark : TGCAColorTheme.normal
   }
   
-  var currentTheme = TGCAColorTheme.normal {
+  var currentTheme = TGCAColorTheme.dark {
     didSet {
       UIApplication.shared.statusBarStyle = currentTheme.statusBarStyle
       NotificationCenter.default.post(Notification(name: THEME_HAS_CHANGED_NOTIFICATION_NAME))

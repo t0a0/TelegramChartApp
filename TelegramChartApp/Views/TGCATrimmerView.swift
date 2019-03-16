@@ -59,9 +59,17 @@ class TGCATrimmerView: UIView {
     commonInit()
   }
   
-  required public init?(coder aDecoder: NSCoder) {
+  required init?(coder aDecoder: NSCoder) {
     super.init(coder: aDecoder)
     commonInit()
+  }
+  
+  func configureTheme(maskColor: UIColor, shoulderColor: UIColor) {
+    leftShoulderView.backgroundColor = shoulderColor
+    rightShoulderView.backgroundColor = shoulderColor
+    leftMaskView.backgroundColor = maskColor
+    rightMaskView.backgroundColor = maskColor
+    trimmedAreaView.layer.borderColor = shoulderColor.cgColor
   }
   
   private func commonInit() {
@@ -76,6 +84,8 @@ class TGCATrimmerView: UIView {
   private func setupTrimmedAreaView() {
     trimmedAreaView.layer.borderWidth = 2.0
     trimmedAreaView.layer.cornerRadius = 2.0
+    trimmedAreaView.layer.masksToBounds = true
+
     trimmedAreaView.translatesAutoresizingMaskIntoConstraints = false
     trimmedAreaView.isUserInteractionEnabled = true
     addSubview(trimmedAreaView)
@@ -90,45 +100,55 @@ class TGCATrimmerView: UIView {
   private func setupShoulderViews() {
     leftShoulderView.isUserInteractionEnabled = true
     leftShoulderView.layer.cornerRadius = 2.0
+    leftShoulderView.layer.masksToBounds = true
     leftShoulderView.translatesAutoresizingMaskIntoConstraints = false
     addSubview(leftShoulderView)
     leftShoulderView.heightAnchor.constraint(equalTo: heightAnchor).isActive = true
     leftShoulderView.widthAnchor.constraint(equalToConstant: shoulderWidth).isActive = true
     leftShoulderView.leftAnchor.constraint(equalTo: trimmedAreaView.leftAnchor).isActive = true
     leftShoulderView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
-    leftShoulderView.backgroundColor = UIColor.lightGray.withAlphaComponent(0.5)
-    
+    leftShoulderView.backgroundColor = UIColor.lightGray
+
     rightShoulderView.isUserInteractionEnabled = true
     rightShoulderView.layer.cornerRadius = 2.0
+    rightShoulderView.layer.masksToBounds = true
     rightShoulderView.translatesAutoresizingMaskIntoConstraints = false
     addSubview(rightShoulderView)
     rightShoulderView.heightAnchor.constraint(equalTo: heightAnchor).isActive = true
     rightShoulderView.widthAnchor.constraint(equalToConstant: shoulderWidth).isActive = true
     rightShoulderView.rightAnchor.constraint(equalTo: trimmedAreaView.rightAnchor).isActive = true
     rightShoulderView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
-    rightShoulderView.backgroundColor = UIColor.lightGray.withAlphaComponent(0.5)
+    rightShoulderView.backgroundColor = UIColor.lightGray
 
   }
   
   private func setupMaskViews() {
     leftMaskView.isUserInteractionEnabled = false
     leftMaskView.backgroundColor = .lightGray
-    leftMaskView.alpha = 0.7
+    leftMaskView.alpha = 0.8
     leftMaskView.translatesAutoresizingMaskIntoConstraints = false
     insertSubview(leftMaskView, belowSubview: leftShoulderView)
     leftMaskView.leftAnchor.constraint(equalTo: leftAnchor).isActive = true
-    leftMaskView.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
-    leftMaskView.topAnchor.constraint(equalTo: topAnchor).isActive = true
+    let leftMaskViewBottomConstraint = leftMaskView.bottomAnchor.constraint(equalTo: bottomAnchor)
+    leftMaskViewBottomConstraint.isActive = true
+    leftMaskViewBottomConstraint.constant = -2.0
+    let leftMaskViewTopConstraint = leftMaskView.topAnchor.constraint(equalTo: topAnchor)
+    leftMaskViewTopConstraint.isActive = true
+    leftMaskViewTopConstraint.constant = 2.0
     leftMaskView.rightAnchor.constraint(equalTo: leftShoulderView.centerXAnchor).isActive = true
     
     rightMaskView.isUserInteractionEnabled = false
     rightMaskView.backgroundColor = .lightGray
-    rightMaskView.alpha = 0.7
+    rightMaskView.alpha = 0.8
     rightMaskView.translatesAutoresizingMaskIntoConstraints = false
     insertSubview(rightMaskView, belowSubview: rightShoulderView)
     rightMaskView.rightAnchor.constraint(equalTo: rightAnchor).isActive = true
-    rightMaskView.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
-    rightMaskView.topAnchor.constraint(equalTo: topAnchor).isActive = true
+    let rightMaskViewBottomConstraint = rightMaskView.bottomAnchor.constraint(equalTo: bottomAnchor)
+    rightMaskViewBottomConstraint.isActive = true
+    rightMaskViewBottomConstraint.constant = -2.0
+    let rightMaskViewTopConstraint = rightMaskView.topAnchor.constraint(equalTo: topAnchor)
+    rightMaskViewTopConstraint.isActive = true
+    rightMaskViewTopConstraint.constant = 2.0
     rightMaskView.leftAnchor.constraint(equalTo: rightShoulderView.centerXAnchor).isActive = true
   }
   

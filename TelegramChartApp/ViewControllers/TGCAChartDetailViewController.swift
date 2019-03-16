@@ -13,14 +13,18 @@ class TGCAChartDetailViewController: UIViewController {
   
   @IBOutlet weak var tableView: UITableView!
   
-  var chart: LinearChart?
+  var chart: LinearChart? {
+    didSet {
+      
+    }
+  }
+  
+  var hiddenGrapsIndicies = [Int]()
   
   override func viewDidLoad() {
     super.viewDidLoad()
-    tableView.register(UINib(nibName: "TGCAButtonTableViewCell", bundle: nil), forCellReuseIdentifier: TGCAButtonTableViewCell.defaultReuseId)
-    tableView.register(UINib(nibName: "TGCAChartTableViewCell", bundle: nil), forCellReuseIdentifier: TGCAChartTableViewCell.defaultReuseId)
-    tableView.register(UINib(nibName: "TGCAChartTrimTableViewCell", bundle: nil), forCellReuseIdentifier: TGCAChartTrimTableViewCell.defaultReuseId)
-    tableView.register(UITableViewCell.self, forCellReuseIdentifier: "chartColumnLabelCell")
+    registerCells()
+    applyCurrentTheme()
     title = "Statistics"
     navigationController?.interactivePopGestureRecognizer?.isEnabled = false
     tableView.showsVerticalScrollIndicator = false
@@ -28,8 +32,44 @@ class TGCAChartDetailViewController: UIViewController {
     subscribe()
   }
   
+  func registerCells() {
+    tableView.register(UINib(nibName: "TGCAButtonTableViewCell", bundle: nil), forCellReuseIdentifier: TGCAButtonTableViewCell.defaultReuseId)
+    tableView.register(UINib(nibName: "TGCAChartTableViewCell", bundle: nil), forCellReuseIdentifier: TGCAChartTableViewCell.defaultReuseId)
+    tableView.register(UINib(nibName: "TGCAChartTrimTableViewCell", bundle: nil), forCellReuseIdentifier: TGCAChartTrimTableViewCell.defaultReuseId)
+    tableView.register(UITableViewCell.self, forCellReuseIdentifier: "chartColumnLabelCell")
+  }
+  
   deinit {
     unsubscribe()
+  }
+  
+  func applyCurrentTheme(animated: Bool = false) {
+    let theme = UIApplication.myDelegate.currentTheme
+    
+    func applyChanges() {
+      tableView.backgroundColor = theme.backgroundColor
+      tableView.separatorColor = theme.axisColor
+      tableView.tintColor = theme.accentColor
+      for section in 0..<tableView.numberOfSections {
+        for row in 0..<tableView.numberOfRows(inSection: section) {
+          let cell = tableView.cellForRow(at: IndexPath(row: row, section: section))
+          cell?.backgroundColor = theme.foregroundColor
+          if section == 0 && row >= 2 {
+            cell?.textLabel?.textColor = theme.mainTextColor
+          }
+        }
+      }
+      
+      chartTrimCell?.trimmerView.configureTheme(maskColor: theme.backgroundColor, shoulderColor: theme.trimmerShoulderColor)
+    }
+    
+    if animated {
+      UIView.animate(withDuration: 0.25) {
+        applyChanges()
+      }
+    } else {
+      applyChanges()
+    }
   }
   
   var chartCell: TGCAChartTableViewCell? {
@@ -61,6 +101,7 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
   
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    let theme = UIApplication.myDelegate.currentTheme
     if indexPath.section == 0 {
       if indexPath.row == 0 {
         let cell = tableView.dequeueReusableCell(withIdentifier: TGCAChartTableViewCell.defaultReuseId) as! TGCAChartTableViewCell
@@ -72,6 +113,7 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
         cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: CGFloat.greatestFiniteMagnitude)
         cell.directionalLayoutMargins = .zero
         cell.selectionStyle = .none
+        cell.backgroundColor = theme.foregroundColor
         return cell
       } else if indexPath.row == 1 {
         let cell = tableView.dequeueReusableCell(withIdentifier: TGCAChartTrimTableViewCell.defaultReuseId) as! TGCAChartTrimTableViewCell
@@ -83,18 +125,22 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
         cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: CGFloat.greatestFiniteMagnitude)
         cell.directionalLayoutMargins = .zero
         cell.selectionStyle = .none
+        cell.backgroundColor = theme.foregroundColor
         return cell
       } else {
+        let yLineIndex = indexPath.row - 2
         let cell = tableView.dequeueReusableCell(withIdentifier: "chartColumnLabelCell")!
         cell.selectionStyle = .none
         //TODO: FIX LABEL POSITION
         if let chart = chart {
-          cell.imageView?.image = UIImage.from(color: chart.yVectors[indexPath.row - 2].metaData.color, size: CGSize(width: 12, height: 12))
+          cell.imageView?.image = UIImage.from(color: chart.yVectors[yLineIndex].metaData.color, size: CGSize(width: 12, height: 12))
         }
         cell.imageView?.layer.cornerRadius = 3.0
         cell.imageView?.clipsToBounds = true
-        cell.textLabel?.text = chart?.yVectors[indexPath.row - 2].metaData.identifier
-        cell.accessoryType = .checkmark
+        cell.textLabel?.text = chart?.yVectors[yLineIndex].metaData.identifier
+        cell.accessoryType = hiddenGrapsIndicies.contains(yLineIndex) ? .none : .checkmark
+        cell.backgroundColor = theme.foregroundColor
+        cell.textLabel?.textColor = theme.mainTextColor
         return cell
       }
     } else {
@@ -132,8 +178,14 @@ extension TGCAChartDetailViewController: UITableViewDelegate {
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     if indexPath.section == 0, indexPath.row > 1 {
       let yLineIndex = indexPath.row - 2
+      if let idx = hiddenGrapsIndicies.firstIndex(of: yLineIndex) {
+        hiddenGrapsIndicies.remove(at: idx)
+      } else {
+        hiddenGrapsIndicies.append(yLineIndex)
+      }
       chartCell?.chartView.hide(at: yLineIndex)
       chartTrimCell?.chartView.hide(at: yLineIndex)
+      tableView.cellForRow(at: indexPath)?.accessoryType = hiddenGrapsIndicies.contains(yLineIndex) ? .none : .checkmark
     }
   }
 }
@@ -150,19 +202,7 @@ extension TGCAChartDetailViewController: TGCATrimmerViewDelegate {
 extension TGCAChartDetailViewController: ThemeChangeObserving {
   
   func handleThemeChangedNotification() {
-    let theme = UIApplication.myDelegate.currentTheme
-    UIView.animate(withDuration: 0.25) {
-      self.tableView.backgroundColor = theme.backgroundColor
-      self.tableView.separatorColor = theme.axisColor
-      self.tableView.tintColor = theme.accentColor
-      for i in 0..<self.tableView.numberOfSections {
-        for j in 0..<self.tableView.numberOfRows(inSection: i) {
-          let cell = self.tableView.cellForRow(at: IndexPath(row: j, section: i))
-          cell?.backgroundColor = theme.foregroundColor
-          cell?.textLabel?.textColor = theme.mainTextColor
-        }
-      }
-    }
+    applyCurrentTheme(animated: true)
   }
   
 }

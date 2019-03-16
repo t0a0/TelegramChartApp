@@ -23,7 +23,7 @@ struct TGCAColorTheme {
     mainTextColor: UIColor.black,
     axisColor: UIColor(red: 207.0/255.0, green: 209.0/255.0, blue: 210.0/255.0, alpha: 1),
     axisLabelColor: UIColor(red: 152.0/255.0, green: 158.0/255.0, blue: 163.0/255.0, alpha: 1),
-    trimmerShoulderColor: UIColor(red: 202.0/255.0, green: 212.0/255.0, blue: 222.0/255.0, alpha: 1),
+    trimmerShoulderColor: UIColor(red: 202.0/255.0, green: 212.0/255.0, blue: 222.0/255.0, alpha: 0.9),
     statusBarStyle: .default)
   
   static let dark = TGCAColorTheme(
@@ -35,7 +35,7 @@ struct TGCAColorTheme {
     mainTextColor: UIColor.white,
     axisColor: UIColor(red: 19.0/255.0, green: 27.0/255.0, blue: 35.0/255.0, alpha: 1),
     axisLabelColor: UIColor(red: 93.0/255.0, green: 109.0/255.0, blue: 126.0/255.0, alpha: 1),
-    trimmerShoulderColor: UIColor(red: 53.0/255.0, green: 70.0/255.0, blue: 89.0/255.0, alpha: 1),
+    trimmerShoulderColor: UIColor(red: 53.0/255.0, green: 70.0/255.0, blue: 89.0/255.0, alpha: 0.9),
     statusBarStyle: .lightContent)
   
   let identifier: ThemeIdentifier
