@@ -136,7 +136,7 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
         }
         cell.imageView?.layer.cornerRadius = 3.0
         cell.imageView?.clipsToBounds = true
-        cell.textLabel?.text = chart?.yVectors[yLineIndex].metaData.identifier
+        cell.textLabel?.text = chart?.yVectors[yLineIndex].metaData.name
         cell.accessoryType = hiddenGrapsIndicies.contains(yLineIndex) ? .none : .checkmark
         cell.backgroundColor = theme.foregroundColor
         cell.textLabel?.textColor = theme.mainTextColor

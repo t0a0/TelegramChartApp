@@ -43,6 +43,8 @@ class TGCAChartAnnotationView: UIView, ThemeChangeObserving {
     layer.cornerRadius = 6.0
     label.numberOfLines = 2
     label.lineBreakMode = .byWordWrapping
+    label.attributedText = transformDateToString(Date())
+    label.sizeToFit()
     applyCurrentTheme()
   }
   
@@ -94,31 +96,47 @@ class TGCAChartAnnotationView: UIView, ThemeChangeObserving {
   }
   
   // MARK: - Configuration
+  private let normalFont = UIFont.systemFont(ofSize: 13.0)
+  private let boldFont = UIFont.systemFont(ofSize: 13.0, weight: .bold)
   
   typealias ColoredValue = (value: CGFloat, color: UIColor)
+  private var arrangedLabels = [UILabel]()
   
   func configure(date: Date, coloredValues: [ColoredValue]) -> CGSize {
-    for subview in valuesStackView.subviews {
-      subview.removeFromSuperview()
+//    for subview in valuesStackView.subviews {
+//      subview.removeFromSuperview()
+//    }
+    
+    //TODO: FIX LABELS SIZE
+    let difference = arrangedLabels.count - coloredValues.count
+    if difference > 0 {
+      for _ in 0..<difference {
+        let label = arrangedLabels.popLast()
+        label?.removeFromSuperview()
+      }
+    } else if difference < 0 {
+      for _ in difference..<0 {
+        let label = UILabel(frame: CGRect.zero)
+        label.numberOfLines = 1
+        label.font = boldFont
+        valuesStackView.addArrangedSubview(label)
+        arrangedLabels.append(label)
+      }
     }
-
+    
     label.attributedText = transformDateToString(date)
     var maxLabelWidth: CGFloat = 0
     var sumOfHeights: CGFloat = 0
-    for coloredValue in coloredValues {
-      let label = UILabel(frame: CGRect.zero)
-      label.numberOfLines = 1
-      label.font = UIFont.systemFont(ofSize: 13, weight: .bold)
+    for i in 0..<coloredValues.count {
+      let coloredValue = coloredValues[i]
+      let label = arrangedLabels[i]
       label.textColor = coloredValue.color
       label.text = transformValueToString(coloredValue.value)
       label.sizeToFit()
-      valuesStackView.addArrangedSubview(label)
       maxLabelWidth = max(label.bounds.width, maxLabelWidth)
       sumOfHeights += label.bounds.height
     }
-    label.sizeToFit()
-    let separationWidth: CGFloat = abs(maxLabelWidth - label.bounds.width) > 10 ? 0 : 10
-    let width = max(maxLabelWidth, label.bounds.width) * 2 + separationWidth
+    let width = maxLabelWidth + label.bounds.width + 10 //10 for separation
     let height = max(sumOfHeights, label.bounds.height)
     let newSize = CGSize(width: width + leadingContsraint.constant + trailingConstraint.constant, height: height + topConstraint.constant + bottomConstraint.constant)
     bounds = CGRect(origin: bounds.origin, size: newSize)
@@ -134,8 +152,8 @@ class TGCAChartAnnotationView: UIView, ThemeChangeObserving {
     let monthDayString = dateFormatter.string(from: date)
     dateFormatter.dateFormat = "YYYY"
     let yearString = dateFormatter.string(from: date)
-    let mutableString = NSMutableAttributedString(string: monthDayString, attributes: [NSAttributedString.Key.font : UIFont.systemFont(ofSize: 13, weight: .bold)])
-    mutableString.append(NSAttributedString(string: "\n" + yearString, attributes: [NSAttributedString.Key.font : UIFont.systemFont(ofSize: 13)]))
+    let mutableString = NSMutableAttributedString(string: monthDayString, attributes: [.font : boldFont])
+    mutableString.append(NSAttributedString(string: "\n" + yearString, attributes: [.font : normalFont]))
     return mutableString
   }
   

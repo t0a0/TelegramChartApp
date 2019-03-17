@@ -32,6 +32,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     contentView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
     layer.masksToBounds = true
     isMultipleTouchEnabled = false
+    applyCurrentTheme()
   }
   
   override func didMoveToWindow() {
@@ -47,7 +48,38 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   }
   
   func handleThemeChangedNotification() {
+    applyCurrentTheme(animated: true)
+  }
+  
+  private var axisColor = UIColor.gray.cgColor
+  private var axisLabelColor = UIColor.black.cgColor
+  private var circlePointFillColor = UIColor.white.cgColor
+  
+  func applyCurrentTheme(animated: Bool = false) {
+    let theme = UIApplication.myDelegate.currentTheme
     
+    axisColor = theme.axisColor.cgColor
+    axisLabelColor = theme.axisLabelColor.cgColor
+    circlePointFillColor = theme.foregroundColor.cgColor
+    
+    func applyChanges() {
+      if let annotation = currentChartAnnotation {
+        for circle in annotation.circleLayers {
+          circle.fillColor = circlePointFillColor
+        }
+        annotation.lineLayer.strokeColor = axisColor
+      }
+    }
+    
+    if animated {
+      CATransaction.begin()
+      CATransaction.setAnimationDuration(0.25)
+        applyChanges()
+      CATransaction.commit()
+      CATransaction.flush()
+    } else {
+      applyChanges()
+    }
   }
   
   override var bounds: CGRect {
@@ -401,9 +433,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   func addChartAnnotation(for index: Int) {
     let xPoint = drawings[0].points[index].x
     
-    let line = bezierLine(from: CGPoint(x: xPoint, y: chartBounds.origin.y + chartBounds.height), to: CGPoint(x: xPoint, y: chartBounds.origin.y))
-    let lineLayer = shapeLayer(withPath: line.cgPath, color: UIColor.blue.cgColor, lineWidth: 1.0)
-    layer.addSublayer(lineLayer)
+    
     
     var circleLayers = [CAShapeLayer]()
     
@@ -415,10 +445,8 @@ class TGCAChartView: UIView, ThemeChangeObserving {
       let point = drawing.points[index]
       
       let circle = bezierCircle(at: point)
-      let circleShape = shapeLayer(withPath: circle.cgPath, color: chart.yVectors[i].metaData.color.cgColor, lineWidth: graphLineWidth, fillColor: UIApplication.myDelegate.currentTheme.foregroundColor.cgColor)
+      let circleShape = shapeLayer(withPath: circle.cgPath, color: chart.yVectors[i].metaData.color.cgColor, lineWidth: graphLineWidth, fillColor: circlePointFillColor)
       circleLayers.append(circleShape)
-      layer.addSublayer(circleShape)
-      
       coloredValues.append((chart.yVectors[i].vector[index], chart.yVectors[i].metaData.color))
     }
     coloredValues.sort { (left, right) -> Bool in
@@ -428,8 +456,15 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     let annotationSize = annotationView.configure(date: date, coloredValues: coloredValues)
     let xPos = min(bounds.origin.x + bounds.width - annotationSize.width / 2, max(bounds.origin.x + annotationSize.width / 2, xPoint))
     annotationView.center = CGPoint(x: xPos, y: bounds.origin.y + annotationSize.height / 2)
-    addSubview(annotationView)
     
+    let line = bezierLine(from: CGPoint(x: xPoint, y: annotationView.frame.origin.y + annotationView.frame.height), to: CGPoint(x: xPoint, y: chartBounds.origin.y + chartBounds.height))
+    let lineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: 1.5)
+    layer.addSublayer(lineLayer)
+    for c in circleLayers {
+      layer.addSublayer(c)
+    }
+    addSubview(annotationView)
+
     self.currentChartAnnotation = ChartAnnotation(lineLayer: lineLayer, annotationView: annotationView, circleLayers: circleLayers, displayedIndex: index)
   }
   
@@ -440,8 +475,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     let xPoint = drawings[0].points[index].x
     
     
-    let line = bezierLine(from: CGPoint(x: xPoint, y: chartBounds.origin.y + chartBounds.height), to: CGPoint(x: xPoint, y: chartBounds.origin.y))
-    currentChartAnnotation?.lineLayer.path = line.cgPath
+   
     
     var coloredValues = [(CGFloat, UIColor)]()
     let date = Date(timeIntervalSince1970: TimeInterval(chart.xVector.vector[index])/1000)
@@ -460,6 +494,9 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     let annotationSize = annotation.annotationView.configure(date: date, coloredValues: coloredValues)
     let xPos = min(bounds.origin.x + bounds.width - annotationSize.width / 2, max(bounds.origin.x + annotationSize.width / 2, xPoint))
     annotation.annotationView.center = CGPoint(x: xPos, y: bounds.origin.y + annotationSize.height / 2)
+    
+    let line = bezierLine(from: CGPoint(x: xPoint, y: annotation.annotationView.frame.origin.y + annotation.annotationView.frame.height), to: CGPoint(x: xPoint, y: chartBounds.origin.y + chartBounds.height))
+    currentChartAnnotation?.lineLayer.path = line.cgPath
   }
   
   func removeChartAnnotation() {
