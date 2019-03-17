@@ -84,14 +84,17 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   
   override var bounds: CGRect {
     didSet {
-      chartBounds = CGRect(x: bounds.origin.x + graphLineWidth,
-                           y: bounds.origin.y + graphLineWidth,
-                           width: bounds.width - graphLineWidth * 2,
-                           height: bounds.height - graphLineWidth * 2)
+      //we need to inset drawing so that if the minimum or maxim points are selected, the circle is fully visible
+      let inset = circlePointRadius + graphLineWidth
+      chartBounds = CGRect(x: bounds.origin.x + inset,
+                           y: bounds.origin.y + inset,
+                           width: bounds.width - inset * 2,
+                           height: bounds.height - inset * 2)
     }
   }
   
   var graphLineWidth: CGFloat = 2.0
+  var circlePointRadius: CGFloat = 4.0
   var shouldDisplaySupportAxis = false
   
   private let numOfSupportAxis = 5
@@ -352,8 +355,8 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     return line
   }
   
-  func bezierCircle(at point: CGPoint) -> UIBezierPath {
-    let rect = CGRect(x: point.x - 4, y: point.y - 4, width: 8, height: 8)
+  func bezierCircle(at point: CGPoint, radius: CGFloat = 4.0) -> UIBezierPath {
+    let rect = CGRect(x: point.x - radius, y: point.y - radius, width: radius * 2, height: radius * 2)
     return UIBezierPath(ovalIn: rect)
   }
   
@@ -414,8 +417,21 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     } else {
       addChartAnnotation(for: index)
     }
+  }
+  
+  override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+    guard let touchLocation = touches.first?.location(in: self), chartBounds.contains(touchLocation) else {
+      return
+    }
     
+    guard let currentAnnotation = currentChartAnnotation else {
+      return
+    }
     
+    let index = closestIndex(for: touchLocation)
+    if index != currentAnnotation.displayedIndex {
+      moveChartAnnotation(to: index)
+    }
   }
   
   struct ChartAnnotation {
@@ -444,7 +460,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
       let drawing = drawings[i]
       let point = drawing.points[index]
       
-      let circle = bezierCircle(at: point)
+      let circle = bezierCircle(at: point, radius: circlePointRadius)
       let circleShape = shapeLayer(withPath: circle.cgPath, color: chart.yVectors[i].metaData.color.cgColor, lineWidth: graphLineWidth, fillColor: circlePointFillColor)
       circleLayers.append(circleShape)
       coloredValues.append((chart.yVectors[i].vector[index], chart.yVectors[i].metaData.color))
@@ -474,9 +490,6 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     }
     let xPoint = drawings[0].points[index].x
     
-    
-   
-    
     var coloredValues = [(CGFloat, UIColor)]()
     let date = Date(timeIntervalSince1970: TimeInterval(chart.xVector.vector[index])/1000)
     
@@ -484,7 +497,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
       let drawing = drawings[i]
       let point = drawing.points[index]
       
-      let circle = bezierCircle(at: point)
+      let circle = bezierCircle(at: point, radius: circlePointRadius)
       currentChartAnnotation?.circleLayers[i].path = circle.cgPath
       coloredValues.append((chart.yVectors[i].vector[index], chart.yVectors[i].metaData.color))
     }
@@ -510,18 +523,5 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     }
   }
   
-  override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-    guard let touchLocation = touches.first?.location(in: self), chartBounds.contains(touchLocation) else {
-      return
-    }
-    
-    guard let currentAnnotation = currentChartAnnotation else {
-      return
-    }
-    
-    let index = closestIndex(for: touchLocation)
-    if index != currentAnnotation.displayedIndex {
-      moveChartAnnotation(to: index)
-    }
-  }
+
 }
