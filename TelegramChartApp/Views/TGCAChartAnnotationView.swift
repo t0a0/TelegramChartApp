@@ -98,10 +98,10 @@ class TGCAChartAnnotationView: UIView, ThemeChangeObserving {
   typealias ColoredValue = (value: CGFloat, color: UIColor)
   
   func configure(date: Date, coloredValues: [ColoredValue]) -> CGSize {
-    for arrangedSubview in valuesStackView.arrangedSubviews {
-      valuesStackView.removeArrangedSubview(arrangedSubview)
+    for subview in valuesStackView.subviews {
+      subview.removeFromSuperview()
     }
-    
+
     label.attributedText = transformDateToString(date)
     var maxLabelWidth: CGFloat = 0
     var sumOfHeights: CGFloat = 0

@@ -434,8 +434,32 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   }
   
   func moveChartAnnotation(to index: Int) {
-    removeChartAnnotation()
-    addChartAnnotation(for: index)
+    guard let annotation = currentChartAnnotation else {
+      return
+    }
+    let xPoint = drawings[0].points[index].x
+    
+    
+    let line = bezierLine(from: CGPoint(x: xPoint, y: chartBounds.origin.y + chartBounds.height), to: CGPoint(x: xPoint, y: chartBounds.origin.y))
+    currentChartAnnotation?.lineLayer.path = line.cgPath
+    
+    var coloredValues = [(CGFloat, UIColor)]()
+    let date = Date(timeIntervalSince1970: TimeInterval(chart.xVector.vector[index])/1000)
+    
+    for i in 0..<drawings.count {
+      let drawing = drawings[i]
+      let point = drawing.points[index]
+      
+      let circle = bezierCircle(at: point)
+      currentChartAnnotation?.circleLayers[i].path = circle.cgPath
+      coloredValues.append((chart.yVectors[i].vector[index], chart.yVectors[i].metaData.color))
+    }
+    coloredValues.sort { (left, right) -> Bool in
+      return left.0 >= right.0
+    }
+    let annotationSize = annotation.annotationView.configure(date: date, coloredValues: coloredValues)
+    let xPos = min(bounds.origin.x + bounds.width - annotationSize.width / 2, max(bounds.origin.x + annotationSize.width / 2, xPoint))
+    annotation.annotationView.center = CGPoint(x: xPos, y: bounds.origin.y + annotationSize.height / 2)
   }
   
   func removeChartAnnotation() {
