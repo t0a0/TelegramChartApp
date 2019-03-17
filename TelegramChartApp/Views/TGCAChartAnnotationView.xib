@@ -12,12 +12,12 @@
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="TGCAChartAnnotationView" customModule="TelegramChartApp" customModuleProvider="target">
             <connections>
-                <outlet property="bottomConstraint" destination="3vT-us-HF6" id="dSd-Qm-xOJ"/>
+                <outlet property="bottomConstraint" destination="GQQ-Ib-TRw" id="kCI-1S-CRi"/>
                 <outlet property="contentView" destination="iN0-l3-epB" id="zYq-vG-bhV"/>
                 <outlet property="label" destination="jhS-aw-4JB" id="Ujk-nu-QnE"/>
-                <outlet property="leadingContsraint" destination="Ew1-cG-zL0" id="GdC-gP-tml"/>
-                <outlet property="topConstraint" destination="Hd1-Gz-dT7" id="Stl-GH-Bg9"/>
-                <outlet property="trailingConstraint" destination="3zU-Qd-eDe" id="y4n-mz-WbV"/>
+                <outlet property="leadingContsraint" destination="x6k-uo-kvm" id="Vio-OK-ktR"/>
+                <outlet property="topConstraint" destination="VEH-hJ-RJA" id="s3D-go-EEd"/>
+                <outlet property="trailingConstraint" destination="vdm-o4-hTg" id="FJL-6o-twg"/>
                 <outlet property="valuesStackView" destination="gN2-KE-AII" id="pBm-Hc-Ent"/>
             </connections>
         </placeholder>
@@ -26,26 +26,36 @@
             <rect key="frame" x="0.0" y="0.0" width="321" height="176"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
-                <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" alignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="VCj-mH-h5a">
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="HJA-6t-HlT">
                     <rect key="frame" x="8" y="4" width="305" height="168"/>
                     <subviews>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="jhS-aw-4JB">
-                            <rect key="frame" x="0.0" y="74" width="152.5" height="20.5"/>
+                            <rect key="frame" x="0.0" y="0.0" width="152.5" height="168"/>
                             <fontDescription key="fontDescription" type="system" pointSize="17"/>
                             <nil key="textColor"/>
                             <nil key="highlightedColor"/>
                         </label>
                         <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="equalSpacing" alignment="bottom" translatesAutoresizingMaskIntoConstraints="NO" id="gN2-KE-AII">
-                            <rect key="frame" x="152.5" y="0.0" width="152.5" height="168"/>
+                            <rect key="frame" x="162.5" y="0.0" width="142.5" height="168"/>
                         </stackView>
                     </subviews>
-                </stackView>
+                    <constraints>
+                        <constraint firstItem="gN2-KE-AII" firstAttribute="top" secondItem="HJA-6t-HlT" secondAttribute="top" id="2cX-bi-Qzg"/>
+                        <constraint firstItem="jhS-aw-4JB" firstAttribute="width" secondItem="HJA-6t-HlT" secondAttribute="width" multiplier="0.5" id="G2K-zx-8ZU"/>
+                        <constraint firstAttribute="bottom" secondItem="jhS-aw-4JB" secondAttribute="bottom" id="KUQ-JU-Oor"/>
+                        <constraint firstItem="jhS-aw-4JB" firstAttribute="leading" secondItem="HJA-6t-HlT" secondAttribute="leading" id="TZ6-cl-Agf"/>
+                        <constraint firstItem="jhS-aw-4JB" firstAttribute="top" secondItem="HJA-6t-HlT" secondAttribute="top" id="gYa-SU-EED"/>
+                        <constraint firstAttribute="trailing" secondItem="gN2-KE-AII" secondAttribute="trailing" id="kMO-XP-XXu"/>
+                        <constraint firstItem="gN2-KE-AII" firstAttribute="leading" secondItem="jhS-aw-4JB" secondAttribute="trailing" constant="10" id="sXV-mL-yre"/>
+                        <constraint firstAttribute="bottom" secondItem="gN2-KE-AII" secondAttribute="bottom" id="xt3-26-q3X"/>
+                    </constraints>
+                </view>
             </subviews>
             <constraints>
-                <constraint firstItem="vUN-kp-3ea" firstAttribute="bottom" secondItem="VCj-mH-h5a" secondAttribute="bottom" constant="4" id="3vT-us-HF6"/>
-                <constraint firstItem="vUN-kp-3ea" firstAttribute="trailing" secondItem="VCj-mH-h5a" secondAttribute="trailing" constant="8" id="3zU-Qd-eDe"/>
-                <constraint firstItem="VCj-mH-h5a" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="8" id="Ew1-cG-zL0"/>
-                <constraint firstItem="VCj-mH-h5a" firstAttribute="top" secondItem="vUN-kp-3ea" secondAttribute="top" constant="4" id="Hd1-Gz-dT7"/>
+                <constraint firstItem="vUN-kp-3ea" firstAttribute="bottom" secondItem="HJA-6t-HlT" secondAttribute="bottom" constant="4" id="GQQ-Ib-TRw"/>
+                <constraint firstItem="HJA-6t-HlT" firstAttribute="top" secondItem="vUN-kp-3ea" secondAttribute="top" constant="4" id="VEH-hJ-RJA"/>
+                <constraint firstItem="vUN-kp-3ea" firstAttribute="trailing" secondItem="HJA-6t-HlT" secondAttribute="trailing" constant="8" id="vdm-o4-hTg"/>
+                <constraint firstItem="HJA-6t-HlT" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="8" id="x6k-uo-kvm"/>
             </constraints>
             <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
             <viewLayoutGuide key="safeArea" id="vUN-kp-3ea"/>
