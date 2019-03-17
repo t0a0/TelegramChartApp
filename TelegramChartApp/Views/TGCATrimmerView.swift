@@ -260,7 +260,6 @@ class TGCATrimmerView: UIView, ThemeChangeObserving {
   }
   
   private func notifyRangeChanged() {
-    print(currentRange.upperBound - currentRange.lowerBound)
     delegate?.trimmerView(self, didChangeDisplayRange: currentRange)
   }
   
@@ -303,7 +302,6 @@ class TGCATrimmerView: UIView, ThemeChangeObserving {
 
   /// The current trimmed range. The left boundary is at which percentage the trim starts. The right boundary is at which percentage the trim ends. Possible values are subranges of 0.0...100.0.
   var currentRange: ClosedRange<CGFloat> {
-    //TODO: why is it 33 instead of 25
     let left = startPosition * totalRange.upperBound / frame.width
     let right = endPosition * totalRange.upperBound / frame.width
     return left...right

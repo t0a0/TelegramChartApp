@@ -32,7 +32,7 @@ struct LinearChart {
     self.nyVectorGroup = normalizedVectorGroup(from: yVectors.map{$0.vector})
   }
   
-  func oddlyNormalizedYVectors(in xRange: ClosedRange<CGFloat>, excludedIdxs: [Int]) -> (resultingVectors: [ValueVector], originalCutVectors: [ValueVector], resltingYRange: ClosedRange<CGFloat>) {
+  func oddlyNormalizedYVectors(in xRange: ClosedRange<CGFloat>, excludedIdxs: [Int]) -> (resultingVectors: [ValueVector], originalCutVectors: [ValueVector], resultingYRange: ClosedRange<CGFloat>) {
     let lowerBoundIdx = Int(xRange.lowerBound * CGFloat(xVector.vector.count-1))
     let upperBoundIdx = Int(xRange.upperBound * CGFloat(xVector.vector.count-1))
     

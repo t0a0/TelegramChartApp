@@ -9,11 +9,16 @@
 import UIKit
 import QuartzCore
 
-class TGCAChartView: UIView, ThemeChangeObserving {
+class TGCAChartView: UIView {
 
-  
   @IBOutlet var contentView: UIView!
-  //MARK: - Init
+  
+  
+  private var axisColor = UIColor.gray.cgColor
+  private var axisLabelColor = UIColor.black.cgColor
+  private var circlePointFillColor = UIColor.white.cgColor
+  
+  // MARK: - Init
   
   override init(frame: CGRect) {
     super.init(frame: frame)
@@ -35,56 +40,18 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     applyCurrentTheme()
   }
   
-  override func didMoveToWindow() {
-    if window != nil {
-      subscribe()
-    }
-  }
+  // MARK: - Variables
   
-  override func willMove(toWindow newWindow: UIWindow?) {
-    if newWindow == nil {
-      unsubscribe()
-    }
-  }
-  
-  func handleThemeChangedNotification() {
-    applyCurrentTheme(animated: true)
-  }
-  
-  private var axisColor = UIColor.gray.cgColor
-  private var axisLabelColor = UIColor.black.cgColor
-  private var circlePointFillColor = UIColor.white.cgColor
-  
-  func applyCurrentTheme(animated: Bool = false) {
-    let theme = UIApplication.myDelegate.currentTheme
-    
-    axisColor = theme.axisColor.cgColor
-    axisLabelColor = theme.axisLabelColor.cgColor
-    circlePointFillColor = theme.foregroundColor.cgColor
-    
-    func applyChanges() {
-      if let annotation = currentChartAnnotation {
-        for circle in annotation.circleLayers {
-          circle.fillColor = circlePointFillColor
-        }
-        annotation.lineLayer.strokeColor = axisColor
-      }
-    }
-    
-    if animated {
-      CATransaction.begin()
-      CATransaction.setAnimationDuration(0.25)
-        applyChanges()
-      CATransaction.commit()
-      CATransaction.flush()
-    } else {
-      applyChanges()
-    }
-  }
+  //TODO: SHOULD NOT ALLOW TO SET THESE WHEN GRAPH IS DISPLAYING, or make it redraw when set
+  var graphLineWidth: CGFloat = 2.0
+  private let circlePointRadius: CGFloat = 4.0
+  var shouldDisplaySupportAxis = false
+  private let numOfSupportAxis = 5
+
   
   override var bounds: CGRect {
     didSet {
-      //we need to inset drawing so that if the minimum or maxim points are selected, the circle is fully visible
+      //we need to inset drawing so that if the minimum or maximum points are selected, the circle is fully visible in the view
       let inset = circlePointRadius + graphLineWidth
       chartBounds = CGRect(x: bounds.origin.x + inset,
                            y: bounds.origin.y + inset,
@@ -93,59 +60,47 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     }
   }
   
-  var graphLineWidth: CGFloat = 2.0
-  var circlePointRadius: CGFloat = 4.0
-  var shouldDisplaySupportAxis = false
-  
-  private let numOfSupportAxis = 5
-  private var supportAxisCapHeight: CGFloat {
-    return bounds.height * 0.95
-  }
-  
-  
   private var chartBounds: CGRect = CGRect.zero {
     didSet {
-      let chart = self.chart
-      self.chart = chart
-    }
-  }
-
-  private struct Drawing {
-    let identifier: String
-    let line: UIBezierPath
-    let shapeLayer: CAShapeLayer
-    private(set) var points: [CGPoint]
-    
-    mutating func update(withPoints points: [CGPoint]) {
-      self.points = points
+      configure(with: self.chart)
     }
   }
   
-  var lastYRange: ClosedRange<CGFloat> = 0...0 {
+  private var supportAxisCapHeight: CGFloat {
+    return chartBounds.height * 0.85
+  }
+
+  private var chart: LinearChart!
+  private var drawings: [Drawing]!
+  private var hiddenDrawingIndicies: Set<Int>!
+  private var zeroAxis: SupportAxis!
+  private var supportAxis: [SupportAxis]!
+  private var currentChartAnnotation: ChartAnnotation?
+  
+  // MARK: Range changing
+  
+  /// Range between total min and max of non-hidden graphs
+  private var currentYValueRange: ClosedRange<CGFloat> = 0...0 {
     didSet {
+      if shouldDisplaySupportAxis {
+        animateSupportAxisChange(fromPreviousRange: oldValue, toNewRange: currentYValueRange)
+      }
     }
   }
   
   /// From 0 to 1.0.
-  var displayRange: ClosedRange<CGFloat> = ZORange {
+  private var normalizedCurrentXRange: ClosedRange<CGFloat> = ZORange {
     didSet {
       guard var drawings = drawings, let chart = chart else {
         return
       }
-
-      var excluded = [Int]()
-      for i in 0..<hiddens.count {
-        if hiddens[i] {excluded.append(i)}
-      }
-      let normalizedYVectors = chart.oddlyNormalizedYVectors(in: displayRange, excludedIdxs: excluded)
-      let normalizedXVector = chart.normalizedXVector(in: displayRange)
       
-      let newYrange = normalizedYVectors.resltingYRange
-      if lastYRange != newYrange {
-        if shouldDisplaySupportAxis {
-          animateSupportAxisChange(fromMaxValue: lastYRange.upperBound, toMaxValue: newYrange.upperBound)
-        }
-        lastYRange = newYrange
+      let normalizedYVectors = chart.oddlyNormalizedYVectors(in: normalizedCurrentXRange, excludedIdxs: Array(hiddenDrawingIndicies))
+      let normalizedXVector = chart.normalizedXVector(in: normalizedCurrentXRange)
+      
+      let newYrange = normalizedYVectors.resultingYRange
+      if currentYValueRange != newYrange {
+        currentYValueRange = newYrange
       }
       
       for i in 0..<drawings.count {
@@ -155,73 +110,106 @@ class TGCAChartView: UIView, ThemeChangeObserving {
         let yVector = normalizedYVectors.resultingVectors[i].map{chartBounds.size.height - ($0 * chartBounds.size.height) + chartBounds.origin.y}
         let xVector = normalizedXVector.map{$0 * chartBounds.size.width + chartBounds.origin.x}
         
-        func point(for j: Int) -> CGPoint {
-          return CGPoint(x: xVector[j], y: yVector[j])
-        }
-        var points = [CGPoint]()
-        for k in 0..<xVector.count {
-          points.append(point(for: k))
-        }
+        let points = convertToPoints(xVector: xVector, yVector: yVector)
         drawing.update(withPoints: points)
         
-        let newPath = bezierLine(xVector: xVector, yVector: yVector)
+        let newPath = bezierLine(withPoints: points)
         let pathAnimation = CABasicAnimation(keyPath: "path")
         pathAnimation.fromValue = drawing.shapeLayer.path
         drawing.shapeLayer.path = newPath.cgPath
         pathAnimation.toValue = drawing.shapeLayer.path
         pathAnimation.duration = 0.25
         drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
-        self.drawings![i] = drawing
+        self.drawings[i] = drawing
     }
     }
   }
   
-  private var yValueRange: ClosedRange<CGFloat> = 0...0
-  private var hiddens: [Bool]!
-  
-  private var chart: LinearChart! {
-    didSet {
-      let yVectors = chart.nyVectorGroup.vectors.map{$0.map{chartBounds.size.height - ($0 * chartBounds.size.height) + chartBounds.origin.y}}
-      let xVector = chart.xVector.nVector.vector.map{$0 * chartBounds.size.width + chartBounds.origin.x}
-      var draws = [Drawing]()
-      
-      for i in 0..<yVectors.count {
-        let yVector = yVectors[i]
-        
-        
-        func point(for j: Int) -> CGPoint {
-          return CGPoint(x: xVector[j], y: yVector[j])
-        }
-        var points = [CGPoint]()
-        for k in 0..<xVector.count {
-          points.append(point(for: k))
-        }
-        
-        
-        let line = bezierLine(xVector: xVector, yVector: yVector)
-        let sp = shapeLayer(withPath: line.cgPath, color: chart.yVectors[i].metaData.color.cgColor, lineWidth: graphLineWidth)
-        layer.addSublayer(sp)
-        draws.append(Drawing(identifier: chart.yVectors[i].metaData.identifier, line: line, shapeLayer: sp, points: points))
+  private func reset() {
+    self.chart = nil
+    if let drawings = self.drawings {
+      for drawing in drawings {
+        drawing.shapeLayer.removeFromSuperlayer()
       }
-      self.drawings = draws
-      self.hiddens = Array(repeating: false, count: chart.yVectors.count)
+      self.drawings = nil
+    }
+    if let supportAxis = self.supportAxis {
+      for axis in supportAxis {
+        axis.labelLayer.removeFromSuperlayer()
+        axis.lineLayer.removeFromSuperlayer()
+      }
+      self.supportAxis = nil
+    }
+    if let zeroAxis = self.zeroAxis {
+      zeroAxis.lineLayer.removeFromSuperlayer()
+      zeroAxis.labelLayer.removeFromSuperlayer()
+      self.zeroAxis = nil
+    }
+    self.hiddenDrawingIndicies = nil
+    removeChartAnnotation()
+  }
+  
+  // MARK: - Helping functions
+  
+  private func convertToPoints(xVector: [CGFloat], yVector: [CGFloat]) -> [CGPoint] {
+    var points = [CGPoint]()
+    for i in 0..<xVector.count {
+      points.append(CGPoint(x: xVector[i], y: yVector[i]))
+    }
+    return points
+  }
+
+  // MARK: - Public functions
+  
+  /// Call to set chart
+  func configure(with chart: LinearChart) {
+    reset()
+    self.chart = chart
+    let yVectors = chart.nyVectorGroup.vectors.map{$0.map{chartBounds.size.height - ($0 * chartBounds.size.height) + chartBounds.origin.y}}
+    let xVector = chart.xVector.nVector.vector.map{$0 * chartBounds.size.width + chartBounds.origin.x}
+    
+    let newYrange = (chart.yVectors.map{$0.min}.min() ?? 0)...(chart.yVectors.map{$0.max}.max() ?? 0)
+    currentYValueRange = newYrange
+    
+    var draws = [Drawing]()
+    
+    for i in 0..<yVectors.count {
+      let yVector = yVectors[i]
+      let points = convertToPoints(xVector: xVector, yVector: yVector)
+      
+      let shape = shapeLayer(withPath: bezierLine(withPoints: points).cgPath, color: chart.yVectors[i].metaData.color.cgColor, lineWidth: graphLineWidth)
+      layer.addSublayer(shape)
+      draws.append(Drawing(identifier: chart.yVectors[i].metaData.identifier, shapeLayer: shape, points: points))
+    }
+    self.drawings = draws
+    self.hiddenDrawingIndicies = []
+    if shouldDisplaySupportAxis  {
+      addXAxisLayers()
     }
   }
-  private var drawings: [Drawing]!
+  
+  /// Call to update the diplayed X range. Accepted are subranges of 0...1.
+  func updateDisplayRange(with newRange: ClosedRange<CGFloat>) {
+    normalizedCurrentXRange = max(0, newRange.lowerBound)...min(1.0, newRange.upperBound)
+  }
 
+  /// Call to hide graph at index.
   func hide(at index: Int) {
-    let originalHidden = hiddens[index]
-    hiddens[index].toggle()
-    var excluded = [Int]()
-    for i in 0..<hiddens.count {
-      if hiddens[i] {excluded.append(i)}
+    let originalHidden = hiddenDrawingIndicies.contains(index)
+    if originalHidden {
+      hiddenDrawingIndicies.remove(index)
+    } else {
+      hiddenDrawingIndicies.insert(index)
     }
-    let normalizedYVectors = chart.oddlyNormalizedYVectors(in: displayRange, excludedIdxs: excluded)
-    let normalizedXVector = chart.normalizedXVector(in: displayRange)
+    let normalizedYVectors = chart.oddlyNormalizedYVectors(in: normalizedCurrentXRange, excludedIdxs: Array(hiddenDrawingIndicies))
+    let normalizedXVector = chart.normalizedXVector(in: normalizedCurrentXRange)
+    let xVector = normalizedXVector.map{$0 * chartBounds.size.width + chartBounds.origin.x}
+
     for i in 0..<drawings.count {
       let drawing = drawings[i]
       let yVector = normalizedYVectors.resultingVectors[i].map{chartBounds.size.height + chartBounds.origin.y - ($0 * chartBounds.size.height)}
-      let newPath = bezierLine(xVector: normalizedXVector.map{$0 * chartBounds.size.width + chartBounds.origin.x}, yVector: yVector)
+      let points = convertToPoints(xVector: xVector, yVector: yVector)
+      let newPath = bezierLine(withPoints: points)
       let pathAnimation = CABasicAnimation(keyPath: "path")
       pathAnimation.fromValue = drawing.shapeLayer.path
       drawing.shapeLayer.path = newPath.cgPath
@@ -243,52 +231,56 @@ class TGCAChartView: UIView, ThemeChangeObserving {
       }
     }
   }
-  
-  
-  func configure(with chart: LinearChart) {
-    self.chart = chart
-    
-    if(shouldDisplaySupportAxis) {
-      self.addXAxisLayers()
-    }
-  }
+
   
   
   
-  typealias SupportAxis = (lineLayer: CAShapeLayer, labelLayer: CATextLayer, value: CGFloat)
-  
-  var supportAxis: [SupportAxis]!
+  // MARK: - Support axis
   
   private var supportAxisDefaultYPositions: [CGFloat] {
     let space = supportAxisCapHeight / CGFloat(numOfSupportAxis)
     var retVal = [CGFloat]()
     for i in 0..<numOfSupportAxis {
-      retVal.append(bounds.height - (CGFloat(i) * space + space))
+      retVal.append(chartBounds.origin.y + chartBounds.height - (CGFloat(i) * space + space))
     }
     return retVal
   }
   
-  func addXAxisLayers() {
-    var layers = [SupportAxis]()
+  private func addXAxisLayers() {
+
+    let zeroLine = bezierLine(from: CGPoint(x: chartBounds.origin.x, y: chartBounds.origin.y + chartBounds.height), to: CGPoint(x: chartBounds.origin.x + chartBounds.width, y: chartBounds.origin.y + chartBounds.height))
+    let shape = shapeLayer(withPath: zeroLine.cgPath, color: axisColor, lineWidth: 0.5)
+    layer.addSublayer(shape)
+    let textLayerr = textLayer(position: CGPoint(x: chartBounds.origin.x, y: chartBounds.origin.y + chartBounds.height - 20), text: "0", color: axisLabelColor)
+    layer.addSublayer(textLayerr)
     
-    for i in supportAxisDefaultYPositions {
-      let line = UIBezierPath()
-      line.move(to: CGPoint(x: bounds.origin.x, y: i))
-      line.addLine(to: CGPoint(x: bounds.size.width, y: i))
-      let shapeLater = shapeLayer(withPath: line.cgPath, color: UIColor.lightGray.withAlphaComponent(0.75).cgColor, lineWidth: 0.5)
-      let textLayerr = textLayer(position: CGPoint(x: bounds.origin.x, y: i - 10), text: "\(i)")
-      layer.addSublayer(shapeLater)
-      layer.addSublayer(textLayerr)
-      layers.append((shapeLater, textLayerr, i))
+    zeroAxis = SupportAxis(shape, textLayerr, chartBounds.origin.y + chartBounds.height)
+    
+    var layers = [SupportAxis]()
+
+    for i in 0..<supportAxisDefaultYPositions.count {
+      let position = supportAxisDefaultYPositions[i]
+      let line = bezierLine(from: CGPoint(x: chartBounds.origin.x, y: position), to: CGPoint(x: chartBounds.origin.x + chartBounds.width, y: position))
+      let shapeL = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: 0.5)
+      shapeL.opacity = 0.75
+      let textL = textLayer(position: CGPoint(x: chartBounds.origin.x, y: position - 20), text: "\(((currentYValueRange.upperBound - currentYValueRange.lowerBound) * 0.85  / (CGFloat(i+1)) + currentYValueRange.lowerBound))", color: axisLabelColor)
+      layer.addSublayer(shapeL)
+      layer.addSublayer(textL)
+      layers.append((shapeL, textL, position))
     }
     self.supportAxis = layers
   }
   
-  func animateSupportAxisChange(fromMaxValue: CGFloat, toMaxValue: CGFloat) {
-    let coefficient = fromMaxValue/toMaxValue
-    for (lineLayer, labelLayer, _) in supportAxis {
-      let newLinePosition = CGPoint(x: lineLayer.position.x, y: lineLayer.position.y - supportAxisCapHeight * coefficient)
-      let newTextPosition = CGPoint(x: labelLayer.position.x, y: labelLayer.position.y - supportAxisCapHeight * coefficient)
+  private func animateSupportAxisChange(fromPreviousRange previousRange: ClosedRange<CGFloat>, toNewRange newRange: ClosedRange<CGFloat>) {
+    
+    guard let supportAxis = supportAxis else {
+      return
+    }
+    
+    let coefficient: CGFloat = newRange.upperBound / previousRange.upperBound // TODO: separately for each
+    for (lineLayer, labelLayer, position) in supportAxis {
+      let newLinePosition = CGPoint(x: lineLayer.position.x, y: chartBounds.origin.y + chartBounds.height - (chartBounds.origin.y + chartBounds.height - position) * coefficient)
+      let newTextPosition = CGPoint(x: labelLayer.position.x, y: chartBounds.origin.y + chartBounds.height - (chartBounds.origin.y + chartBounds.height - position - 20) * coefficient)
       
       CATransaction.begin()
       CATransaction.setAnimationDuration(0.25)
@@ -298,6 +290,8 @@ class TGCAChartView: UIView, ThemeChangeObserving {
         labelLayer.removeFromSuperlayer()
       }
       labelLayer.position = newTextPosition
+      labelLayer.opacity = 0
+      lineLayer.opacity = 0
       lineLayer.position = newLinePosition
       CATransaction.commit()
       CATransaction.flush()
@@ -311,8 +305,8 @@ class TGCAChartView: UIView, ThemeChangeObserving {
       let oT = labelLayer.position
       let newLinePosition = CGPoint(x: lineLayer.position.x, y: lineLayer.position.y + supportAxisCapHeight * coefficient)
       let newTextPosition = CGPoint(x: labelLayer.position.x, y: labelLayer.position.y + supportAxisCapHeight * coefficient)
-      print(oT)
-      print(newTextPosition)
+//      print(oT)
+//      print(newTextPosition)
       labelLayer.position = newTextPosition
       lineLayer.position = newLinePosition
       CATransaction.begin()
@@ -332,35 +326,31 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     
   }
   
-  func bezierLine(xVector: ValueVector, yVector: ValueVector) -> UIBezierPath {
+  private func bezierLine(withPoints points: [CGPoint]) -> UIBezierPath {
     let line = UIBezierPath()
-    
-    func point(for i: Int) -> CGPoint {
-      return CGPoint(x: xVector[i], y: yVector[i])
-    }
-    
-    let firstPoint = point(for: 0)
+    let firstPoint = points[0]
     line.move(to: firstPoint)
-    
-    for i in 1..<xVector.count {
-      line.addLine(to: point(for: i))
+    for i in 1..<points.count {
+      line.addLine(to: points[i])
     }
     return line
   }
   
-  func bezierLine(from fromPoint: CGPoint, to toPoint: CGPoint) -> UIBezierPath {
+  // MARK: - Drawing
+  
+  private func bezierLine(from fromPoint: CGPoint, to toPoint: CGPoint) -> UIBezierPath {
     let line = UIBezierPath()
     line.move(to: fromPoint)
     line.addLine(to: toPoint)
     return line
   }
   
-  func bezierCircle(at point: CGPoint, radius: CGFloat = 4.0) -> UIBezierPath {
+  private func bezierCircle(at point: CGPoint, radius: CGFloat = 4.0) -> UIBezierPath {
     let rect = CGRect(x: point.x - radius, y: point.y - radius, width: radius * 2, height: radius * 2)
     return UIBezierPath(ovalIn: rect)
   }
   
-  func shapeLayer(withPath path: CGPath, color: CGColor, lineWidth: CGFloat = 2, fillColor: CGColor? = nil) -> CAShapeLayer{
+  private func shapeLayer(withPath path: CGPath, color: CGColor, lineWidth: CGFloat = 2, fillColor: CGColor? = nil) -> CAShapeLayer{
     let shapeLayer = CAShapeLayer()
     shapeLayer.path = path
     shapeLayer.strokeColor = color
@@ -371,14 +361,14 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     return shapeLayer
   }
   
-  func textLayer(position: CGPoint, text: String) -> CATextLayer {
+  func textLayer(position: CGPoint, text: String, color: CGColor) -> CATextLayer {
     let textLayer = CATextLayer()
     textLayer.font = "Helvetica" as CFTypeRef
-    textLayer.fontSize = 10.0
+    textLayer.fontSize = 13.0
     textLayer.string = text
     textLayer.frame = CGRect(origin: position, size: CGSize(width: 100, height: 20))
     textLayer.contentsScale = UIScreen.main.scale
-    textLayer.foregroundColor = UIColor.blue.cgColor
+    textLayer.foregroundColor = color
     return textLayer
   }
   
@@ -392,21 +382,13 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     return bounds.contains(point)
   }
   
-  func closestIndex(for touchLocation: CGPoint) -> Int {
-    let xPositionInChartBounds = touchLocation.x - chartBounds.origin.x
-    let translatedToDisplayRange = (displayRange.upperBound - displayRange.lowerBound) * (xPositionInChartBounds / chartBounds.width) + displayRange.lowerBound
-    let index = round(CGFloat(chart.xVector.vector.count - 1) * translatedToDisplayRange)
-    print(index)
-    return Int(index)
-  }
-  
   override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
     guard let touchLocation = touches.first?.location(in: self), chartBounds.contains(touchLocation) else {
       return
     }
     
     let index = closestIndex(for: touchLocation)
-
+    
     if let annotation = currentChartAnnotation {
       if annotation.annotationView.frame.contains(touchLocation) {
         removeChartAnnotation()
@@ -420,11 +402,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   }
   
   override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-    guard let touchLocation = touches.first?.location(in: self), chartBounds.contains(touchLocation) else {
-      return
-    }
-    
-    guard let currentAnnotation = currentChartAnnotation else {
+    guard let touchLocation = touches.first?.location(in: self), chartBounds.contains(touchLocation), let currentAnnotation = currentChartAnnotation else {
       return
     }
     
@@ -434,23 +412,17 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     }
   }
   
-  struct ChartAnnotation {
-    let lineLayer: CAShapeLayer
-    let annotationView: TGCAChartAnnotationView
-    let circleLayers: [CAShapeLayer]
-    private(set) var displayedIndex: Int
-    mutating func updateDiplayedIndex(to toIndex: Int) {
-      self.displayedIndex = toIndex
-    }
+  // MARK: - Annotation
+  
+  private func closestIndex(for touchLocation: CGPoint) -> Int {
+    let xPositionInChartBounds = touchLocation.x - chartBounds.origin.x
+    let translatedToDisplayRange = (normalizedCurrentXRange.upperBound - normalizedCurrentXRange.lowerBound) * (xPositionInChartBounds / chartBounds.width) + normalizedCurrentXRange.lowerBound
+    let index = round(CGFloat(chart.xVector.vector.count - 1) * translatedToDisplayRange)
+    return Int(index)
   }
   
-  var currentChartAnnotation: ChartAnnotation?
-  
-  func addChartAnnotation(for index: Int) {
+  private func addChartAnnotation(for index: Int) {
     let xPoint = drawings[0].points[index].x
-    
-    
-    
     var circleLayers = [CAShapeLayer]()
     
     var coloredValues = [(CGFloat, UIColor)]()
@@ -474,7 +446,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     annotationView.center = CGPoint(x: xPos, y: bounds.origin.y + annotationSize.height / 2)
     
     let line = bezierLine(from: CGPoint(x: xPoint, y: annotationView.frame.origin.y + annotationView.frame.height), to: CGPoint(x: xPoint, y: chartBounds.origin.y + chartBounds.height))
-    let lineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: 1.5)
+    let lineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: 1.0)
     layer.addSublayer(lineLayer)
     for c in circleLayers {
       layer.addSublayer(c)
@@ -484,7 +456,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     self.currentChartAnnotation = ChartAnnotation(lineLayer: lineLayer, annotationView: annotationView, circleLayers: circleLayers, displayedIndex: index)
   }
   
-  func moveChartAnnotation(to index: Int) {
+  private func moveChartAnnotation(to index: Int) {
     guard let annotation = currentChartAnnotation else {
       return
     }
@@ -510,6 +482,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     
     let line = bezierLine(from: CGPoint(x: xPoint, y: annotation.annotationView.frame.origin.y + annotation.annotationView.frame.height), to: CGPoint(x: xPoint, y: chartBounds.origin.y + chartBounds.height))
     currentChartAnnotation?.lineLayer.path = line.cgPath
+    currentChartAnnotation?.updateDiplayedIndex(to: index)
   }
   
   func removeChartAnnotation() {
@@ -519,9 +492,80 @@ class TGCAChartView: UIView, ThemeChangeObserving {
       for layer in annotation.circleLayers {
         layer.removeFromSuperlayer()
       }
-      currentChartAnnotation = nil
+      self.currentChartAnnotation = nil
+    }
+  }
+
+  // MARK: - Structs and typealiases
+  
+  private typealias SupportAxis = (lineLayer: CAShapeLayer, labelLayer: CATextLayer, value: CGFloat)
+  
+  private struct Drawing {
+    let identifier: String
+    let shapeLayer: CAShapeLayer
+    private(set) var points: [CGPoint]
+    
+    mutating func update(withPoints points: [CGPoint]) {
+      self.points = points
     }
   }
   
+  private struct ChartAnnotation {
+    let lineLayer: CAShapeLayer
+    let annotationView: TGCAChartAnnotationView
+    let circleLayers: [CAShapeLayer]
+    private(set) var displayedIndex: Int
+    
+    mutating func updateDiplayedIndex(to toIndex: Int) {
+      self.displayedIndex = toIndex
+    }
+  }
+}
 
+
+extension TGCAChartView: ThemeChangeObserving {
+  
+  override func didMoveToWindow() {
+    if window != nil {
+      subscribe()
+    }
+  }
+  
+  override func willMove(toWindow newWindow: UIWindow?) {
+    if newWindow == nil {
+      unsubscribe()
+    }
+  }
+  
+  func handleThemeChangedNotification() {
+    applyCurrentTheme(animated: true)
+  }
+  
+  func applyCurrentTheme(animated: Bool = false) {
+    let theme = UIApplication.myDelegate.currentTheme
+    
+    axisColor = theme.axisColor.cgColor
+    axisLabelColor = theme.axisLabelColor.cgColor
+    circlePointFillColor = theme.foregroundColor.cgColor
+    
+    func applyChanges() {
+      if let annotation = currentChartAnnotation {
+        for circle in annotation.circleLayers {
+          circle.fillColor = circlePointFillColor
+        }
+        annotation.lineLayer.strokeColor = axisColor
+      }
+    }
+    
+    if animated {
+      CATransaction.begin()
+      CATransaction.setAnimationDuration(0.25)
+      applyChanges()
+      CATransaction.commit()
+      CATransaction.flush()
+    } else {
+      applyChanges()
+    }
+  }
+  
 }

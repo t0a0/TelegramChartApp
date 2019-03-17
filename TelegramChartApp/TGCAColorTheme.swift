@@ -24,8 +24,8 @@ struct TGCAColorTheme {
     axisColor: UIColor(red: 207.0/255.0, green: 209.0/255.0, blue: 210.0/255.0, alpha: 1),
     axisLabelColor: UIColor(red: 152.0/255.0, green: 158.0/255.0, blue: 163.0/255.0, alpha: 1),
     trimmerShoulderColor: UIColor(red: 202.0/255.0, green: 212.0/255.0, blue: 222.0/255.0, alpha: 0.9),
-    annotationColor: UIColor(red: 240.0/255.0, green: 240.0/255.0, blue: 245.0/255.0, alpha: 1),
-    annotationLabelColor: UIColor(red: 109.0/255.0, green: 109.0/255.0, blue: 114.0/255.0, alpha: 0.9),
+    annotationColor: UIColor(red: 240.0/255.0, green: 240.0/255.0, blue: 245.0/255.0, alpha: 0.9),
+    annotationLabelColor: UIColor(red: 109.0/255.0, green: 109.0/255.0, blue: 114.0/255.0, alpha: 1),
     statusBarStyle: .default)
   
   static let dark = TGCAColorTheme(
