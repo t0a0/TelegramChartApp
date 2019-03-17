@@ -25,7 +25,7 @@ protocol TGCATrimmerViewDelegate: class {
 }
 
 //TODO: UIControl?
-class TGCATrimmerView: UIView {
+class TGCATrimmerView: UIView, ThemeChangeObserving {
   
   weak var delegate: TGCATrimmerViewDelegate?
   
@@ -67,14 +67,6 @@ class TGCATrimmerView: UIView {
     commonInit()
   }
   
-  func configureTheme(maskColor: UIColor, shoulderColor: UIColor) {
-    leftShoulderView.backgroundColor = shoulderColor
-    rightShoulderView.backgroundColor = shoulderColor
-    leftMaskView.backgroundColor = maskColor
-    rightMaskView.backgroundColor = maskColor
-    trimmedAreaView.layer.borderColor = shoulderColor.cgColor
-  }
-  
   private func commonInit() {
     backgroundColor = .clear
     layer.zPosition = 1
@@ -82,6 +74,43 @@ class TGCATrimmerView: UIView {
     setupShoulderViews()
     setupMaskViews()
     setupGestures()
+    applyCurrentTheme()
+  }
+  
+  func handleThemeChangedNotification() {
+      applyCurrentTheme(animated: true)
+  }
+  
+  func applyCurrentTheme(animated: Bool = false) {
+    let theme = UIApplication.myDelegate.currentTheme
+    
+    func applyChanges() {
+      leftShoulderView.backgroundColor = theme.trimmerShoulderColor
+      rightShoulderView.backgroundColor = theme.trimmerShoulderColor
+      leftMaskView.backgroundColor = theme.backgroundColor
+      rightMaskView.backgroundColor = theme.backgroundColor
+      trimmedAreaView.layer.borderColor = theme.trimmerShoulderColor.cgColor
+    }
+    
+    if animated {
+      UIView.animate(withDuration: 0.25) {
+        applyChanges()
+      }
+    } else {
+      applyChanges()
+    }
+  }
+  
+  override func didMoveToWindow() {
+    if window != nil {
+      subscribe()
+    }
+  }
+  
+  override func willMove(toWindow newWindow: UIWindow?) {
+    if newWindow == nil {
+      unsubscribe()
+    }
   }
   
   private func setupTrimmedAreaView() {

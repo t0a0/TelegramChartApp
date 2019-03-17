@@ -9,18 +9,16 @@
 import Foundation
 import UIKit
 
-protocol ThemeChangeObserving {
+@objc protocol ThemeChangeObserving {
   
-  func handleThemeChangedNotification()
+  @objc func handleThemeChangedNotification()
   
 }
 
-extension ThemeChangeObserving where Self: UIViewController {
+extension ThemeChangeObserving {
   
   func subscribe() {
-    NotificationCenter.default.addObserver(forName: THEME_HAS_CHANGED_NOTIFICATION_NAME, object: nil, queue: OperationQueue.main) { _ in
-      self.handleThemeChangedNotification()
-    }
+    NotificationCenter.default.addObserver(self, selector: #selector(ThemeChangeObserving.handleThemeChangedNotification), name: THEME_HAS_CHANGED_NOTIFICATION_NAME, object: nil)
   }
   
   func unsubscribe() {

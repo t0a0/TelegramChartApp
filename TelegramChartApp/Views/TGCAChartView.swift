@@ -9,13 +9,9 @@
 import UIKit
 import QuartzCore
 
-protocol TGCAChartViewDelegate: class {
-  
-  func chartView(_ chartView: TGCAChartView, requestsChartLabelDataForPoint point: CGPoint) -> TGCAChartAnnotation
-  
-}
+class TGCAChartView: UIView, ThemeChangeObserving {
 
-class TGCAChartView: UIView {
+  
   @IBOutlet var contentView: UIView!
   //MARK: - Init
   
@@ -36,6 +32,22 @@ class TGCAChartView: UIView {
     contentView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
     layer.masksToBounds = true
     isMultipleTouchEnabled = false
+  }
+  
+  override func didMoveToWindow() {
+    if window != nil {
+      subscribe()
+    }
+  }
+  
+  override func willMove(toWindow newWindow: UIWindow?) {
+    if newWindow == nil {
+      unsubscribe()
+    }
+  }
+  
+  func handleThemeChangedNotification() {
+    
   }
   
   override var bounds: CGRect {
@@ -73,8 +85,6 @@ class TGCAChartView: UIView {
       self.points = points
     }
   }
-  weak var delegate: TGCAChartViewDelegate?
-
   
   var lastYRange: ClosedRange<CGFloat> = 0...0 {
     didSet {
@@ -339,59 +349,118 @@ class TGCAChartView: UIView {
   
   // MARK: - Touches
   
+  override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+    return bounds.contains(point) ? self : nil
+  }
+  
+  override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+    return bounds.contains(point)
+  }
+  
+  func closestIndex(for touchLocation: CGPoint) -> Int {
+    let xPositionInChartBounds = touchLocation.x - chartBounds.origin.x
+    let translatedToDisplayRange = (displayRange.upperBound - displayRange.lowerBound) * (xPositionInChartBounds / chartBounds.width) + displayRange.lowerBound
+    let index = round(CGFloat(chart.xVector.vector.count - 1) * translatedToDisplayRange)
+    print(index)
+    return Int(index)
+  }
+  
   override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-    guard
-      let touchLocation = touches.first?.location(in: self),
-      chartBounds.contains(touchLocation)
-      else {
-        return
+    guard let touchLocation = touches.first?.location(in: self), chartBounds.contains(touchLocation) else {
+      return
     }
     
-    //TODO: Something wrong with calculation, on the right part of the screen index is + 1 from the touched one
-    
-    func closestIndex(for touchLocation: CGPoint) -> Int {
-      let xPositionInChartBounds = touchLocation.x - chartBounds.origin.x
-      let translatedToDisplayRange = (displayRange.upperBound - displayRange.lowerBound) * (xPositionInChartBounds / chartBounds.width) + displayRange.lowerBound
-      let index = round(CGFloat(chart.xVector.vector.count - 1) * translatedToDisplayRange)
-      print(index)
-      return Int(index)
-    }
-    
-//    func xLocationInChartBounds(of index: Int) -> CGFloat {
-//      let displayRangeLocation = (CGFloat(index) / CGFloat(chart.xVector.vector.count - 1))
-//      let currentDisplayRangeLocation = (displayRangeLocation - displayRange.lowerBound)/(displayRange.upperBound - displayRange.lowerBound)
-//      return (chartBounds.width * currentDisplayRangeLocation) + chartBounds.origin.x
-//    }
-//
     let index = closestIndex(for: touchLocation)
+
+    if let annotation = currentChartAnnotation {
+      if annotation.annotationView.frame.contains(touchLocation) {
+        removeChartAnnotation()
+        return
+      } else {
+        moveChartAnnotation(to: index)
+      }
+    } else {
+      addChartAnnotation(for: index)
+    }
     
     
+  }
+  
+  struct ChartAnnotation {
+    let lineLayer: CAShapeLayer
+    let annotationView: TGCAChartAnnotationView
+    let circleLayers: [CAShapeLayer]
+    private(set) var displayedIndex: Int
+    mutating func updateDiplayedIndex(to toIndex: Int) {
+      self.displayedIndex = toIndex
+    }
+  }
+  
+  var currentChartAnnotation: ChartAnnotation?
+  
+  func addChartAnnotation(for index: Int) {
+    let xPoint = drawings[0].points[index].x
+    
+    let line = bezierLine(from: CGPoint(x: xPoint, y: chartBounds.origin.y + chartBounds.height), to: CGPoint(x: xPoint, y: chartBounds.origin.y))
+    let lineLayer = shapeLayer(withPath: line.cgPath, color: UIColor.blue.cgColor, lineWidth: 1.0)
+    layer.addSublayer(lineLayer)
+    
+    var circleLayers = [CAShapeLayer]()
+    
+    var coloredValues = [(CGFloat, UIColor)]()
+    let date = Date(timeIntervalSince1970: TimeInterval(chart.xVector.vector[index])/1000)
+
     for i in 0..<drawings.count {
       let drawing = drawings[i]
       let point = drawing.points[index]
-     
-      
-      let line = bezierLine(from: CGPoint(x: point.x, y: chartBounds.origin.y + chartBounds.height), to: CGPoint(x: point.x, y: chartBounds.origin.y))
-      let shapeLayerr = shapeLayer(withPath: line.cgPath, color: UIColor.blue.cgColor, lineWidth: 1.0)
-      layer.addSublayer(shapeLayerr)
       
       let circle = bezierCircle(at: point)
       let circleShape = shapeLayer(withPath: circle.cgPath, color: chart.yVectors[i].metaData.color.cgColor, lineWidth: graphLineWidth, fillColor: UIApplication.myDelegate.currentTheme.foregroundColor.cgColor)
+      circleLayers.append(circleShape)
       layer.addSublayer(circleShape)
+      
+      coloredValues.append((chart.yVectors[i].vector[index], chart.yVectors[i].metaData.color))
+    }
+    coloredValues.sort { (left, right) -> Bool in
+      return left.0 >= right.0
+    }
+    let annotationView = TGCAChartAnnotationView(frame: CGRect.zero)
+    let annotationSize = annotationView.configure(date: date, coloredValues: coloredValues)
+    let xPos = min(bounds.origin.x + bounds.width - annotationSize.width / 2, max(bounds.origin.x + annotationSize.width / 2, xPoint))
+    annotationView.center = CGPoint(x: xPos, y: bounds.origin.y + annotationSize.height / 2)
+    addSubview(annotationView)
+    
+    self.currentChartAnnotation = ChartAnnotation(lineLayer: lineLayer, annotationView: annotationView, circleLayers: circleLayers, displayedIndex: index)
+  }
+  
+  func moveChartAnnotation(to index: Int) {
+    removeChartAnnotation()
+    addChartAnnotation(for: index)
+  }
+  
+  func removeChartAnnotation() {
+    if let annotation = currentChartAnnotation {
+      annotation.lineLayer.removeFromSuperlayer()
+      annotation.annotationView.removeFromSuperview()
+      for layer in annotation.circleLayers {
+        layer.removeFromSuperlayer()
+      }
+      currentChartAnnotation = nil
     }
   }
   
-  
-  
   override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-    print("moved")
-  }
-  
-  override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-    print("ended")
-  }
-  
-  override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-    print("cancelled")
+    guard let touchLocation = touches.first?.location(in: self), chartBounds.contains(touchLocation) else {
+      return
+    }
+    
+    guard let currentAnnotation = currentChartAnnotation else {
+      return
+    }
+    
+    let index = closestIndex(for: touchLocation)
+    if index != currentAnnotation.displayedIndex {
+      moveChartAnnotation(to: index)
+    }
   }
 }

@@ -29,6 +29,7 @@ class TGCAChartDetailViewController: UIViewController {
     navigationController?.interactivePopGestureRecognizer?.isEnabled = false
     tableView.showsVerticalScrollIndicator = false
     tableView.showsHorizontalScrollIndicator = false
+    tableView.canCancelContentTouches = false
     subscribe()
   }
   
@@ -59,8 +60,6 @@ class TGCAChartDetailViewController: UIViewController {
           }
         }
       }
-      
-      chartTrimCell?.trimmerView.configureTheme(maskColor: theme.backgroundColor, shoulderColor: theme.trimmerShoulderColor)
     }
     
     if animated {
