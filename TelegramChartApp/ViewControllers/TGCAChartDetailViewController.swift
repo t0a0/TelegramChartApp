@@ -199,10 +199,17 @@ extension TGCAChartDetailViewController: UITableViewDelegate {
 
 extension TGCAChartDetailViewController: TGCATrimmerViewDelegate {
   
-  func chartSlider(_ chartSlider: TGCATrimmerView, didChangeDisplayRange range: ClosedRange<CGFloat>) {
+  func trimmerView(_ trimmerView: TGCATrimmerView, didChangeDisplayRange range: ClosedRange<CGFloat>) {
     chartCell?.chartView.displayRange = range
   }
   
+  func trimmerViewDidEndDragging(_ trimmerView: TGCATrimmerView) {
+    chartCell?.chartView.isUserInteractionEnabled = true
+  }
+  
+  func trimmerViewDidBeginDragging(_ trimmerView: TGCATrimmerView) {
+    chartCell?.chartView.isUserInteractionEnabled = false
+  }
   
 }
 

@@ -17,7 +17,10 @@ protocol TGCATrimmerViewDelegate: class {
    - chartSlider ad asda sd
    - from (0, minimumRangeLength) to (100 - minimumRangeLength, 100)
    */
-  func chartSlider(_ chartSlider: TGCATrimmerView, didChangeDisplayRange range: ClosedRange<CGFloat>)
+  func trimmerView(_ trimmerView: TGCATrimmerView, didChangeDisplayRange range: ClosedRange<CGFloat>)
+  
+  func trimmerViewDidBeginDragging(_ trimmerView: TGCATrimmerView)
+  func trimmerViewDidEndDragging(_ trimmerView: TGCATrimmerView)
   
 }
 
@@ -194,6 +197,7 @@ class TGCATrimmerView: UIView {
     switch panGestureRecognizer.state {
       
     case .began:
+      delegate?.trimmerViewDidBeginDragging(self)
       if isLeftGesture {
         deactivateTrimmedAreaGestureRecognizers()
         currentLeftConstraint = leftConstraint!.constant
@@ -219,6 +223,7 @@ class TGCATrimmerView: UIView {
       layoutIfNeeded()
       notifyRangeChanged()
     case .cancelled, .ended, .failed:
+      delegate?.trimmerViewDidEndDragging(self)
       reactivateGestureRecognizers()
       notifyRangeChanged()
     default: break
@@ -227,7 +232,7 @@ class TGCATrimmerView: UIView {
   
   private func notifyRangeChanged() {
     print(currentRange.upperBound - currentRange.lowerBound)
-    delegate?.chartSlider(self, didChangeDisplayRange: currentRange)
+    delegate?.trimmerView(self, didChangeDisplayRange: currentRange)
   }
   
   private func updateLeftConstraint(with translation: CGPoint) {
