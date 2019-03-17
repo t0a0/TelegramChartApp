@@ -31,7 +31,7 @@ class TGCATrimmerLeftShoulderView: TGCATrimmerShoulderView {
   
   override func draw(_ rect: CGRect) {
     let line = UIBezierPath()
-    line.lineWidth = 2.0
+    line.lineWidth = 1.5
     line.lineJoinStyle = .round
     UIColor.white.setStroke()
     line.move(to: CGPoint(x: rect.origin.x + rect.width * 0.6, y: rect.origin.y + rect.height * 0.35))
@@ -46,7 +46,7 @@ class TGCATrimmerRightShoulderView: TGCATrimmerShoulderView {
   
   override func draw(_ rect: CGRect) {
     let line = UIBezierPath()
-    line.lineWidth = 2.0
+    line.lineWidth = 1.5
     line.lineJoinStyle = .round
     UIColor.white.setStroke()
     line.move(to: CGPoint(x: rect.origin.x + rect.width * 0.4, y: rect.origin.y + rect.height * 0.35))
