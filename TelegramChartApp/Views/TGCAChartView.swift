@@ -46,7 +46,7 @@ class TGCAChartView: UIView {
   var graphLineWidth: CGFloat = 2.0
   private let circlePointRadius: CGFloat = 4.0
   var shouldDisplaySupportAxis = false
-  private let numOfSupportAxis = 5
+  private let numOfSupportAxis = 6
 
   
   override var bounds: CGRect {
@@ -65,15 +65,10 @@ class TGCAChartView: UIView {
       configure(with: self.chart)
     }
   }
-  
-  private var supportAxisCapHeight: CGFloat {
-    return chartBounds.height * 0.85
-  }
 
   private var chart: LinearChart!
   private var drawings: [Drawing]!
   private var hiddenDrawingIndicies: Set<Int>!
-  private var zeroAxis: SupportAxis!
   private var supportAxis: [SupportAxis]!
   private var currentChartAnnotation: ChartAnnotation?
   
@@ -102,13 +97,11 @@ class TGCAChartView: UIView {
       if currentYValueRange != newYrange {
         currentYValueRange = newYrange
       }
-      
+      let xVector = normalizedXVector.map{$0 * chartBounds.size.width + chartBounds.origin.x}
+
       for i in 0..<drawings.count {
         var drawing = drawings[i]
-        
-        
         let yVector = normalizedYVectors.resultingVectors[i].map{chartBounds.size.height - ($0 * chartBounds.size.height) + chartBounds.origin.y}
-        let xVector = normalizedXVector.map{$0 * chartBounds.size.width + chartBounds.origin.x}
         
         let points = convertToPoints(xVector: xVector, yVector: yVector)
         drawing.update(withPoints: points)
@@ -139,11 +132,6 @@ class TGCAChartView: UIView {
         axis.lineLayer.removeFromSuperlayer()
       }
       self.supportAxis = nil
-    }
-    if let zeroAxis = self.zeroAxis {
-      zeroAxis.lineLayer.removeFromSuperlayer()
-      zeroAxis.labelLayer.removeFromSuperlayer()
-      self.zeroAxis = nil
     }
     self.hiddenDrawingIndicies = nil
     removeChartAnnotation()
@@ -204,7 +192,12 @@ class TGCAChartView: UIView {
     let normalizedYVectors = chart.oddlyNormalizedYVectors(in: normalizedCurrentXRange, excludedIdxs: Array(hiddenDrawingIndicies))
     let normalizedXVector = chart.normalizedXVector(in: normalizedCurrentXRange)
     let xVector = normalizedXVector.map{$0 * chartBounds.size.width + chartBounds.origin.x}
-
+    
+    let newYrange = normalizedYVectors.resultingYRange
+    if currentYValueRange != newYrange {
+      currentYValueRange = newYrange
+    }
+    
     for i in 0..<drawings.count {
       let drawing = drawings[i]
       let yVector = normalizedYVectors.resultingVectors[i].map{chartBounds.size.height + chartBounds.origin.y - ($0 * chartBounds.size.height)}
@@ -238,24 +231,15 @@ class TGCAChartView: UIView {
   // MARK: - Support axis
   
   private var supportAxisDefaultYPositions: [CGFloat] {
-    let space = supportAxisCapHeight / CGFloat(numOfSupportAxis)
+    let space = chartBounds.height / CGFloat(numOfSupportAxis)
     var retVal = [CGFloat]()
     for i in 0..<numOfSupportAxis {
-      retVal.append(chartBounds.origin.y + chartBounds.height - (CGFloat(i) * space + space))
+      retVal.append(chartBounds.origin.y + chartBounds.height - (CGFloat(i) * space))
     }
     return retVal
   }
   
   private func addXAxisLayers() {
-
-    let zeroLine = bezierLine(from: CGPoint(x: chartBounds.origin.x, y: chartBounds.origin.y + chartBounds.height), to: CGPoint(x: chartBounds.origin.x + chartBounds.width, y: chartBounds.origin.y + chartBounds.height))
-    let shape = shapeLayer(withPath: zeroLine.cgPath, color: axisColor, lineWidth: 0.5)
-    layer.addSublayer(shape)
-    let textLayerr = textLayer(position: CGPoint(x: chartBounds.origin.x, y: chartBounds.origin.y + chartBounds.height - 20), text: "0", color: axisLabelColor)
-    layer.addSublayer(textLayerr)
-    
-    zeroAxis = SupportAxis(shape, textLayerr, chartBounds.origin.y + chartBounds.height)
-    
     var layers = [SupportAxis]()
 
     for i in 0..<supportAxisDefaultYPositions.count {
