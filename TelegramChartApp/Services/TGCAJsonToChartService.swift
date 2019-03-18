@@ -29,7 +29,7 @@ class TGCAJsonToChartService {
       return ChartValueVector(vector: $0.values, metaData: ChartValueVectorMetaData(identifier, jsonChart.name(forIdentifier: identifier), jsonChart.color(forIdentifier: identifier)))
     }
     return LinearChart(yVectors: yVectors,
-                      xVector: ChartPositionVector(vector: jsonChart.xColumn.values),
+                      xVector: jsonChart.xColumn.values,
                       title: nil)
   }
   

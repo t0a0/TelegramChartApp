@@ -20,7 +20,6 @@
 		1657645A2236F81400173E97 /* TGCAChartStructs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 165764592236F81400173E97 /* TGCAChartStructs.swift */; };
 		1657645C2237019700173E97 /* TGCAJsonToChartService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657645B2237019700173E97 /* TGCAJsonToChartService.swift */; };
 		1657645E2237135000173E97 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657645D2237135000173E97 /* Constants.swift */; };
-		16576460223713D400173E97 /* GlobalFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657645F223713D400173E97 /* GlobalFunctions.swift */; };
 		1657646222385F3700173E97 /* TGCAGradientMaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657646122385F3700173E97 /* TGCAGradientMaskView.swift */; };
 		16576469223C4DFD00173E97 /* TGCAChartTrimTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16576467223C4DFD00173E97 /* TGCAChartTrimTableViewCell.swift */; };
 		1657646A223C4DFD00173E97 /* TGCAChartTrimTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 16576468223C4DFD00173E97 /* TGCAChartTrimTableViewCell.xib */; };
@@ -71,7 +70,6 @@
 		165764592236F81400173E97 /* TGCAChartStructs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartStructs.swift; sourceTree = "<group>"; };
 		1657645B2237019700173E97 /* TGCAJsonToChartService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAJsonToChartService.swift; sourceTree = "<group>"; };
 		1657645D2237135000173E97 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
-		1657645F223713D400173E97 /* GlobalFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalFunctions.swift; sourceTree = "<group>"; };
 		1657646122385F3700173E97 /* TGCAGradientMaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAGradientMaskView.swift; sourceTree = "<group>"; };
 		16576467223C4DFD00173E97 /* TGCAChartTrimTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartTrimTableViewCell.swift; sourceTree = "<group>"; };
 		16576468223C4DFD00173E97 /* TGCAChartTrimTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TGCAChartTrimTableViewCell.xib; sourceTree = "<group>"; };
@@ -216,7 +214,6 @@
 				1657644D22356BB800173E97 /* Services */,
 				1657644422354E0B00173E97 /* Resources */,
 				1657645D2237135000173E97 /* Constants.swift */,
-				1657645F223713D400173E97 /* GlobalFunctions.swift */,
 				1657646B223D1DDD00173E97 /* TGCAColorTheme.swift */,
 			);
 			path = TelegramChartApp;
@@ -394,7 +391,6 @@
 				1657643D22349B0000173E97 /* TGCATrimmerShoulderView.swift in Sources */,
 				16576450223575C800173E97 /* TGCAChartsViewController.swift in Sources */,
 				1657646C223D1DDE00173E97 /* TGCAColorTheme.swift in Sources */,
-				16576460223713D400173E97 /* GlobalFunctions.swift in Sources */,
 				1657645C2237019700173E97 /* TGCAJsonToChartService.swift in Sources */,
 				16576472223E63A100173E97 /* TGCAChartAnnotationView.swift in Sources */,
 				1657643F2234A0FE00173E97 /* TGCATrimmerView.swift in Sources */,

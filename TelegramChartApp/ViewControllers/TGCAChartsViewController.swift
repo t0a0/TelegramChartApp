@@ -63,7 +63,7 @@ extension TGCAChartsViewController: UITableViewDataSource {
     let cell = tableView.dequeueReusableCell(withIdentifier: cell_reuseId_chartInfo)!
     let chart = charts[indexPath.row]
     cell.textLabel?.attributedText = attributedString(for: chart)
-    cell.detailTextLabel?.text = "X values count: \(chart.xVector.vector.count)"
+    cell.detailTextLabel?.text = "X values count: \(chart.xVector.count)"
     cell.accessoryType = .disclosureIndicator
     cell.selectionStyle = .none
     let theme = UIApplication.myDelegate.currentTheme

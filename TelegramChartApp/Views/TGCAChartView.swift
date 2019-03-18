@@ -78,7 +78,7 @@ class TGCAChartView: UIView {
   private var currentYValueRange: ClosedRange<CGFloat> = 0...0 {
     didSet {
       if shouldDisplaySupportAxis {
-        animateSupportAxisChange(fromPreviousRange: oldValue, toNewRange: currentYValueRange)
+//        animateSupportAxisChange(fromPreviousRange: oldValue, toNewRange: currentYValueRange)
       }
     }
   }
@@ -90,10 +90,10 @@ class TGCAChartView: UIView {
         return
       }
       
-      let normalizedYVectors = chart.oddlyNormalizedYVectors(in: normalizedCurrentXRange, excludedIdxs: Array(hiddenDrawingIndicies))
+      let normalizedYVectors = chart.normalizedYVectors(in: normalizedCurrentXRange, excludedIdxs: hiddenDrawingIndicies)
       let normalizedXVector = chart.normalizedXVector(in: normalizedCurrentXRange)
       
-      let newYrange = normalizedYVectors.resultingYRange
+      let newYrange = normalizedYVectors.yRange
       if currentYValueRange != newYrange {
         currentYValueRange = newYrange
       }
@@ -101,7 +101,7 @@ class TGCAChartView: UIView {
 
       for i in 0..<drawings.count {
         var drawing = drawings[i]
-        let yVector = normalizedYVectors.resultingVectors[i].map{chartBounds.size.height - ($0 * chartBounds.size.height) + chartBounds.origin.y}
+        let yVector = normalizedYVectors.vectors[i].map{chartBounds.size.height - ($0 * chartBounds.size.height) + chartBounds.origin.y}
         
         let points = convertToPoints(xVector: xVector, yVector: yVector)
         drawing.update(withPoints: points)
@@ -153,10 +153,11 @@ class TGCAChartView: UIView {
   func configure(with chart: LinearChart) {
     reset()
     self.chart = chart
-    let yVectors = chart.nyVectorGroup.vectors.map{$0.map{chartBounds.size.height - ($0 * chartBounds.size.height) + chartBounds.origin.y}}
-    let xVector = chart.xVector.nVector.vector.map{$0 * chartBounds.size.width + chartBounds.origin.x}
+    let oddlyNormalizedYVectors = chart.normalizedYVectors(in: ZORange, excludedIdxs: Set())
+    let yVectors = oddlyNormalizedYVectors.vectors.map{$0.map{chartBounds.size.height - ($0 * chartBounds.size.height) + chartBounds.origin.y}}
+    let xVector = chart.normalizedXVector(in: ZORange).map{$0 * chartBounds.size.width + chartBounds.origin.x}
     
-    let newYrange = (chart.yVectors.map{$0.min}.min() ?? 0)...(chart.yVectors.map{$0.max}.max() ?? 0)
+    let newYrange = oddlyNormalizedYVectors.yRange
     currentYValueRange = newYrange
     
     var draws = [Drawing]()
@@ -189,18 +190,18 @@ class TGCAChartView: UIView {
     } else {
       hiddenDrawingIndicies.insert(index)
     }
-    let normalizedYVectors = chart.oddlyNormalizedYVectors(in: normalizedCurrentXRange, excludedIdxs: Array(hiddenDrawingIndicies))
+    let normalizedYVectors = chart.normalizedYVectors(in: normalizedCurrentXRange, excludedIdxs: hiddenDrawingIndicies)
     let normalizedXVector = chart.normalizedXVector(in: normalizedCurrentXRange)
     let xVector = normalizedXVector.map{$0 * chartBounds.size.width + chartBounds.origin.x}
     
-    let newYrange = normalizedYVectors.resultingYRange
+    let newYrange = normalizedYVectors.yRange
     if currentYValueRange != newYrange {
       currentYValueRange = newYrange
     }
     
     for i in 0..<drawings.count {
       let drawing = drawings[i]
-      let yVector = normalizedYVectors.resultingVectors[i].map{chartBounds.size.height + chartBounds.origin.y - ($0 * chartBounds.size.height)}
+      let yVector = normalizedYVectors.vectors[i].map{chartBounds.size.height + chartBounds.origin.y - ($0 * chartBounds.size.height)}
       let points = convertToPoints(xVector: xVector, yVector: yVector)
       let newPath = bezierLine(withPoints: points)
       let pathAnimation = CABasicAnimation(keyPath: "path")
@@ -287,8 +288,8 @@ class TGCAChartView: UIView {
     for (lineLayer, labelLayer, _) in supportAxis {
       let oL = lineLayer.position
       let oT = labelLayer.position
-      let newLinePosition = CGPoint(x: lineLayer.position.x, y: lineLayer.position.y + supportAxisCapHeight * coefficient)
-      let newTextPosition = CGPoint(x: labelLayer.position.x, y: labelLayer.position.y + supportAxisCapHeight * coefficient)
+      let newLinePosition = CGPoint(x: lineLayer.position.x, y: lineLayer.position.y + chartBounds.height * coefficient)
+      let newTextPosition = CGPoint(x: labelLayer.position.x, y: labelLayer.position.y + chartBounds.height * coefficient)
 //      print(oT)
 //      print(newTextPosition)
       labelLayer.position = newTextPosition
@@ -401,7 +402,7 @@ class TGCAChartView: UIView {
   private func closestIndex(for touchLocation: CGPoint) -> Int {
     let xPositionInChartBounds = touchLocation.x - chartBounds.origin.x
     let translatedToDisplayRange = (normalizedCurrentXRange.upperBound - normalizedCurrentXRange.lowerBound) * (xPositionInChartBounds / chartBounds.width) + normalizedCurrentXRange.lowerBound
-    let index = round(CGFloat(chart.xVector.vector.count - 1) * translatedToDisplayRange)
+    let index = round(CGFloat(chart.xVector.count - 1) * translatedToDisplayRange)
     return Int(index)
   }
   
@@ -410,7 +411,7 @@ class TGCAChartView: UIView {
     var circleLayers = [CAShapeLayer]()
     
     var coloredValues = [(CGFloat, UIColor)]()
-    let date = Date(timeIntervalSince1970: TimeInterval(chart.xVector.vector[index])/1000)
+    let date = Date(timeIntervalSince1970: TimeInterval(chart.xVector[index])/1000)
 
     for i in 0..<drawings.count {
       let drawing = drawings[i]
@@ -447,7 +448,7 @@ class TGCAChartView: UIView {
     let xPoint = drawings[0].points[index].x
     
     var coloredValues = [(CGFloat, UIColor)]()
-    let date = Date(timeIntervalSince1970: TimeInterval(chart.xVector.vector[index])/1000)
+    let date = Date(timeIntervalSince1970: TimeInterval(chart.xVector[index])/1000)
     
     for i in 0..<drawings.count {
       let drawing = drawings[i]
