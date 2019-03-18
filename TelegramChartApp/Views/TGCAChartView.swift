@@ -153,12 +153,11 @@ class TGCAChartView: UIView {
   func configure(with chart: LinearChart) {
     reset()
     self.chart = chart
-    let oddlyNormalizedYVectors = chart.normalizedYVectors(in: ZORange, excludedIdxs: Set())
+    let oddlyNormalizedYVectors = chart.normalizedYVectors(in: normalizedCurrentXRange, excludedIdxs: Set())
     let yVectors = oddlyNormalizedYVectors.vectors.map{$0.map{chartBounds.size.height - ($0 * chartBounds.size.height) + chartBounds.origin.y}}
-    let xVector = chart.normalizedXVector(in: ZORange).map{$0 * chartBounds.size.width + chartBounds.origin.x}
+    let xVector = chart.normalizedXVector(in: normalizedCurrentXRange).map{$0 * chartBounds.size.width + chartBounds.origin.x}
     
-    let newYrange = oddlyNormalizedYVectors.yRange
-    currentYValueRange = newYrange
+    currentYValueRange = oddlyNormalizedYVectors.yRange
     
     var draws = [Drawing]()
     
