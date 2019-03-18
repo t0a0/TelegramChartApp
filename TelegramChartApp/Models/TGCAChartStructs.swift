@@ -77,14 +77,3 @@ struct ChartValueVector {
   }
   
 }
-
-struct NormalizedValueVectorGroup {
-  let vectors: [ValueVector]
-  let normalizationRange: ClosedRange<CGFloat>
-}
-
-
-struct OddlyNormalizedValueVectorGroup {
-  let vectors: [ValueVector]
-  let excludedIdxs: Set<Int>
-}
