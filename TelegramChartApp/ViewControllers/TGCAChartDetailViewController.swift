@@ -117,6 +117,8 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
       } else if indexPath.row == 1 {
         let cell = tableView.dequeueReusableCell(withIdentifier: TGCAChartTrimTableViewCell.defaultReuseId) as! TGCAChartTrimTableViewCell
         cell.chartView.graphLineWidth = 1.0
+        cell.chartView.animatesPositionOnHide = false
+        cell.chartView.valuesStartFromZero = false
         if let chart = chart {
           cell.chartView.configure(with: chart)
         }

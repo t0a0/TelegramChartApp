@@ -46,8 +46,9 @@ class TGCAChartView: UIView {
   var graphLineWidth: CGFloat = 2.0
   private let circlePointRadius: CGFloat = 4.0
   var shouldDisplaySupportAxis = false
-  private let numOfSupportAxis = 6
-
+  private let numOfSupportAxis = 5
+  var animatesPositionOnHide = true
+  var valuesStartFromZero = true
   
   override var bounds: CGRect {
     didSet {
@@ -65,11 +66,21 @@ class TGCAChartView: UIView {
       configure(with: self.chart)
     }
   }
+  
+  private func configureAxisDefaultPositions() {
+    let space = chartBounds.height * capHeightMultiplierForAxis / CGFloat(numOfSupportAxis)
+    var retVal = [CGFloat]()
+    for i in 0..<numOfSupportAxis {
+      retVal.append(chartBounds.origin.y + chartBounds.height - (CGFloat(i) * space + space))
+    }
+    supportAxisDefaultYPositions = retVal
+  }
 
   private var chart: LinearChart!
   private var drawings: [Drawing]!
   private var hiddenDrawingIndicies: Set<Int>!
   private var supportAxis: [SupportAxis]!
+  private var zeroAxis: SupportAxis!
   private var currentChartAnnotation: ChartAnnotation?
   
   // MARK: Range changing
@@ -78,9 +89,22 @@ class TGCAChartView: UIView {
   private var currentYValueRange: ClosedRange<CGFloat> = 0...0 {
     didSet {
       if shouldDisplaySupportAxis {
-//        animateSupportAxisChange(fromPreviousRange: oldValue, toNewRange: currentYValueRange)
+        configureTextsForSupportAxisLabels()
+        if !valuesStartFromZero {
+          updateZeroAxis()
+        }
+        animateSupportAxisChange(fromPreviousRange: oldValue, toNewRange: currentYValueRange)
       }
     }
+  }
+  
+  func configureTextsForSupportAxisLabels() {
+    var textsForAxisLabels = [String]()
+    for i in 0..<numOfSupportAxis {
+      let valueString = "\((((currentYValueRange.upperBound - currentYValueRange.lowerBound) * capHeightMultiplierForAxis / CGFloat(numOfSupportAxis)) * CGFloat(i+1)) + currentYValueRange.lowerBound)"
+      textsForAxisLabels.append(valueString)
+    }
+    labelTextsForCurrentYRange = textsForAxisLabels
   }
   
   /// From 0 to 1.0.
@@ -90,7 +114,7 @@ class TGCAChartView: UIView {
         return
       }
       
-      let normalizedYVectors = chart.normalizedYVectors(in: normalizedCurrentXRange, excludedIdxs: hiddenDrawingIndicies)
+      let normalizedYVectors = getNormalizedYVectors()
       let normalizedXVector = chart.normalizedXVector(in: normalizedCurrentXRange)
       
       let newYrange = normalizedYVectors.yRange
@@ -133,8 +157,14 @@ class TGCAChartView: UIView {
       }
       self.supportAxis = nil
     }
+    if let zeroAxis = self.zeroAxis {
+      zeroAxis.labelLayer.removeFromSuperlayer()
+      zeroAxis.lineLayer.removeFromSuperlayer()
+      self.zeroAxis = nil
+    }
     self.hiddenDrawingIndicies = nil
     removeChartAnnotation()
+    currentYValueRange = 0...0
   }
   
   // MARK: - Helping functions
@@ -146,18 +176,26 @@ class TGCAChartView: UIView {
     }
     return points
   }
+  
+  private func getNormalizedYVectors() -> NormalizedYVectors{
+    return valuesStartFromZero
+      ? chart.normalizedYVectors(in: normalizedCurrentXRange, excludedIdxs: hiddenDrawingIndicies)
+      : chart.normalizedYVectorsFromLocalMinimum(in: normalizedCurrentXRange, excludedIdxs: hiddenDrawingIndicies)
+  }
 
   // MARK: - Public functions
   
   /// Call to set chart
   func configure(with chart: LinearChart) {
     reset()
+    configureAxisDefaultPositions()
     self.chart = chart
-    let oddlyNormalizedYVectors = chart.normalizedYVectors(in: normalizedCurrentXRange, excludedIdxs: Set())
-    let yVectors = oddlyNormalizedYVectors.vectors.map{$0.map{chartBounds.size.height - ($0 * chartBounds.size.height) + chartBounds.origin.y}}
+    self.hiddenDrawingIndicies = Set()
+    let normalizedYVectors = getNormalizedYVectors()
+    let yVectors = normalizedYVectors.vectors.map{$0.map{chartBounds.size.height - ($0 * chartBounds.size.height) + chartBounds.origin.y}}
     let xVector = chart.normalizedXVector(in: normalizedCurrentXRange).map{$0 * chartBounds.size.width + chartBounds.origin.x}
     
-    currentYValueRange = oddlyNormalizedYVectors.yRange
+    currentYValueRange = normalizedYVectors.yRange
     
     var draws = [Drawing]()
     
@@ -170,8 +208,8 @@ class TGCAChartView: UIView {
       draws.append(Drawing(identifier: chart.yVectors[i].metaData.identifier, shapeLayer: shape, points: points))
     }
     self.drawings = draws
-    self.hiddenDrawingIndicies = []
     if shouldDisplaySupportAxis  {
+      addZeroAxis()
       addXAxisLayers()
     }
   }
@@ -189,7 +227,7 @@ class TGCAChartView: UIView {
     } else {
       hiddenDrawingIndicies.insert(index)
     }
-    let normalizedYVectors = chart.normalizedYVectors(in: normalizedCurrentXRange, excludedIdxs: hiddenDrawingIndicies)
+    let normalizedYVectors = getNormalizedYVectors()
     let normalizedXVector = chart.normalizedXVector(in: normalizedCurrentXRange)
     let xVector = normalizedXVector.map{$0 * chartBounds.size.width + chartBounds.origin.x}
     
@@ -200,16 +238,27 @@ class TGCAChartView: UIView {
     
     for i in 0..<drawings.count {
       let drawing = drawings[i]
-      let yVector = normalizedYVectors.vectors[i].map{chartBounds.size.height + chartBounds.origin.y - ($0 * chartBounds.size.height)}
-      let points = convertToPoints(xVector: xVector, yVector: yVector)
-      let newPath = bezierLine(withPoints: points)
-      let pathAnimation = CABasicAnimation(keyPath: "path")
-      pathAnimation.fromValue = drawing.shapeLayer.path
-      drawing.shapeLayer.path = newPath.cgPath
-      pathAnimation.toValue = drawing.shapeLayer.path
-      pathAnimation.duration = 0.25
-      pathAnimation.timingFunction = CAMediaTimingFunction(name: .easeIn)
-      drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
+      
+      let positionChangeBlock = {
+        let yVector = normalizedYVectors.vectors[i].map{self.chartBounds.size.height + self.chartBounds.origin.y - ($0 * self.chartBounds.size.height)}
+        let points = self.convertToPoints(xVector: xVector, yVector: yVector)
+        let newPath = self.bezierLine(withPoints: points)
+        let pathAnimation = CABasicAnimation(keyPath: "path")
+        pathAnimation.fromValue = drawing.shapeLayer.path
+        drawing.shapeLayer.path = newPath.cgPath
+        pathAnimation.toValue = drawing.shapeLayer.path
+        pathAnimation.duration = 0.25
+        pathAnimation.timingFunction = CAMediaTimingFunction(name: .easeIn)
+        drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
+      }
+      
+      if animatesPositionOnHide {
+        positionChangeBlock()
+      } else {
+        if !hiddenDrawingIndicies.contains(i) {
+          positionChangeBlock()
+        }
+      }
       
       if i == index {
         let opacityAnimation = CABasicAnimation(keyPath: "opacity")
@@ -225,89 +274,111 @@ class TGCAChartView: UIView {
     }
   }
 
-  
-  
-  
   // MARK: - Support axis
   
-  private var supportAxisDefaultYPositions: [CGFloat] {
-    let space = chartBounds.height / CGFloat(numOfSupportAxis)
-    var retVal = [CGFloat]()
-    for i in 0..<numOfSupportAxis {
-      retVal.append(chartBounds.origin.y + chartBounds.height - (CGFloat(i) * space))
+  private let capHeightMultiplierForAxis: CGFloat = 0.85
+  
+  private var supportAxisDefaultYPositions: [CGFloat]!
+  private var labelTextsForCurrentYRange: [String]!
+  
+  private func addZeroAxis() {
+    let zposition = chartBounds.origin.y + chartBounds.height
+    let zline = bezierLine(from: CGPoint(x: chartBounds.origin.x, y: zposition), to: CGPoint(x: chartBounds.origin.x + chartBounds.width, y: zposition))
+    let zshapeL = shapeLayer(withPath: zline.cgPath, color: axisColor, lineWidth: 0.5)
+    zshapeL.opacity = 1
+    let ztextL = textLayer(position: CGPoint(x: chartBounds.origin.x, y: zposition - 20), text: "\(currentYValueRange.lowerBound)", color: axisLabelColor)
+    layer.addSublayer(zshapeL)
+    layer.addSublayer(ztextL)
+    
+    zeroAxis = SupportAxis(zshapeL, ztextL)
+  }
+  
+  private func updateZeroAxis() {
+    guard let zeroAxis = self.zeroAxis else {
+      return
     }
-    return retVal
+    zeroAxis.labelLayer.string = "\(currentYValueRange.lowerBound)"
   }
   
   private func addXAxisLayers() {
-    var layers = [SupportAxis]()
+    var newAxis = [SupportAxis]()
 
     for i in 0..<supportAxisDefaultYPositions.count {
       let position = supportAxisDefaultYPositions[i]
       let line = bezierLine(from: CGPoint(x: chartBounds.origin.x, y: position), to: CGPoint(x: chartBounds.origin.x + chartBounds.width, y: position))
       let shapeL = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: 0.5)
       shapeL.opacity = 0.75
-      let textL = textLayer(position: CGPoint(x: chartBounds.origin.x, y: position - 20), text: "\(((currentYValueRange.upperBound - currentYValueRange.lowerBound) * 0.85  / (CGFloat(i+1)) + currentYValueRange.lowerBound))", color: axisLabelColor)
+      let textL = textLayer(position: CGPoint(x: chartBounds.origin.x, y: position - 20), text: labelTextsForCurrentYRange[i], color: axisLabelColor)
       layer.addSublayer(shapeL)
       layer.addSublayer(textL)
-      layers.append((shapeL, textL, position))
+      newAxis.append((shapeL, textL))
     }
-    self.supportAxis = layers
+    self.supportAxis = newAxis
   }
   
   private func animateSupportAxisChange(fromPreviousRange previousRange: ClosedRange<CGFloat>, toNewRange newRange: ClosedRange<CGFloat>) {
-    
-    guard let supportAxis = supportAxis else {
+    guard let supportAxis = self.supportAxis else {
       return
     }
     
-    let coefficient: CGFloat = newRange.upperBound / previousRange.upperBound // TODO: separately for each
-    for (lineLayer, labelLayer, position) in supportAxis {
-      let newLinePosition = CGPoint(x: lineLayer.position.x, y: chartBounds.origin.y + chartBounds.height - (chartBounds.origin.y + chartBounds.height - position) * coefficient)
-      let newTextPosition = CGPoint(x: labelLayer.position.x, y: chartBounds.origin.y + chartBounds.height - (chartBounds.origin.y + chartBounds.height - position - 20) * coefficient)
+    let coefficient: CGFloat = newRange.upperBound / previousRange.upperBound
+    
+    var blocks = [()->()]()
+    var removalBlocks = [()->()]()
+    var newAxis = [SupportAxis]()
+    
+    for i in 0..<supportAxis.count {
+      let ax = supportAxis[i]
       
-      CATransaction.begin()
-      CATransaction.setAnimationDuration(0.25)
-      CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: .easeIn))
-      CATransaction.setCompletionBlock{
-        lineLayer.removeFromSuperlayer()
-        labelLayer.removeFromSuperlayer()
+      let newLinePosition = CGPoint(x: ax.lineLayer.position.x, y: chartBounds.origin.y + chartBounds.height - (chartBounds.origin.y + chartBounds.height - ax.lineLayer.position.y) / coefficient)
+      let newTextPosition = CGPoint(x: ax.labelLayer.position.x, y: chartBounds.origin.y + chartBounds.height - (chartBounds.origin.y + chartBounds.height - ax.labelLayer.position.y) / coefficient)
+      
+      
+      let position = supportAxisDefaultYPositions[i]
+      let line = bezierLine(from: CGPoint(x: chartBounds.origin.x, y: position), to: CGPoint(x: chartBounds.origin.x + chartBounds.width, y: position))
+      let shapeL = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: 0.5)
+      let textL = textLayer(position: CGPoint(x: chartBounds.origin.x, y: position - 20), text: labelTextsForCurrentYRange[i], color: axisLabelColor)
+      textL.opacity = 0
+      shapeL.opacity = 0
+      layer.addSublayer(shapeL)
+      layer.addSublayer(textL)
+      let oldShapePos = shapeL.position
+      print(oldShapePos)
+      let oldTextPos = textL.position
+      shapeL.position = CGPoint(x: shapeL.position.x, y: -100.0)
+      print(shapeL.position)
+      textL.position = CGPoint(x: textL.position.x, y: -100.0)
+      newAxis.append((shapeL, textL))
+      
+      blocks.append {
+        ax.labelLayer.position = newTextPosition
+        ax.labelLayer.opacity = 0
+        ax.lineLayer.opacity = 0
+        ax.lineLayer.position = newLinePosition
+        
+        shapeL.opacity = 0.75
+        shapeL.position = oldShapePos
+        textL.position = oldTextPos
+        textL.opacity = 1.0
       }
-      labelLayer.position = newTextPosition
-      labelLayer.opacity = 0
-      lineLayer.opacity = 0
-      lineLayer.position = newLinePosition
-      CATransaction.commit()
-      CATransaction.flush()
-      
+      removalBlocks.append {
+        ax.lineLayer.removeFromSuperlayer()
+        ax.labelLayer.removeFromSuperlayer()
+      }
     }
-    
-    addXAxisLayers()
-    
-    for (lineLayer, labelLayer, _) in supportAxis {
-      let oL = lineLayer.position
-      let oT = labelLayer.position
-      let newLinePosition = CGPoint(x: lineLayer.position.x, y: lineLayer.position.y + chartBounds.height * coefficient)
-      let newTextPosition = CGPoint(x: labelLayer.position.x, y: labelLayer.position.y + chartBounds.height * coefficient)
-//      print(oT)
-//      print(newTextPosition)
-      labelLayer.position = newTextPosition
-      lineLayer.position = newLinePosition
-      CATransaction.begin()
-      CATransaction.setAnimationDuration(0.25)
-      CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: .easeIn))
-//      CATransaction.setCompletionBlock{
-//        lineLayer.removeFromSuperlayer()
-//        labelLayer.removeFromSuperlayer()
-//      }
-      labelLayer.position = oT
-      lineLayer.position = oL
-      CATransaction.commit()
-      CATransaction.flush()
-
-      
+    CATransaction.begin()
+    CATransaction.setAnimationDuration(2.25)
+    CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: .easeIn))
+    CATransaction.setCompletionBlock{
+      for r in removalBlocks {
+        r()
+      }
     }
-    
+    for b in blocks {
+      b()
+    }
+    CATransaction.commit()
+    self.supportAxis = newAxis
   }
   
   private func bezierLine(withPoints points: [CGPoint]) -> UIBezierPath {
@@ -482,7 +553,7 @@ class TGCAChartView: UIView {
 
   // MARK: - Structs and typealiases
   
-  private typealias SupportAxis = (lineLayer: CAShapeLayer, labelLayer: CATextLayer, value: CGFloat)
+  private typealias SupportAxis = (lineLayer: CAShapeLayer, labelLayer: CATextLayer)
   
   private struct Drawing {
     let identifier: String
@@ -504,6 +575,7 @@ class TGCAChartView: UIView {
       self.displayedIndex = toIndex
     }
   }
+  
 }
 
 

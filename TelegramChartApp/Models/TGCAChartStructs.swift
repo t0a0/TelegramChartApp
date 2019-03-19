@@ -46,6 +46,27 @@ struct LinearChart {
     return (vectors.map{$0.map{(($0 - minimum) / (maximum - minimum))}}, minimum...maximum)
   }
   
+  func normalizedYVectorsFromLocalMinimum(in xRange: ClosedRange<CGFloat>, excludedIdxs: Set<Int>) -> NormalizedYVectors {
+    let indexesToSkip = Set(excludedIdxs).sorted() //remove duplicates and sort ascending. This is important!
+    let vectors = yVectors.map{$0.vector}
+    let bounds = translatedBounds(for: xRange)
+    
+    
+    var notExcludedVectors = [ValueVector]()
+    for i in 0..<vectors.count {
+      if !indexesToSkip.contains(i) {
+        notExcludedVectors.append(vectors[i])
+      }
+    }
+    let minimum = notExcludedVectors.map{$0[bounds].min() ?? 0}.min() ?? 0
+    let maximum = notExcludedVectors.map{$0[bounds].max() ?? 0}.max() ?? 0
+    
+    guard minimum != maximum else {
+      return (vectors.map{$0.map{_ in 0}}, 0...0)
+    }
+    return (vectors.map{$0.map{(($0 - minimum) / (maximum - minimum))}}, minimum...maximum)
+  }
+  
   
   func translatedBounds(for xRange: ClosedRange<CGFloat>) -> ClosedRange<Int> {
     return Int(xRange.lowerBound * CGFloat(xVector.count-1))...Int(xRange.upperBound * CGFloat(xVector.count-1))
