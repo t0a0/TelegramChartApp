@@ -52,6 +52,7 @@ class TGCATrimmerView: UIView, ThemeChangeObserving {
   
   private var currentLeftConstraint: CGFloat = 0
   private var currentRightConstraint: CGFloat = 0
+  private var currentDistanceConstraint: CGFloat = 0
   private var leftConstraint: NSLayoutConstraint?
   private var rightConstraint: NSLayoutConstraint?
   
@@ -237,6 +238,7 @@ class TGCATrimmerView: UIView, ThemeChangeObserving {
         deactivateShoulderGestureRecognizers()
         currentLeftConstraint = leftConstraint!.constant
         currentRightConstraint = rightConstraint!.constant
+        currentDistanceConstraint = frame.width - currentLeftConstraint + currentRightConstraint
       }
       notifyRangeChanged()
     case .changed:
@@ -246,8 +248,7 @@ class TGCATrimmerView: UIView, ThemeChangeObserving {
       } else if isRightGesture{
         updateRightConstraint(with: translation)
       } else {
-        updateLeftConstraint(with: translation)
-        updateRightConstraint(with: translation)
+        updateBothConstraints(with: translation)
       }
       layoutIfNeeded()
       notifyRangeChanged()
@@ -273,6 +274,17 @@ class TGCATrimmerView: UIView, ThemeChangeObserving {
     let maxConstraint = min(leftShoulderView.frame.origin.x + minimumDistanceBetweenShoulders - frame.size.width, 0)
     let newConstraint = max(min(0, currentRightConstraint + translation.x), maxConstraint)
     rightConstraint?.constant = newConstraint
+  }
+  
+  private func updateBothConstraints(with translation: CGPoint) {
+    let leftMaxConstraint = max(rightShoulderView.frame.origin.x + shoulderWidth - currentDistanceConstraint, 0)
+    let leftNewConstraint = min(max(0, currentLeftConstraint + translation.x), leftMaxConstraint)
+    
+    let rightMaxConstraint = min(leftShoulderView.frame.origin.x + currentDistanceConstraint - frame.size.width, 0)
+    let rightNewConstraint = max(min(0, currentRightConstraint + translation.x), rightMaxConstraint)
+    
+    leftConstraint?.constant = leftNewConstraint
+    rightConstraint?.constant = rightNewConstraint
   }
   
   private var translatedMinimumRangeLenth: CGFloat {
