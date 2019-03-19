@@ -46,34 +46,6 @@ class TGCAChartDetailViewController: UIViewController {
     unsubscribe()
   }
   
-  func applyCurrentTheme(animated: Bool = false) {
-    let theme = UIApplication.myDelegate.currentTheme
-    
-    func applyChanges() {
-      tableView.backgroundColor = theme.backgroundColor
-      tableView.separatorColor = theme.axisColor
-      tableView.tintColor = theme.accentColor
-      sectionheaderView?.bottomLabel.textColor = theme.tableViewFooterHeaderColor
-      for section in 0..<tableView.numberOfSections {
-        for row in 0..<tableView.numberOfRows(inSection: section) {
-          let cell = tableView.cellForRow(at: IndexPath(row: row, section: section))
-          cell?.backgroundColor = theme.foregroundColor
-          if section == 0 && row >= 2 {
-            cell?.textLabel?.textColor = theme.mainTextColor
-          }
-        }
-      }
-    }
-    
-    if animated {
-      UIView.animate(withDuration: 0.25) {
-        applyChanges()
-      }
-    } else {
-      applyChanges()
-    }
-  }
-  
   var chartCell: TGCAChartTableViewCell? {
     return tableView.cellForRow(at: IndexPath(row: 0, section: 0)) as? TGCAChartTableViewCell
   }
@@ -234,6 +206,34 @@ extension TGCAChartDetailViewController: ThemeChangeObserving {
   
   func handleThemeChangedNotification() {
     applyCurrentTheme(animated: true)
+  }
+  
+  func applyCurrentTheme(animated: Bool = false) {
+    let theme = UIApplication.myDelegate.currentTheme
+    
+    func applyChanges() {
+      tableView.backgroundColor = theme.backgroundColor
+      tableView.separatorColor = theme.axisColor
+      tableView.tintColor = theme.accentColor
+      sectionheaderView?.bottomLabel.textColor = theme.tableViewFooterHeaderColor
+      for section in 0..<tableView.numberOfSections {
+        for row in 0..<tableView.numberOfRows(inSection: section) {
+          let cell = tableView.cellForRow(at: IndexPath(row: row, section: section))
+          cell?.backgroundColor = theme.foregroundColor
+          if section == 0 && row >= 2 {
+            cell?.textLabel?.textColor = theme.mainTextColor
+          }
+        }
+      }
+    }
+    
+    if animated {
+      UIView.animate(withDuration: 0.25) {
+        applyChanges()
+      }
+    } else {
+      applyChanges()
+    }
   }
   
 }
