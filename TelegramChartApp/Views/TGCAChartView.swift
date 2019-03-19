@@ -13,6 +13,7 @@ class TGCAChartView: UIView {
 
   @IBOutlet var contentView: UIView!
   
+  private let chartLabelFormatterService: ChartLabelFormatterProtocol = TGCAChartLabelFormatterService()
   
   private var axisColor = UIColor.gray.cgColor
   private var axisLabelColor = UIColor.black.cgColor
@@ -101,8 +102,8 @@ class TGCAChartView: UIView {
   func configureTextsForSupportAxisLabels() {
     var textsForAxisLabels = [String]()
     for i in 0..<numOfSupportAxis {
-      let valueString = "\((((currentYValueRange.upperBound - currentYValueRange.lowerBound) * capHeightMultiplierForAxis / CGFloat(numOfSupportAxis)) * CGFloat(i+1)) + currentYValueRange.lowerBound)"
-      textsForAxisLabels.append(valueString)
+      let value = (((currentYValueRange.upperBound - currentYValueRange.lowerBound) * capHeightMultiplierForAxis / CGFloat(numOfSupportAxis)) * CGFloat(i+1)) + currentYValueRange.lowerBound
+      textsForAxisLabels.append(chartLabelFormatterService.string(from: value))
     }
     labelTextsForCurrentYRange = textsForAxisLabels
   }
