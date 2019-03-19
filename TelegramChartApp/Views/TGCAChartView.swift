@@ -109,39 +109,7 @@ class TGCAChartView: UIView {
   }
   
   /// From 0 to 1.0.
-  private var normalizedCurrentXRange: ClosedRange<CGFloat> = ZORange {
-    didSet {
-      guard var drawings = drawings, let chart = chart else {
-        return
-      }
-      
-      let normalizedYVectors = getNormalizedYVectors()
-      let normalizedXVector = chart.normalizedXVector(in: normalizedCurrentXRange)
-      
-      let newYrange = normalizedYVectors.yRange
-      if currentYValueRange != newYrange {
-        currentYValueRange = newYrange
-      }
-      let xVector = normalizedXVector.map{$0 * chartBounds.size.width + chartBounds.origin.x}
-
-      for i in 0..<drawings.count {
-        var drawing = drawings[i]
-        let yVector = normalizedYVectors.vectors[i].map{chartBounds.size.height - ($0 * chartBounds.size.height) + chartBounds.origin.y}
-        
-        let points = convertToPoints(xVector: xVector, yVector: yVector)
-        drawing.update(withPoints: points)
-        
-        let newPath = bezierLine(withPoints: points)
-        let pathAnimation = CABasicAnimation(keyPath: "path")
-        pathAnimation.fromValue = drawing.shapeLayer.path
-        drawing.shapeLayer.path = newPath.cgPath
-        pathAnimation.toValue = drawing.shapeLayer.path
-        pathAnimation.duration = 0.25
-        drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
-        self.drawings[i] = drawing
-    }
-    }
-  }
+  private var normalizedCurrentXRange: ClosedRange<CGFloat> = ZORange
   
   private func reset() {
     self.chart = nil
@@ -216,8 +184,41 @@ class TGCAChartView: UIView {
   }
   
   /// Call to update the diplayed X range. Accepted are subranges of 0...1.
-  func updateDisplayRange(with newRange: ClosedRange<CGFloat>) {
+  func updateDisplayRange(with newRange: ClosedRange<CGFloat>, ended: Bool) {
     normalizedCurrentXRange = max(0, newRange.lowerBound)...min(1.0, newRange.upperBound)
+    
+    guard var drawings = drawings, let chart = chart else {
+      return
+    }
+    
+    let normalizedYVectors = getNormalizedYVectors()
+    let normalizedXVector = chart.normalizedXVector(in: normalizedCurrentXRange)
+    
+    let newYrange = normalizedYVectors.yRange
+    if currentYValueRange != newYrange {
+      currentYValueRange = newYrange
+    }
+    let xVector = normalizedXVector.map{$0 * chartBounds.size.width + chartBounds.origin.x}
+    
+    for i in 0..<drawings.count {
+      var drawing = drawings[i]
+      let yVector = normalizedYVectors.vectors[i].map{chartBounds.size.height - ($0 * chartBounds.size.height) + chartBounds.origin.y}
+      
+      let points = convertToPoints(xVector: xVector, yVector: yVector)
+      drawing.update(withPoints: points)
+      if drawing.shapeLayer.animationKeys() != nil && !ended {
+        continue
+      }
+      let newPath = bezierLine(withPoints: points)
+      let pathAnimation = CABasicAnimation(keyPath: "path")
+      pathAnimation.fromValue = drawing.shapeLayer.path
+      drawing.shapeLayer.path = newPath.cgPath
+      pathAnimation.toValue = drawing.shapeLayer.path
+      pathAnimation.duration = ended ? 0.25 : 0.075
+      
+      drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
+      self.drawings[i] = drawing
+    }
   }
 
   /// Call to hide graph at index.

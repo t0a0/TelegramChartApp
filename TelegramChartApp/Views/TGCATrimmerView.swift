@@ -17,7 +17,7 @@ protocol TGCATrimmerViewDelegate: class {
    - chartSlider ad asda sd
    - from (0, minimumRangeLength) to (100 - minimumRangeLength, 100)
    */
-  func trimmerView(_ trimmerView: TGCATrimmerView, didChangeDisplayRange range: ClosedRange<CGFloat>)
+  func trimmerView(_ trimmerView: TGCATrimmerView, didChangeDisplayRange range: ClosedRange<CGFloat>, panStopped: Bool)
   
   func trimmerViewDidBeginDragging(_ trimmerView: TGCATrimmerView)
   func trimmerViewDidEndDragging(_ trimmerView: TGCATrimmerView)
@@ -255,13 +255,13 @@ class TGCATrimmerView: UIView, ThemeChangeObserving {
     case .cancelled, .ended, .failed:
       delegate?.trimmerViewDidEndDragging(self)
       reactivateGestureRecognizers()
-      notifyRangeChanged()
+      notifyRangeChanged(panStopped: true)
     default: break
     }
   }
   
-  private func notifyRangeChanged() {
-    delegate?.trimmerView(self, didChangeDisplayRange: currentRange)
+  private func notifyRangeChanged(panStopped: Bool = false) {
+    delegate?.trimmerView(self, didChangeDisplayRange: currentRange, panStopped: panStopped)
   }
   
   private func updateLeftConstraint(with translation: CGPoint) {

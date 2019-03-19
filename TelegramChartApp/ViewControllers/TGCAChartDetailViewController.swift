@@ -200,8 +200,8 @@ extension TGCAChartDetailViewController: UITableViewDelegate {
 
 extension TGCAChartDetailViewController: TGCATrimmerViewDelegate {
   
-  func trimmerView(_ trimmerView: TGCATrimmerView, didChangeDisplayRange range: ClosedRange<CGFloat>) {
-    chartCell?.chartView.updateDisplayRange(with: range)
+  func trimmerView(_ trimmerView: TGCATrimmerView, didChangeDisplayRange range: ClosedRange<CGFloat>, panStopped: Bool) {
+    chartCell?.chartView.updateDisplayRange(with: range, ended: panStopped)
   }
   
   func trimmerViewDidEndDragging(_ trimmerView: TGCATrimmerView) {
