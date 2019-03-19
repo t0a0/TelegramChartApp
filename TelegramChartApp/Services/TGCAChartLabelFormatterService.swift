@@ -25,12 +25,12 @@ struct TGCAChartLabelFormatterService: ChartLabelFormatterProtocol {
       
     case 1_000_000_000...:
       var formatted = num / 1_000_000_000
-      formatted = truncate(value: formatted, places: 1)
+      formatted = truncate(value: formatted, places: 3)
       return "\(sign)\(formatted)B"
       
     case 1_000_000...:
       var formatted = num / 1_000_000
-      formatted = truncate(value: formatted, places: 1)
+      formatted = truncate(value: formatted, places: 2)
       return "\(sign)\(formatted)M"
       
     case 1_000...:

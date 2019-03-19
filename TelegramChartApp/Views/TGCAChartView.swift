@@ -287,7 +287,8 @@ class TGCAChartView: UIView {
     let zline = bezierLine(from: CGPoint(x: chartBounds.origin.x, y: zposition), to: CGPoint(x: chartBounds.origin.x + chartBounds.width, y: zposition))
     let zshapeL = shapeLayer(withPath: zline.cgPath, color: axisColor, lineWidth: 0.5)
     zshapeL.opacity = 1
-    let ztextL = textLayer(position: CGPoint(x: chartBounds.origin.x, y: zposition - 20), text: "\(currentYValueRange.lowerBound)", color: axisLabelColor)
+    let text = chartLabelFormatterService.string(from: currentYValueRange.lowerBound)
+    let ztextL = textLayer(position: CGPoint(x: chartBounds.origin.x, y: zposition - 20), text: text, color: axisLabelColor)
     layer.addSublayer(zshapeL)
     layer.addSublayer(ztextL)
     
@@ -298,7 +299,8 @@ class TGCAChartView: UIView {
     guard let zeroAxis = self.zeroAxis else {
       return
     }
-    zeroAxis.labelLayer.string = "\(currentYValueRange.lowerBound)"
+    let text = chartLabelFormatterService.string(from: currentYValueRange.lowerBound)
+    zeroAxis.labelLayer.string = text
   }
   
   private func addXAxisLayers() {
