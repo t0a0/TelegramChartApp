@@ -67,9 +67,12 @@ struct LinearChart {
     return (vectors.map{$0.map{(($0 - minimum) / (maximum - minimum))}}, minimum...maximum)
   }
   
+  func translatedIndex(for xRangePosition: CGFloat) -> Int {
+    return Int(round(CGFloat(xVector.count - 1) * xRangePosition))
+  }
   
   func translatedBounds(for xRange: ClosedRange<CGFloat>) -> ClosedRange<Int> {
-    return Int(xRange.lowerBound * CGFloat(xVector.count-1))...Int(xRange.upperBound * CGFloat(xVector.count-1))
+    return translatedIndex(for: xRange.lowerBound)...translatedIndex(for: xRange.upperBound)
   }
   
   func normalizedXVector(in xRange: ClosedRange<CGFloat>) -> ValueVector {

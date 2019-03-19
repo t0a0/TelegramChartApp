@@ -26,6 +26,7 @@ struct TGCAColorTheme {
     trimmerShoulderColor: UIColor(red: 202.0/255.0, green: 212.0/255.0, blue: 222.0/255.0, alpha: 0.9),
     annotationColor: UIColor(red: 240.0/255.0, green: 240.0/255.0, blue: 245.0/255.0, alpha: 0.9),
     annotationLabelColor: UIColor(red: 109.0/255.0, green: 109.0/255.0, blue: 114.0/255.0, alpha: 1),
+    tableViewFooterHeaderColor: UIColor(red: 109.0/255.0, green: 109.0/255.0, blue: 114.0/255.0, alpha: 1),
     statusBarStyle: .default)
   
   static let dark = TGCAColorTheme(
@@ -40,6 +41,7 @@ struct TGCAColorTheme {
     trimmerShoulderColor: UIColor(red: 53.0/255.0, green: 70.0/255.0, blue: 89.0/255.0, alpha: 0.9),
     annotationColor: UIColor(red: 26.0/255.0, green: 40.0/255.0, blue: 55.0/255.0, alpha: 0.9),
     annotationLabelColor: UIColor(red: 254.0/255.0, green: 254.0/255.0, blue: 254.0/255.0, alpha: 1),
+    tableViewFooterHeaderColor: UIColor(red: 91.0/255.0, green: 107.0/255.0, blue: 127.0/255.0, alpha: 1),
     statusBarStyle: .lightContent)
   
   let identifier: ThemeIdentifier
@@ -53,6 +55,7 @@ struct TGCAColorTheme {
   let trimmerShoulderColor: UIColor
   let annotationColor: UIColor
   let annotationLabelColor: UIColor
+  let tableViewFooterHeaderColor: UIColor
   let statusBarStyle: UIStatusBarStyle
 }
 

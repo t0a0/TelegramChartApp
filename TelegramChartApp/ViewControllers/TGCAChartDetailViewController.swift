@@ -13,9 +13,11 @@ class TGCAChartDetailViewController: UIViewController {
   
   @IBOutlet weak var tableView: UITableView!
   
+  weak var sectionheaderView: TGCATableViewSupplementView?
+  
   var chart: LinearChart? {
     didSet {
-      
+      tableView?.reloadData()
     }
   }
   
@@ -51,6 +53,7 @@ class TGCAChartDetailViewController: UIViewController {
       tableView.backgroundColor = theme.backgroundColor
       tableView.separatorColor = theme.axisColor
       tableView.tintColor = theme.accentColor
+      sectionheaderView?.bottomLabel.textColor = theme.tableViewFooterHeaderColor
       for section in 0..<tableView.numberOfSections {
         for row in 0..<tableView.numberOfRows(inSection: section) {
           let cell = tableView.cellForRow(at: IndexPath(row: row, section: section))
@@ -179,8 +182,21 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
 
 extension TGCAChartDetailViewController: UITableViewDelegate {
   
-  func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-    return section == 0 ? chart?.title ?? "Untitled chart" : nil
+  func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+    if section == 0 {
+      let v = TGCATableViewSupplementView(frame: CGRect.zero)
+      v.topLabel.isHidden = true
+      v.bottomLabel.textColor = UIApplication.myDelegate.currentTheme.tableViewFooterHeaderColor
+      v.bottomLabel.text = (chart?.title ?? "Untitled chart").uppercased()
+      sectionheaderView = v
+      return v
+    } else {
+      return nil
+    }
+  }
+  
+  func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+    return section == 0 ? 50.0 : 0.0
   }
   
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {

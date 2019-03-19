@@ -14,6 +14,8 @@ class TGCAChartsViewController: UIViewController {
   
   @IBOutlet weak var tableView: UITableView!
   
+  weak var sectionfooterView: TGCATableViewSupplementView?
+
   var charts = [LinearChart]()
   
   override func viewDidLoad() {
@@ -72,8 +74,17 @@ extension TGCAChartsViewController: UITableViewDataSource {
     return cell
   }
   
-  func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
-    return "Copyright © 2019 Igor Fedotov. All Rights Reserved."
+  func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+    return 30.0
+  }
+  
+  func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+    let v = TGCATableViewSupplementView(frame: CGRect.zero)
+    v.bottomLabel.isHidden = true
+    v.topLabel.textColor = UIApplication.myDelegate.currentTheme.tableViewFooterHeaderColor
+    v.topLabel.text = "Copyright © 2019 Igor Fedotov. All Rights Reserved."
+    sectionfooterView = v
+    return v
   }
   
 }
@@ -105,6 +116,7 @@ extension TGCAChartsViewController: ThemeChangeObserving {
       tableView.backgroundColor = theme.backgroundColor
       tableView.separatorColor = theme.axisColor
       tableView.tintColor = theme.accentColor
+      sectionfooterView?.topLabel.textColor = theme.tableViewFooterHeaderColor
     }
     
     if animated {

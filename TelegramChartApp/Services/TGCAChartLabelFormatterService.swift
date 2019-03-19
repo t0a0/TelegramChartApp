@@ -11,13 +11,35 @@ import UIKit
 
 protocol ChartLabelFormatterProtocol {
   
-  func string(from value: CGFloat) -> String
+  func prettyValueString(from value: CGFloat) -> String
+  
+  func prettyDateString(from timeIntervalSince1970inMillis: CGFloat) -> String
   
 }
 
 struct TGCAChartLabelFormatterService: ChartLabelFormatterProtocol {
   
-  func string(from value: CGFloat) -> String {
+  private let dateFormatter: DateFormatter
+
+  init() {
+    let df = DateFormatter()
+    df.locale = Locale.current
+    df.timeZone = TimeZone.current
+    df.dateFormat = "MMM dd"    
+    self.dateFormatter = df
+  }
+  
+  func prettyValueString(from value: CGFloat) -> String {
+    return prettify(value: value)
+  }
+  
+  func prettyDateString(from timeIntervalSince1970inMillis: CGFloat) -> String {
+    return dateFormatter.string(from: Date(timeIntervalSince1970: TimeInterval(timeIntervalSince1970inMillis / 1000.0)))
+  }
+  
+  // MARK: Private
+  
+  private func prettify(value: CGFloat) -> String {
     let num = abs(value)
     let sign = (value < 0) ? "-" : ""
     
@@ -49,6 +71,5 @@ struct TGCAChartLabelFormatterService: ChartLabelFormatterProtocol {
   private func truncate(value: CGFloat, places: Int) -> CGFloat {
     return CGFloat(floor(pow(10.0, CGFloat(places)) * value)/pow(10.0, CGFloat(places)))
   }
-  
   
 }

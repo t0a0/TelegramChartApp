@@ -50,6 +50,8 @@ class TGCAChartView: UIView {
   private let numOfSupportAxis = 5
   var animatesPositionOnHide = true
   var valuesStartFromZero = true
+  private let heightForGuideLabels: CGFloat = 20.0
+  private let numOfGuideLabels = 6
   
   override var bounds: CGRect {
     didSet {
@@ -58,7 +60,8 @@ class TGCAChartView: UIView {
       chartBounds = CGRect(x: bounds.origin.x + inset,
                            y: bounds.origin.y + inset,
                            width: bounds.width - inset * 2,
-                           height: bounds.height - inset * 2)
+                           height: bounds.height - inset * 2
+                            - (shouldDisplaySupportAxis ? heightForGuideLabels : 0))
     }
   }
   
@@ -83,6 +86,7 @@ class TGCAChartView: UIView {
   private var supportAxis: [SupportAxis]!
   private var zeroAxis: SupportAxis!
   private var currentChartAnnotation: ChartAnnotation?
+  private var guideLabels: [CATextLayer]!
   
   // MARK: Range changing
   
@@ -103,7 +107,7 @@ class TGCAChartView: UIView {
     var textsForAxisLabels = [String]()
     for i in 0..<numOfSupportAxis {
       let value = (((currentYValueRange.upperBound - currentYValueRange.lowerBound) * capHeightMultiplierForAxis / CGFloat(numOfSupportAxis)) * CGFloat(i+1)) + currentYValueRange.lowerBound
-      textsForAxisLabels.append(chartLabelFormatterService.string(from: value))
+      textsForAxisLabels.append(chartLabelFormatterService.prettyValueString(from: value))
     }
     labelTextsForCurrentYRange = textsForAxisLabels
   }
@@ -130,6 +134,12 @@ class TGCAChartView: UIView {
       zeroAxis.labelLayer.removeFromSuperlayer()
       zeroAxis.lineLayer.removeFromSuperlayer()
       self.zeroAxis = nil
+    }
+    if let guideLabels = self.guideLabels {
+      for gL in guideLabels {
+        gL.removeFromSuperlayer()
+      }
+      self.guideLabels = nil
     }
     self.hiddenDrawingIndicies = nil
     removeChartAnnotation()
@@ -180,6 +190,7 @@ class TGCAChartView: UIView {
     if shouldDisplaySupportAxis  {
       addZeroAxis()
       addXAxisLayers()
+      addGuideLabels()
     }
   }
   
@@ -276,6 +287,32 @@ class TGCAChartView: UIView {
     }
   }
 
+  // MARK: - Guide Labels
+  
+  private func addGuideLabels() {
+    let rangeSpacing = normalizedCurrentXRange.distance / CGFloat(numOfGuideLabels)
+    let chartboundsSpacing = chartBounds.width / CGFloat(numOfGuideLabels)
+    var locations = [normalizedCurrentXRange.lowerBound]
+    for i in 1..<numOfGuideLabels - 1 {
+      locations.append(normalizedCurrentXRange.lowerBound + rangeSpacing * CGFloat(i))
+    }
+    locations.append(normalizedCurrentXRange.upperBound)
+    
+    //TODO: what if values are less than 6 in this range?
+    
+    let actualIndexes = locations.map{chart.translatedIndex(for: $0)}
+    let timeStamps = actualIndexes.map{chart.xVector[$0]}
+    let strings = timeStamps.map{chartLabelFormatterService.prettyDateString(from: $0)}
+    
+    var guideLayers = [CATextLayer]()
+    for i in 0..<strings.count {
+      let textL = textLayer(origin: CGPoint(x: chartBounds.origin.x + chartboundsSpacing * CGFloat(i), y: chartBounds.origin.y + chartBounds.height + 5), text: strings[i], color: axisLabelColor)
+      guideLayers.append(textL)
+      layer.addSublayer(textL)
+    }
+    guideLabels = guideLayers
+  }
+  
   // MARK: - Support axis
   
   private let capHeightMultiplierForAxis: CGFloat = 0.85
@@ -288,8 +325,8 @@ class TGCAChartView: UIView {
     let zline = bezierLine(from: CGPoint(x: chartBounds.origin.x, y: zposition), to: CGPoint(x: chartBounds.origin.x + chartBounds.width, y: zposition))
     let zshapeL = shapeLayer(withPath: zline.cgPath, color: axisColor, lineWidth: 0.5)
     zshapeL.opacity = 1
-    let text = chartLabelFormatterService.string(from: currentYValueRange.lowerBound)
-    let ztextL = textLayer(position: CGPoint(x: chartBounds.origin.x, y: zposition - 20), text: text, color: axisLabelColor)
+    let text = chartLabelFormatterService.prettyValueString(from: currentYValueRange.lowerBound)
+    let ztextL = textLayer(origin: CGPoint(x: chartBounds.origin.x, y: zposition - 20), text: text, color: axisLabelColor)
     layer.addSublayer(zshapeL)
     layer.addSublayer(ztextL)
     
@@ -300,7 +337,7 @@ class TGCAChartView: UIView {
     guard let zeroAxis = self.zeroAxis else {
       return
     }
-    let text = chartLabelFormatterService.string(from: currentYValueRange.lowerBound)
+    let text = chartLabelFormatterService.prettyValueString(from: currentYValueRange.lowerBound)
     zeroAxis.labelLayer.string = text
   }
   
@@ -312,7 +349,7 @@ class TGCAChartView: UIView {
       let line = bezierLine(from: CGPoint(x: chartBounds.origin.x, y: position), to: CGPoint(x: chartBounds.origin.x + chartBounds.width, y: position))
       let shapeL = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: 0.5)
       shapeL.opacity = 0.75
-      let textL = textLayer(position: CGPoint(x: chartBounds.origin.x, y: position - 20), text: labelTextsForCurrentYRange[i], color: axisLabelColor)
+      let textL = textLayer(origin: CGPoint(x: chartBounds.origin.x, y: position - 20), text: labelTextsForCurrentYRange[i], color: axisLabelColor)
       layer.addSublayer(shapeL)
       layer.addSublayer(textL)
       newAxis.append((shapeL, textL))
@@ -341,7 +378,7 @@ class TGCAChartView: UIView {
       let position = supportAxisDefaultYPositions[i]
       let line = bezierLine(from: CGPoint(x: chartBounds.origin.x, y: position), to: CGPoint(x: chartBounds.origin.x + chartBounds.width, y: position))
       let shapeL = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: 0.5)
-      let textL = textLayer(position: CGPoint(x: chartBounds.origin.x, y: position - 20), text: labelTextsForCurrentYRange[i], color: axisLabelColor)
+      let textL = textLayer(origin: CGPoint(x: chartBounds.origin.x, y: position - 20), text: labelTextsForCurrentYRange[i], color: axisLabelColor)
       textL.opacity = 0
       shapeL.opacity = 0
       layer.addSublayer(shapeL)
@@ -391,6 +428,8 @@ class TGCAChartView: UIView {
     
   }
   
+  // MARK: - Drawing
+  
   private func bezierLine(withPoints points: [CGPoint]) -> UIBezierPath {
     let line = UIBezierPath()
     let firstPoint = points[0]
@@ -400,8 +439,6 @@ class TGCAChartView: UIView {
     }
     return line
   }
-  
-  // MARK: - Drawing
   
   private func bezierLine(from fromPoint: CGPoint, to toPoint: CGPoint) -> UIBezierPath {
     let line = UIBezierPath()
@@ -426,12 +463,12 @@ class TGCAChartView: UIView {
     return shapeLayer
   }
   
-  func textLayer(position: CGPoint, text: String, color: CGColor) -> CATextLayer {
+  func textLayer(origin: CGPoint, text: String, color: CGColor) -> CATextLayer {
     let textLayer = CATextLayer()
     textLayer.font = "Helvetica" as CFTypeRef
     textLayer.fontSize = 13.0
     textLayer.string = text
-    textLayer.frame = CGRect(origin: position, size: CGSize(width: 100, height: 20))
+    textLayer.frame = CGRect(origin: origin, size: CGSize(width: 100, height: heightForGuideLabels))
     textLayer.contentsScale = UIScreen.main.scale
     textLayer.foregroundColor = color
     return textLayer
@@ -482,8 +519,7 @@ class TGCAChartView: UIView {
   private func closestIndex(for touchLocation: CGPoint) -> Int {
     let xPositionInChartBounds = touchLocation.x - chartBounds.origin.x
     let translatedToDisplayRange = (normalizedCurrentXRange.upperBound - normalizedCurrentXRange.lowerBound) * (xPositionInChartBounds / chartBounds.width) + normalizedCurrentXRange.lowerBound
-    let index = round(CGFloat(chart.xVector.count - 1) * translatedToDisplayRange)
-    return Int(index)
+    return chart.translatedIndex(for: translatedToDisplayRange)
   }
   
   private func addChartAnnotation(for index: Int) {
