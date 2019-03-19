@@ -620,6 +620,16 @@ extension TGCAChartView: ThemeChangeObserving {
         }
         annotation.lineLayer.strokeColor = axisColor
       }
+      if let supportAxis = supportAxis {
+        for axis in supportAxis {
+          axis.labelLayer.foregroundColor = axisLabelColor
+          axis.lineLayer.strokeColor = axisColor
+        }
+      }
+      if let zeroAxis = zeroAxis {
+        zeroAxis.labelLayer.foregroundColor = axisLabelColor
+        zeroAxis.lineLayer.strokeColor = axisColor
+      }
     }
     
     if animated {
@@ -627,7 +637,6 @@ extension TGCAChartView: ThemeChangeObserving {
       CATransaction.setAnimationDuration(0.25)
       applyChanges()
       CATransaction.commit()
-      CATransaction.flush()
     } else {
       applyChanges()
     }
