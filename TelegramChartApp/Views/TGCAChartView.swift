@@ -346,12 +346,11 @@ class TGCAChartView: UIView {
       layer.addSublayer(shapeL)
       layer.addSublayer(textL)
       let oldShapePos = shapeL.position
-      print(oldShapePos)
       let oldTextPos = textL.position
-      shapeL.position = CGPoint(x: shapeL.position.x, y: -100.0)
-      print(shapeL.position)
-      textL.position = CGPoint(x: textL.position.x, y: -100.0)
+      shapeL.position = CGPoint(x: shapeL.position.x, y: chartBounds.origin.y + chartBounds.height - (chartBounds.origin.y + chartBounds.height - shapeL.position.y) * coefficient)
+      textL.position = CGPoint(x: textL.position.x, y: chartBounds.origin.y + chartBounds.height - (chartBounds.origin.y + chartBounds.height - textL.position.y) * coefficient)
       newAxis.append((shapeL, textL))
+      
       
       blocks.append {
         ax.labelLayer.position = newTextPosition
@@ -363,25 +362,32 @@ class TGCAChartView: UIView {
         shapeL.position = oldShapePos
         textL.position = oldTextPos
         textL.opacity = 1.0
+        
       }
       removalBlocks.append {
         ax.lineLayer.removeFromSuperlayer()
         ax.labelLayer.removeFromSuperlayer()
       }
     }
-    CATransaction.begin()
-    CATransaction.setAnimationDuration(2.25)
-    CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: .easeIn))
-    CATransaction.setCompletionBlock{
-      for r in removalBlocks {
-        r()
-      }
-    }
-    for b in blocks {
-      b()
-    }
-    CATransaction.commit()
+    
     self.supportAxis = newAxis
+    
+    DispatchQueue.main.async {
+      CATransaction.flush()
+      CATransaction.begin()
+      CATransaction.setAnimationDuration(0.25)
+      CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: .easeIn))
+      CATransaction.setCompletionBlock{
+        for r in removalBlocks {
+          r()
+        }
+      }
+      for b in blocks {
+        b()
+      }
+      CATransaction.commit()
+    }
+    
   }
   
   private func bezierLine(withPoints points: [CGPoint]) -> UIBezierPath {
