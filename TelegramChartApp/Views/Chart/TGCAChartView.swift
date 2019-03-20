@@ -200,7 +200,7 @@ class TGCAChartView: UIView {
     guard normalizedCurrentXRange != newRange else {
       return
     }
-    animateGuideLabelsChange(from: normalizedCurrentXRange, to: newRange)
+//    animateGuideLabelsChange(from: normalizedCurrentXRange, to: newRange)
     normalizedCurrentXRange = max(0, newRange.lowerBound)...min(1.0, newRange.upperBound)
 
     guard var drawings = drawings, let chart = chart else {
@@ -255,7 +255,7 @@ class TGCAChartView: UIView {
     }
     
     for i in 0..<drawings.count {
-      let drawing = drawings[i]
+      var drawing = drawings[i]
       
       let positionChangeBlock = {
         let yVector = normalizedYVectors.vectors[i].map{self.chartBounds.size.height + self.chartBounds.origin.y - ($0 * self.chartBounds.size.height)}
@@ -267,6 +267,7 @@ class TGCAChartView: UIView {
         pathAnimation.toValue = drawing.shapeLayer.path
         pathAnimation.duration = 0.25
         pathAnimation.timingFunction = CAMediaTimingFunction(name: .easeIn)
+        drawing.update(withPoints: points)
         drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
       }
       
@@ -289,6 +290,10 @@ class TGCAChartView: UIView {
 
         drawing.shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
       }
+      self.drawings[i] = drawing
+    }
+    if let annotation = currentChartAnnotation {
+      moveChartAnnotation(to: annotation.displayedIndex, animated: true)
     }
   }
 
@@ -563,6 +568,12 @@ class TGCAChartView: UIView {
       let circleShape = shapeLayer(withPath: circle.cgPath, color: chart.yVectors[i].metaData.color.cgColor, lineWidth: graphLineWidth, fillColor: circlePointFillColor)
       circleShape.zPosition = zPositions.Annotation.circleShape.rawValue
       circleLayers.append(circleShape)
+      if hiddenDrawingIndicies.contains(i) {
+        circleShape.opacity = 0
+        continue
+      } else {
+        circleShape.opacity = 1
+      }
       coloredValues.append((chart.yVectors[i].vector[index], chart.yVectors[i].metaData.color))
     }
     coloredValues.sort { (left, right) -> Bool in
@@ -586,7 +597,7 @@ class TGCAChartView: UIView {
     self.currentChartAnnotation = ChartAnnotation(lineLayer: lineLayer, annotationView: annotationView, circleLayers: circleLayers, displayedIndex: index)
   }
   
-  private func moveChartAnnotation(to index: Int) {
+  private func moveChartAnnotation(to index: Int, animated: Bool = false) {
     guard let annotation = currentChartAnnotation else {
       return
     }
@@ -598,10 +609,34 @@ class TGCAChartView: UIView {
     for i in 0..<drawings.count {
       let drawing = drawings[i]
       let point = drawing.points[index]
-      
       let circle = bezierCircle(at: point, radius: circlePointRadius)
-      currentChartAnnotation?.circleLayers[i].path = circle.cgPath
-      coloredValues.append((chart.yVectors[i].vector[index], chart.yVectors[i].metaData.color))
+      let circleLayer = annotation.circleLayers[i]
+      
+      if animated {
+        let pathAnim = CABasicAnimation(keyPath: "path")
+        pathAnim.fromValue = circleLayer.path
+        circleLayer.path = circle.cgPath
+        pathAnim.toValue = circleLayer.path
+        
+        let opacityAnim = CABasicAnimation(keyPath: "opacity")
+        opacityAnim.fromValue = circleLayer.opacity
+        circleLayer.opacity = hiddenDrawingIndicies.contains(i) ? 0 : 1
+        opacityAnim.toValue = circleLayer.opacity
+        
+        let grp = CAAnimationGroup()
+        grp.duration = 0.25
+        grp.timingFunction = CAMediaTimingFunction(name: .easeIn)
+        grp.animations = [pathAnim, opacityAnim]
+        circleLayer.add(grp, forKey: nil)
+        
+      } else {
+        circleLayer.path = circle.cgPath
+        circleLayer.opacity = hiddenDrawingIndicies.contains(i) ? 0 : 1
+      }
+      
+      if !hiddenDrawingIndicies.contains(i) {
+        coloredValues.append((chart.yVectors[i].vector[index], chart.yVectors[i].metaData.color))
+      }
     }
     coloredValues.sort { (left, right) -> Bool in
       return left.0 >= right.0
