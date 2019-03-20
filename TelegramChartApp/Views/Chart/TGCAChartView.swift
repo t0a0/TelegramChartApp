@@ -379,6 +379,7 @@ class TGCAChartView: UIView {
       return
     }
     
+    //TODO: Doesnt repect the starts from zero stuff. to do it should be line specific coefficient
     let coefficient: CGFloat = newRange.upperBound / previousRange.upperBound
     
     var blocks = [()->()]()
