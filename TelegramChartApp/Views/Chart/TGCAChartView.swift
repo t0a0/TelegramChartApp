@@ -183,6 +183,7 @@ class TGCAChartView: UIView {
       let points = convertToPoints(xVector: xVector, yVector: yVector)
       
       let shape = shapeLayer(withPath: bezierLine(withPoints: points).cgPath, color: chart.yVectors[i].metaData.color.cgColor, lineWidth: graphLineWidth)
+      shape.zPosition = zPositions.Chart.graph.rawValue
       layer.addSublayer(shape)
       draws.append(Drawing(identifier: chart.yVectors[i].metaData.identifier, shapeLayer: shape, points: points))
     }
@@ -313,6 +314,8 @@ class TGCAChartView: UIView {
     guideLabels = guideLayers
   }
   
+  
+  
   // MARK: - Support axis
   
   private let capHeightMultiplierForAxis: CGFloat = 0.85
@@ -327,6 +330,8 @@ class TGCAChartView: UIView {
     zshapeL.opacity = 1
     let text = chartLabelFormatterService.prettyValueString(from: currentYValueRange.lowerBound)
     let ztextL = textLayer(origin: CGPoint(x: chartBounds.origin.x, y: zposition - 20), text: text, color: axisLabelColor)
+    zshapeL.zPosition = zPositions.Chart.axis.rawValue
+    ztextL.zPosition = zPositions.Chart.axisLabel.rawValue
     layer.addSublayer(zshapeL)
     layer.addSublayer(ztextL)
     
@@ -349,7 +354,9 @@ class TGCAChartView: UIView {
       let line = bezierLine(from: CGPoint(x: chartBounds.origin.x, y: position), to: CGPoint(x: chartBounds.origin.x + chartBounds.width, y: position))
       let shapeL = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: 0.5)
       shapeL.opacity = 0.75
+      shapeL.zPosition = zPositions.Chart.axis.rawValue
       let textL = textLayer(origin: CGPoint(x: chartBounds.origin.x, y: position - 20), text: labelTextsForCurrentYRange[i], color: axisLabelColor)
+      textL.zPosition = zPositions.Chart.axisLabel.rawValue
       layer.addSublayer(shapeL)
       layer.addSublayer(textL)
       newAxis.append((shapeL, textL))
@@ -381,6 +388,8 @@ class TGCAChartView: UIView {
       let textL = textLayer(origin: CGPoint(x: chartBounds.origin.x, y: position - 20), text: labelTextsForCurrentYRange[i], color: axisLabelColor)
       textL.opacity = 0
       shapeL.opacity = 0
+      shapeL.zPosition = zPositions.Chart.axis.rawValue
+      textL.zPosition = zPositions.Chart.axisLabel.rawValue
       layer.addSublayer(shapeL)
       layer.addSublayer(textL)
       let oldShapePos = shapeL.position
@@ -535,6 +544,7 @@ class TGCAChartView: UIView {
       
       let circle = bezierCircle(at: point, radius: circlePointRadius)
       let circleShape = shapeLayer(withPath: circle.cgPath, color: chart.yVectors[i].metaData.color.cgColor, lineWidth: graphLineWidth, fillColor: circlePointFillColor)
+      circleShape.zPosition = zPositions.Annotation.circleShape.rawValue
       circleLayers.append(circleShape)
       coloredValues.append((chart.yVectors[i].vector[index], chart.yVectors[i].metaData.color))
     }
@@ -548,10 +558,12 @@ class TGCAChartView: UIView {
     
     let line = bezierLine(from: CGPoint(x: xPoint, y: annotationView.frame.origin.y + annotationView.frame.height), to: CGPoint(x: xPoint, y: chartBounds.origin.y + chartBounds.height))
     let lineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: 1.0)
+    lineLayer.zPosition = zPositions.Annotation.lineShape.rawValue
     layer.addSublayer(lineLayer)
     for c in circleLayers {
       layer.addSublayer(c)
     }
+    annotationView.layer.zPosition = zPositions.Annotation.view.rawValue
     addSubview(annotationView)
 
     self.currentChartAnnotation = ChartAnnotation(lineLayer: lineLayer, annotationView: annotationView, circleLayers: circleLayers, displayedIndex: index)
@@ -619,6 +631,20 @@ class TGCAChartView: UIView {
     
     mutating func updateDiplayedIndex(to toIndex: Int) {
       self.displayedIndex = toIndex
+    }
+  }
+  
+  private struct zPositions {
+    enum Annotation: CGFloat {
+      case view = 10.0
+      case lineShape = 5.0
+      case circleShape = 6.0
+    }
+    
+    enum Chart: CGFloat {
+      case axis = -10.0
+      case axisLabel = 7.0
+      case graph = 0
     }
   }
   
