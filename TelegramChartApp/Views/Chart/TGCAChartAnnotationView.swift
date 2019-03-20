@@ -11,7 +11,9 @@ import UIKit
 
 class TGCAChartAnnotationView: UIView, ThemeChangeObserving {
   @IBOutlet var contentView: UIView!
-  @IBOutlet weak var label: UILabel!
+  @IBOutlet weak var topLabel: UILabel!
+  @IBOutlet weak var bottomLabel: UILabel!
+
   @IBOutlet weak var valuesStackView: UIStackView!
   
   @IBOutlet weak var bottomConstraint: NSLayoutConstraint!
@@ -41,10 +43,6 @@ class TGCAChartAnnotationView: UIView, ThemeChangeObserving {
     contentView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
     layer.masksToBounds = true
     layer.cornerRadius = 6.0
-    label.numberOfLines = 2
-    label.lineBreakMode = .byWordWrapping
-    label.attributedText = transformDateToString(Date())
-    label.sizeToFit()
     applyCurrentTheme()
   }
   
@@ -82,7 +80,8 @@ class TGCAChartAnnotationView: UIView, ThemeChangeObserving {
     
     func applyChanges() {
       backgroundColor = theme.annotationColor
-      label.textColor = theme.annotationLabelColor
+      topLabel.textColor = theme.annotationLabelColor
+      bottomLabel.textColor = theme.annotationLabelColor
     }
     
     if animated {
@@ -96,9 +95,8 @@ class TGCAChartAnnotationView: UIView, ThemeChangeObserving {
   }
   
   // MARK: - Configuration
-  private let normalFont = UIFont.systemFont(ofSize: 13.0)
-  private let boldFont = UIFont.systemFont(ofSize: 13.0, weight: .bold)
-  
+  let boldFont = UIFont.systemFont(ofSize: 13.0, weight: .bold)
+  let heightForLabel: CGFloat = 16.0
   typealias ColoredValue = (value: CGFloat, color: UIColor)
   private var arrangedLabels = [UILabel]()
   
@@ -116,28 +114,31 @@ class TGCAChartAnnotationView: UIView, ThemeChangeObserving {
       }
     } else if difference < 0 {
       for _ in difference..<0 {
-        let label = UILabel(frame: CGRect.zero)
+        let label = UILabel(frame: CGRect(origin: CGPoint.zero, size: CGSize(width: 50.0, height: heightForLabel)))
         label.numberOfLines = 1
+        label.lineBreakMode = .byWordWrapping
         label.font = boldFont
         valuesStackView.addArrangedSubview(label)
         arrangedLabels.append(label)
       }
     }
     
-    label.attributedText = transformDateToString(date)
+    let texts = transformDateToString(date)
+    topLabel.text = texts.dateString
+    bottomLabel.text = texts.yearString
     var maxLabelWidth: CGFloat = 0
-    var sumOfHeights: CGFloat = 0
     for i in 0..<coloredValues.count {
       let coloredValue = coloredValues[i]
       let label = arrangedLabels[i]
       label.textColor = coloredValue.color
       label.text = transformValueToString(coloredValue.value)
-      label.sizeToFit()
-      maxLabelWidth = max(label.bounds.width, maxLabelWidth)
-      sumOfHeights += label.bounds.height
+      let size = label.sizeThatFits(CGSize(width: .greatestFiniteMagnitude, height: heightForLabel))
+      maxLabelWidth = max(size.width, maxLabelWidth)
     }
-    let width = maxLabelWidth + label.bounds.width + 10 //10 for separation
-    let height = max(sumOfHeights, label.bounds.height)
+    let widthThatFitsTopLabel: CGFloat = 50.0
+    
+    let width = max(maxLabelWidth, widthThatFitsTopLabel) * 2 
+    let height = max((heightForLabel + 2.0) * CGFloat(coloredValues.count), 40.0)
     let newSize = CGSize(width: width + leadingContsraint.constant + trailingConstraint.constant, height: height + topConstraint.constant + bottomConstraint.constant)
     bounds = CGRect(origin: bounds.origin, size: newSize)
     return bounds.size
@@ -147,14 +148,12 @@ class TGCAChartAnnotationView: UIView, ThemeChangeObserving {
     return numberFormatter.string(from: NSNumber(floatLiteral: Double(value))) ?? "\(value)"
   }
   
-  private func transformDateToString(_ date: Date) -> NSAttributedString {
+  private func transformDateToString(_ date: Date) -> (dateString: String, yearString: String) {
     dateFormatter.dateFormat = "MMM dd"
     let monthDayString = dateFormatter.string(from: date)
     dateFormatter.dateFormat = "YYYY"
     let yearString = dateFormatter.string(from: date)
-    let mutableString = NSMutableAttributedString(string: monthDayString, attributes: [.font : boldFont])
-    mutableString.append(NSAttributedString(string: "\n" + yearString, attributes: [.font : normalFont]))
-    return mutableString
+    return (monthDayString, yearString)
   }
   
 }
