@@ -235,6 +235,7 @@ class TGCAChartView: UIView {
       drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
       self.drawings[i] = drawing
     }
+    removeChartAnnotation()
   }
 
   /// Call to hide graph at index.
