@@ -197,8 +197,12 @@ class TGCAChartView: UIView {
   
   /// Call to update the diplayed X range. Accepted are subranges of 0...1.
   func updateDisplayRange(with newRange: ClosedRange<CGFloat>, ended: Bool) {
+    guard normalizedCurrentXRange != newRange else {
+      return
+    }
+    animateGuideLabelsChange(from: normalizedCurrentXRange, to: newRange)
     normalizedCurrentXRange = max(0, newRange.lowerBound)...min(1.0, newRange.upperBound)
-    
+
     guard var drawings = drawings, let chart = chart else {
       return
     }
@@ -469,6 +473,7 @@ class TGCAChartView: UIView {
     shapeLayer.lineJoin = .round
     shapeLayer.lineCap = .round
     shapeLayer.fillColor = fillColor
+    shapeLayer.contentsScale = UIScreen.main.scale
     return shapeLayer
   }
   
@@ -478,6 +483,18 @@ class TGCAChartView: UIView {
     textLayer.fontSize = 13.0
     textLayer.string = text
     textLayer.frame = CGRect(origin: origin, size: CGSize(width: 100, height: heightForGuideLabels))
+    textLayer.contentsScale = UIScreen.main.scale
+    textLayer.foregroundColor = color
+    return textLayer
+  }
+  
+  func textLayer(position: CGPoint, text: String, color: CGColor) -> CATextLayer {
+    let textLayer = CATextLayer()
+    textLayer.font = "Helvetica" as CFTypeRef
+    textLayer.fontSize = 13.0
+    textLayer.string = text
+    textLayer.frame = CGRect(origin: CGPoint.zero, size: CGSize(width: 45, height: heightForGuideLabels))
+    textLayer.position = position
     textLayer.contentsScale = UIScreen.main.scale
     textLayer.foregroundColor = color
     return textLayer

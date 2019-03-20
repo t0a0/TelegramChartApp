@@ -16,3 +16,11 @@ extension ClosedRange where Bound == CGFloat {
   }
 
 }
+
+extension ClosedRange where Bound == Int {
+  
+  var distance: Int {
+    return upperBound - lowerBound
+  }
+  
+}
