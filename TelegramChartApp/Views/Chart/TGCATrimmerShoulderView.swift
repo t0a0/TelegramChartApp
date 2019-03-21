@@ -11,8 +11,8 @@ import Foundation
 
 class TGCATrimmerShoulderView: UIView {
   
-  /// Specify a value by which to increase the hit detection rect. Default is 15.0.
-  var boundsInsetIncreaseValue: CGFloat = 15.0
+  /// Increases the hit detection rect.
+  var boundsInsetIncreaseValue: CGFloat = 10.0
   
   override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
     return increasedBounds.contains(point) ? self : nil

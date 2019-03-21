@@ -377,11 +377,11 @@ class TGCAChartView: UIView {
   
   private func addZeroAxis() {
     let zposition = chartBounds.origin.y + chartBounds.height
-    let zline = bezierLine(from: CGPoint(x: chartBounds.origin.x, y: zposition), to: CGPoint(x: chartBounds.origin.x + chartBounds.width, y: zposition))
+    let zline = bezierLine(from: CGPoint(x: bounds.origin.x, y: zposition), to: CGPoint(x: bounds.origin.x + bounds.width, y: zposition))
     let zshapeL = shapeLayer(withPath: zline.cgPath, color: axisColor, lineWidth: 0.5)
     zshapeL.opacity = 1
     let text = chartLabelFormatterService.prettyValueString(from: currentYValueRange.lowerBound)
-    let ztextL = textLayer(origin: CGPoint(x: chartBounds.origin.x, y: zposition - 20), text: text, color: axisLabelColor)
+    let ztextL = textLayer(origin: CGPoint(x: bounds.origin.x, y: zposition - 20), text: text, color: axisLabelColor)
     zshapeL.zPosition = zPositions.Chart.axis.rawValue
     ztextL.zPosition = zPositions.Chart.axisLabel.rawValue
     layer.addSublayer(zshapeL)
@@ -403,11 +403,11 @@ class TGCAChartView: UIView {
 
     for i in 0..<supportAxisDefaultYPositions.count {
       let position = supportAxisDefaultYPositions[i]
-      let line = bezierLine(from: CGPoint(x: chartBounds.origin.x, y: position), to: CGPoint(x: chartBounds.origin.x + chartBounds.width, y: position))
+      let line = bezierLine(from: CGPoint(x: bounds.origin.x, y: position), to: CGPoint(x: bounds.origin.x + bounds.width, y: position))
       let shapeL = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: 0.5)
       shapeL.opacity = 0.75
       shapeL.zPosition = zPositions.Chart.axis.rawValue
-      let textL = textLayer(origin: CGPoint(x: chartBounds.origin.x, y: position - 20), text: labelTextsForCurrentYRange[i], color: axisLabelColor)
+      let textL = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: labelTextsForCurrentYRange[i], color: axisLabelColor)
       textL.zPosition = zPositions.Chart.axisLabel.rawValue
       layer.addSublayer(shapeL)
       layer.addSublayer(textL)
@@ -436,9 +436,9 @@ class TGCAChartView: UIView {
       
       
       let position = supportAxisDefaultYPositions[i]
-      let line = bezierLine(from: CGPoint(x: chartBounds.origin.x, y: position), to: CGPoint(x: chartBounds.origin.x + chartBounds.width, y: position))
+      let line = bezierLine(from: CGPoint(x: bounds.origin.x, y: position), to: CGPoint(x: bounds.origin.x + bounds.width, y: position))
       let shapeL = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: 0.5)
-      let textL = textLayer(origin: CGPoint(x: chartBounds.origin.x, y: position - 20), text: labelTextsForCurrentYRange[i], color: axisLabelColor)
+      let textL = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: labelTextsForCurrentYRange[i], color: axisLabelColor)
       textL.opacity = 0
       shapeL.opacity = 0
       shapeL.zPosition = zPositions.Chart.axis.rawValue
