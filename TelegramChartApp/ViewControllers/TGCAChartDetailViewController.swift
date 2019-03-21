@@ -32,6 +32,7 @@ class TGCAChartDetailViewController: UIViewController {
     tableView.showsVerticalScrollIndicator = false
     tableView.showsHorizontalScrollIndicator = false
     tableView.canCancelContentTouches = false
+    tableView.delaysContentTouches = true
     subscribe()
   }
   
