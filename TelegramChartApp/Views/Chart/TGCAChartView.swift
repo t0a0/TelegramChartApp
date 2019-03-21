@@ -81,12 +81,13 @@ class TGCAChartView: UIView {
   }
 
   private var chart: LinearChart!
-  private var drawings: [Drawing]!
+  private var drawings: ChartDrawings!
   private var hiddenDrawingIndicies: Set<Int>!
   private var supportAxis: [SupportAxis]!
   private var zeroAxis: SupportAxis!
   private var currentChartAnnotation: ChartAnnotation?
-  private var guideLabels: [CATextLayer]!
+  private var activeGuideLabels: [GuideLabel]!
+  private var transitioningGuideLabels: [GuideLabel]!
   
   // MARK: Range changing
   
@@ -118,7 +119,7 @@ class TGCAChartView: UIView {
   private func reset() {
     self.chart = nil
     if let drawings = self.drawings {
-      for drawing in drawings {
+      for drawing in drawings.drawings {
         drawing.shapeLayer.removeFromSuperlayer()
       }
       self.drawings = nil
@@ -135,11 +136,11 @@ class TGCAChartView: UIView {
       zeroAxis.lineLayer.removeFromSuperlayer()
       self.zeroAxis = nil
     }
-    if let guideLabels = self.guideLabels {
+    if let guideLabels = self.activeGuideLabels {
       for gL in guideLabels {
-        gL.removeFromSuperlayer()
+        gL.textLayer.removeFromSuperlayer()
       }
-      self.guideLabels = nil
+      self.activeGuideLabels = nil
     }
     self.hiddenDrawingIndicies = nil
     removeChartAnnotation()
@@ -185,9 +186,9 @@ class TGCAChartView: UIView {
       let shape = shapeLayer(withPath: bezierLine(withPoints: points).cgPath, color: chart.yVectors[i].metaData.color.cgColor, lineWidth: graphLineWidth)
       shape.zPosition = zPositions.Chart.graph.rawValue
       layer.addSublayer(shape)
-      draws.append(Drawing(identifier: chart.yVectors[i].metaData.identifier, shapeLayer: shape, points: points))
+      draws.append(Drawing(identifier: chart.yVectors[i].metaData.identifier, shapeLayer: shape, yPositions: yVector))
     }
-    self.drawings = draws
+    self.drawings = ChartDrawings(drawings: draws, xPositions: xVector)
     if shouldDisplaySupportAxis  {
       addZeroAxis()
       addXAxisLayers()
@@ -200,10 +201,9 @@ class TGCAChartView: UIView {
     guard normalizedCurrentXRange != newRange else {
       return
     }
-//    animateGuideLabelsChange(from: normalizedCurrentXRange, to: newRange)
     normalizedCurrentXRange = max(0, newRange.lowerBound)...min(1.0, newRange.upperBound)
 
-    guard var drawings = drawings, let chart = chart else {
+    guard let drawings = drawings, let chart = chart else {
       return
     }
     
@@ -216,12 +216,13 @@ class TGCAChartView: UIView {
     }
     let xVector = normalizedXVector.map{$0 * chartBounds.size.width + chartBounds.origin.x}
     
-    for i in 0..<drawings.count {
-      var drawing = drawings[i]
+    var newDrawings = [Drawing]()
+    for i in 0..<drawings.drawings.count {
+      let drawing = drawings.drawings[i]
       let yVector = normalizedYVectors.vectors[i].map{chartBounds.size.height - ($0 * chartBounds.size.height) + chartBounds.origin.y}
       
       let points = convertToPoints(xVector: xVector, yVector: yVector)
-      drawing.update(withPoints: points)
+      newDrawings.append(Drawing(identifier: drawing.identifier, shapeLayer: drawing.shapeLayer, yPositions: yVector))
       if drawing.shapeLayer.animationKeys() != nil && !ended {
         continue
       }
@@ -233,8 +234,9 @@ class TGCAChartView: UIView {
       pathAnimation.duration = ended ? 0.25 : 0.075
       
       drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
-      self.drawings[i] = drawing
     }
+    self.drawings = ChartDrawings(drawings: newDrawings, xPositions: xVector)
+    animateGuideLabelsChange(from: normalizedCurrentXRange, to: newRange)
     removeChartAnnotation()
   }
 
@@ -254,9 +256,9 @@ class TGCAChartView: UIView {
     if currentYValueRange != newYrange {
       currentYValueRange = newYrange
     }
-    
-    for i in 0..<drawings.count {
-      var drawing = drawings[i]
+    var newDrawings = [Drawing]()
+    for i in 0..<drawings.drawings.count {
+      let drawing = drawings.drawings[i]
       
       let positionChangeBlock = {
         let yVector = normalizedYVectors.vectors[i].map{self.chartBounds.size.height + self.chartBounds.origin.y - ($0 * self.chartBounds.size.height)}
@@ -268,8 +270,8 @@ class TGCAChartView: UIView {
         pathAnimation.toValue = drawing.shapeLayer.path
         pathAnimation.duration = 0.25
         pathAnimation.timingFunction = CAMediaTimingFunction(name: .easeIn)
-        drawing.update(withPoints: points)
         drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
+        newDrawings.append(Drawing(identifier: drawing.identifier, shapeLayer: drawing.shapeLayer, yPositions: yVector))
       }
       
       if animatesPositionOnHide {
@@ -291,8 +293,8 @@ class TGCAChartView: UIView {
 
         drawing.shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
       }
-      self.drawings[i] = drawing
     }
+    self.drawings = ChartDrawings(drawings: newDrawings, xPositions: xVector)
     if let annotation = currentChartAnnotation {
       moveChartAnnotation(to: annotation.displayedIndex, animated: true)
     }
@@ -301,30 +303,66 @@ class TGCAChartView: UIView {
   // MARK: - Guide Labels
   
   private func addGuideLabels() {
-    let rangeSpacing = normalizedCurrentXRange.distance / CGFloat(numOfGuideLabels)
-    let chartboundsSpacing = chartBounds.width / CGFloat(numOfGuideLabels)
-    var locations = [normalizedCurrentXRange.lowerBound]
-    for i in 1..<numOfGuideLabels - 1 {
-      locations.append(normalizedCurrentXRange.lowerBound + rangeSpacing * CGFloat(i))
+    
+    lastSpacing = chart.labelSpacing(for: chart.xVector.count)
+    var actualIndexes = [Int]()
+    var j = lastSpacing / 2
+    while j <= chart.xVector.count {
+      actualIndexes.append(j - 1)
+      j += lastSpacing
     }
-    locations.append(normalizedCurrentXRange.upperBound)
     
-    //TODO: what if values are less than 6 in this range?
-    
-    let actualIndexes = locations.map{chart.translatedIndex(for: $0)}
     let timeStamps = actualIndexes.map{chart.xVector[$0]}
     let strings = timeStamps.map{chartLabelFormatterService.prettyDateString(from: $0)}
     
-    var guideLayers = [CATextLayer]()
+    var guideLayers = [GuideLabel]()
     for i in 0..<strings.count {
-      let textL = textLayer(origin: CGPoint(x: chartBounds.origin.x + chartboundsSpacing * CGFloat(i), y: chartBounds.origin.y + chartBounds.height + 5), text: strings[i], color: axisLabelColor)
-      guideLayers.append(textL)
+      let textL = textLayer(position: CGPoint(x: drawings.xPositions[actualIndexes[i]], y: chartBounds.origin.y + chartBounds.height + 5 + heightForGuideLabels / 2), text: strings[i], color: axisLabelColor)
+      guideLayers.append(GuideLabel(textLayer: textL, indexInChart: actualIndexes[i]))
       layer.addSublayer(textL)
     }
-    guideLabels = guideLayers
+    activeGuideLabels = guideLayers
   }
   
+  var lastSpacing: Int!
   
+  private func animateGuideLabelsChange(from: ClosedRange<CGFloat>, to: ClosedRange<CGFloat>) {
+    
+    
+    let spacing = chart.labelSpacing(for: chart.translatedBounds(for: to).distance + 1)
+    if lastSpacing != spacing {
+      lastSpacing = spacing
+      
+      for gl in activeGuideLabels {
+        gl.textLayer.removeFromSuperlayer()
+      }
+      activeGuideLabels = nil
+      
+      var actualIndexes = [Int]()
+      var j = lastSpacing / 2
+      while j <= chart.xVector.count {
+        actualIndexes.append(j - 1)
+        j += lastSpacing
+      }
+      
+      let timeStamps = actualIndexes.map{chart.xVector[$0]}
+      let strings = timeStamps.map{chartLabelFormatterService.prettyDateString(from: $0)}
+      
+      var guideLayers = [GuideLabel]()
+      for i in 0..<strings.count {
+        let textL = textLayer(position: CGPoint(x: drawings.xPositions[actualIndexes[i]], y: chartBounds.origin.y + chartBounds.height + 5 + heightForGuideLabels / 2), text: strings[i], color: axisLabelColor)
+        guideLayers.append(GuideLabel(textLayer: textL, indexInChart: actualIndexes[i]))
+        layer.addSublayer(textL)
+      }
+      activeGuideLabels = guideLayers
+      print(activeGuideLabels.count)
+    } else {
+      for guideLabel in activeGuideLabels {
+        guideLabel.textLayer.position = CGPoint(x: drawings.xPositions[guideLabel.indexInChart], y: guideLabel.textLayer.position.y)
+      }
+    }
+  }
+
   
   // MARK: - Support axis
   
@@ -556,15 +594,15 @@ class TGCAChartView: UIView {
   }
   
   private func addChartAnnotation(for index: Int) {
-    let xPoint = drawings[0].points[index].x
+    let xPoint = drawings.xPositions[index]
     var circleLayers = [CAShapeLayer]()
     
     var coloredValues = [(CGFloat, UIColor)]()
     let date = Date(timeIntervalSince1970: TimeInterval(chart.xVector[index])/1000)
 
-    for i in 0..<drawings.count {
-      let drawing = drawings[i]
-      let point = drawing.points[index]
+    for i in 0..<drawings.drawings.count {
+      let drawing = drawings.drawings[i]
+      let point = CGPoint(x: xPoint, y: drawing.yPositions[index])
       
       let circle = bezierCircle(at: point, radius: circlePointRadius)
       let circleShape = shapeLayer(withPath: circle.cgPath, color: chart.yVectors[i].metaData.color.cgColor, lineWidth: graphLineWidth, fillColor: circlePointFillColor)
@@ -603,14 +641,14 @@ class TGCAChartView: UIView {
     guard let annotation = currentChartAnnotation else {
       return
     }
-    let xPoint = drawings[0].points[index].x
+    let xPoint = drawings.xPositions[index]
     
     var coloredValues = [(CGFloat, UIColor)]()
     let date = Date(timeIntervalSince1970: TimeInterval(chart.xVector[index])/1000)
     
-    for i in 0..<drawings.count {
-      let drawing = drawings[i]
-      let point = drawing.points[index]
+    for i in 0..<drawings.drawings.count {
+      let drawing = drawings.drawings[i]
+      let point = CGPoint(x: xPoint, y: drawing.yPositions[index])
       let circle = bezierCircle(at: point, radius: circlePointRadius)
       let circleLayer = annotation.circleLayers[i]
       
@@ -667,14 +705,15 @@ class TGCAChartView: UIView {
   
   private typealias SupportAxis = (lineLayer: CAShapeLayer, labelLayer: CATextLayer)
   
+  private struct ChartDrawings {
+    let drawings: [Drawing]
+    let xPositions: [CGFloat]
+  }
+  
   private struct Drawing {
     let identifier: String
     let shapeLayer: CAShapeLayer
-    private(set) var points: [CGPoint]
-    
-    mutating func update(withPoints points: [CGPoint]) {
-      self.points = points
-    }
+    let yPositions: [CGFloat]
   }
   
   private struct ChartAnnotation {
@@ -700,6 +739,11 @@ class TGCAChartView: UIView {
       case axisLabel = 7.0
       case graph = 0
     }
+  }
+  
+  private struct GuideLabel {
+    let textLayer: CATextLayer
+    let indexInChart: Int
   }
   
 }

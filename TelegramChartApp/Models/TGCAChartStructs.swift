@@ -29,6 +29,14 @@ struct LinearChart {
     self.title = title
   }
   
+  func labelSpacing(for count: Int) -> Int{
+    var i = 1
+    while i*6 < count {
+      i *= 2
+    }
+    return i
+  }
+  
   func normalizedYVectors(in xRange: ClosedRange<CGFloat>, excludedIdxs: Set<Int>) -> NormalizedYVectors {
     let indexesToSkip = Set(excludedIdxs).sorted() //remove duplicates and sort ascending. This is important!
     let vectors = yVectors.map{$0.vector}
@@ -86,6 +94,9 @@ struct LinearChart {
     let normalizedVector = xVector.map{(($0 - minValue) / (maxValue - minValue))}
     return normalizedVector
   }
+  
+  
+  
   
 }
 
