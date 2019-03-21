@@ -259,11 +259,11 @@ class TGCAChartView: UIView {
     var newDrawings = [Drawing]()
     for i in 0..<drawings.drawings.count {
       let drawing = drawings.drawings[i]
+      let yVector = normalizedYVectors.vectors[i].map{self.chartBounds.size.height + self.chartBounds.origin.y - ($0 * self.chartBounds.size.height)}
+      let points = self.convertToPoints(xVector: xVector, yVector: yVector)
+      let newPath = self.bezierLine(withPoints: points)
       
       let positionChangeBlock = {
-        let yVector = normalizedYVectors.vectors[i].map{self.chartBounds.size.height + self.chartBounds.origin.y - ($0 * self.chartBounds.size.height)}
-        let points = self.convertToPoints(xVector: xVector, yVector: yVector)
-        let newPath = self.bezierLine(withPoints: points)
         let pathAnimation = CABasicAnimation(keyPath: "path")
         pathAnimation.fromValue = drawing.shapeLayer.path
         drawing.shapeLayer.path = newPath.cgPath
@@ -271,14 +271,18 @@ class TGCAChartView: UIView {
         pathAnimation.duration = 0.25
         pathAnimation.timingFunction = CAMediaTimingFunction(name: .easeIn)
         drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
-        newDrawings.append(Drawing(identifier: drawing.identifier, shapeLayer: drawing.shapeLayer, yPositions: yVector))
       }
       
       if animatesPositionOnHide {
         positionChangeBlock()
+        newDrawings.append(Drawing(identifier: drawing.identifier, shapeLayer: drawing.shapeLayer, yPositions: yVector))
       } else {
         if !hiddenDrawingIndicies.contains(i) {
           positionChangeBlock()
+          newDrawings.append(Drawing(identifier: drawing.identifier, shapeLayer: drawing.shapeLayer, yPositions: yVector))
+
+        } else {
+          newDrawings.append(drawing)
         }
       }
       
