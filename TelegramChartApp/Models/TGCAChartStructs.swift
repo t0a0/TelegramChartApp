@@ -29,12 +29,15 @@ struct LinearChart {
     self.title = title
   }
   
-  func labelSpacing(for count: Int) -> Int{
+  func labelSpacing(for count: Int) -> (spacing: Int, leftover: CGFloat) {
     var i = 1
     while i*6 < count {
       i *= 2
     }
-    return i
+    let extra = count % ((i/2)*6)
+    let higherBound = i*6
+    let leftover = 2.0 * CGFloat(extra) / CGFloat(higherBound)
+    return (i, leftover)
   }
   
   func normalizedYVectors(in xRange: ClosedRange<CGFloat>, excludedIdxs: Set<Int>) -> NormalizedYVectors {

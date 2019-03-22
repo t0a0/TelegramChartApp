@@ -201,7 +201,7 @@ class TGCAChartView: UIView {
     guard normalizedCurrentXRange != newRange else {
       return
     }
-    normalizedCurrentXRange = max(0, newRange.lowerBound)...min(1.0, newRange.upperBound)
+    normalizedCurrentXRange = newRange//max(0, newRange.lowerBound)...min(1.0, newRange.upperBound)
 
     guard let drawings = drawings, let chart = chart else {
       return
@@ -236,7 +236,7 @@ class TGCAChartView: UIView {
       drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
     }
     self.drawings = ChartDrawings(drawings: newDrawings, xPositions: xVector)
-    animateGuideLabelsChange(from: normalizedCurrentXRange, to: newRange)
+    animateGuideLabelsChange(from: normalizedCurrentXRange, to: newRange, endedTouch: ended)
     removeChartAnnotation()
   }
 
@@ -297,6 +297,7 @@ class TGCAChartView: UIView {
 
         drawing.shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
       }
+
     }
     self.drawings = ChartDrawings(drawings: newDrawings, xPositions: xVector)
     if let annotation = currentChartAnnotation {
@@ -308,62 +309,90 @@ class TGCAChartView: UIView {
   
   private func addGuideLabels() {
     
-    lastSpacing = chart.labelSpacing(for: chart.xVector.count)
+    let (spacing, leftover) = chart.labelSpacing(for: chart.xVector.count)
+    lastSpacing = spacing
     var actualIndexes = [Int]()
-    var j = lastSpacing / 2
-    while j <= chart.xVector.count {
-      actualIndexes.append(j - 1)
+    var j = 0
+    while j < chart.xVector.count {
+      actualIndexes.append(j)
       j += lastSpacing
     }
-    
+    lastActualIndexes = actualIndexes
     let timeStamps = actualIndexes.map{chart.xVector[$0]}
     let strings = timeStamps.map{chartLabelFormatterService.prettyDateString(from: $0)}
     
     var guideLayers = [GuideLabel]()
     for i in 0..<strings.count {
-      let textL = textLayer(position: CGPoint(x: drawings.xPositions[actualIndexes[i]], y: chartBounds.origin.y + chartBounds.height + 5 + heightForGuideLabels / 2), text: strings[i], color: axisLabelColor)
-      guideLayers.append(GuideLabel(textLayer: textL, indexInChart: actualIndexes[i]))
+      let textL = textLayer(origin: CGPoint(x: drawings.xPositions[lastActualIndexes[i]], y: chartBounds.origin.y + chartBounds.height + 5 /*+ heightForGuideLabels / 2*/), text: strings[i], color: axisLabelColor)
+      guideLayers.append(GuideLabel(textLayer: textL, indexInChart: lastActualIndexes[i]))
       layer.addSublayer(textL)
     }
     activeGuideLabels = guideLayers
   }
   
   var lastSpacing: Int!
+  var lastActualIndexes: [Int]!
   
-  private func animateGuideLabelsChange(from: ClosedRange<CGFloat>, to: ClosedRange<CGFloat>) {
+  private func animateGuideLabelsChange(from: ClosedRange<CGFloat>, to: ClosedRange<CGFloat>, endedTouch: Bool) {
     
     
-    let spacing = chart.labelSpacing(for: chart.translatedBounds(for: to).distance + 1)
+    let (spacing, leftover) = chart.labelSpacing(for: chart.translatedBounds(for: to).distance + 1)
     if lastSpacing != spacing {
-      lastSpacing = spacing
       
       for gl in activeGuideLabels {
         gl.textLayer.removeFromSuperlayer()
       }
       activeGuideLabels = nil
       
-      var actualIndexes = [Int]()
-      var j = lastSpacing / 2
-      while j <= chart.xVector.count {
-        actualIndexes.append(j - 1)
-        j += lastSpacing
-      }
       
-      let timeStamps = actualIndexes.map{chart.xVector[$0]}
+      
+      if spacing < lastSpacing {
+        var actualIndexes = [Int]()
+        var i = 0
+        while i < chart.xVector.count {
+          actualIndexes.append(i)
+          i += spacing
+        }
+        actualIndexes.append(contentsOf: lastActualIndexes)
+        actualIndexes = Array(Set(actualIndexes)).sorted()
+        lastActualIndexes = actualIndexes
+      } else {
+        var actualIndexes = [Int]()
+        var i = lastSpacing!
+        while i < chart.xVector.count {
+          actualIndexes.append(i)
+          i += spacing
+        }
+        lastActualIndexes.removeAll { elem -> Bool in
+          actualIndexes.contains(elem)
+        }
+      }
+      lastSpacing = spacing
+      let timeStamps = lastActualIndexes.map{chart.xVector[$0]}
       let strings = timeStamps.map{chartLabelFormatterService.prettyDateString(from: $0)}
       
       var guideLayers = [GuideLabel]()
       for i in 0..<strings.count {
-        let textL = textLayer(position: CGPoint(x: drawings.xPositions[actualIndexes[i]], y: chartBounds.origin.y + chartBounds.height + 5 + heightForGuideLabels / 2), text: strings[i], color: axisLabelColor)
-        guideLayers.append(GuideLabel(textLayer: textL, indexInChart: actualIndexes[i]))
+        let textL = textLayer(origin: CGPoint(x: drawings.xPositions[lastActualIndexes[i]], y: chartBounds.origin.y + chartBounds.height + 5/* + heightForGuideLabels / 2*/), text: strings[i], color: axisLabelColor)
+        guideLayers.append(GuideLabel(textLayer: textL, indexInChart: lastActualIndexes[i]))
         layer.addSublayer(textL)
       }
       activeGuideLabels = guideLayers
-      print(activeGuideLabels.count)
     } else {
-      for guideLabel in activeGuideLabels {
-        guideLabel.textLayer.position = CGPoint(x: drawings.xPositions[guideLabel.indexInChart], y: guideLabel.textLayer.position.y)
+      if leftover >= 0.6 {
+        //scaling out = increasing range
+      } else if leftover <= 0.4 {
+        //scaling in = decreasing range
+      } else {
+        //perfect position
       }
+      CATransaction.begin()
+      CATransaction.setDisableActions(true)
+      for guideLabel in activeGuideLabels {
+        guideLabel.textLayer.frame.origin = CGPoint(x: drawings.xPositions[guideLabel.indexInChart], y: guideLabel.textLayer.frame.origin.y)
+//        guideLabel.textLayer.opacity = Float(leftover/2)
+      }
+      CATransaction.commit()
     }
   }
 
