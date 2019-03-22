@@ -189,18 +189,14 @@ extension TGCAChartDetailViewController: UITableViewDelegate {
 
 extension TGCAChartDetailViewController: TGCATrimmerViewDelegate {
   
-  func trimmerView(_ trimmerView: TGCATrimmerView, didChangeDisplayRange range: ClosedRange<CGFloat>, panStopped: Bool) {
-    chartCell?.chartView.updateDisplayRange(with: range, ended: panStopped)
+  func trimmerView(_ trimmerView: TGCATrimmerView, didChangeDisplayRange range: ClosedRange<CGFloat>, event: DisplayRangeChangeEvent) {
+    if event == .Started {
+      chartCell?.chartView.isUserInteractionEnabled = false
+    } else if event == .Ended {
+      chartCell?.chartView.isUserInteractionEnabled = false
+    }
+    chartCell?.chartView.updateDisplayRange(with: range, event: event)
   }
-  
-  func trimmerViewDidEndDragging(_ trimmerView: TGCATrimmerView) {
-    chartCell?.chartView.isUserInteractionEnabled = true
-  }
-  
-  func trimmerViewDidBeginDragging(_ trimmerView: TGCATrimmerView) {
-    chartCell?.chartView.isUserInteractionEnabled = false
-  }
-  
 }
 
 extension TGCAChartDetailViewController: ThemeChangeObserving {

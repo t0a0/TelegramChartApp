@@ -116,36 +116,7 @@ class TGCAChartView: UIView {
   /// From 0 to 1.0.
   private var normalizedCurrentXRange: ClosedRange<CGFloat> = ZORange
   
-  private func reset() {
-    self.chart = nil
-    if let drawings = self.drawings {
-      for drawing in drawings.drawings {
-        drawing.shapeLayer.removeFromSuperlayer()
-      }
-      self.drawings = nil
-    }
-    if let supportAxis = self.supportAxis {
-      for axis in supportAxis {
-        axis.labelLayer.removeFromSuperlayer()
-        axis.lineLayer.removeFromSuperlayer()
-      }
-      self.supportAxis = nil
-    }
-    if let zeroAxis = self.zeroAxis {
-      zeroAxis.labelLayer.removeFromSuperlayer()
-      zeroAxis.lineLayer.removeFromSuperlayer()
-      self.zeroAxis = nil
-    }
-    if let guideLabels = self.activeGuideLabels {
-      for gL in guideLabels {
-        gL.textLayer.removeFromSuperlayer()
-      }
-      self.activeGuideLabels = nil
-    }
-    self.hiddenDrawingIndicies = nil
-    removeChartAnnotation()
-    currentYValueRange = 0...0
-  }
+  
   
   // MARK: - Helping functions
   
@@ -197,8 +168,9 @@ class TGCAChartView: UIView {
   }
   
   /// Call to update the diplayed X range. Accepted are subranges of 0...1.
-  func updateDisplayRange(with newRange: ClosedRange<CGFloat>, ended: Bool) {
-    guard normalizedCurrentXRange != newRange else {
+  func updateDisplayRange(with newRange: ClosedRange<CGFloat>, event: DisplayRangeChangeEvent) {
+    let ended = event == .Ended
+    guard normalizedCurrentXRange != newRange || ended else {
       return
     }
     normalizedCurrentXRange = newRange//max(0, newRange.lowerBound)...min(1.0, newRange.upperBound)
@@ -236,12 +208,13 @@ class TGCAChartView: UIView {
       drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
     }
     self.drawings = ChartDrawings(drawings: newDrawings, xPositions: xVector)
-    animateGuideLabelsChange(from: normalizedCurrentXRange, to: newRange, endedTouch: ended)
+    animateGuideLabelsChange(from: normalizedCurrentXRange, to: newRange, event: event)
     removeChartAnnotation()
   }
 
   /// Call to hide graph at index.
   func hide(at index: Int) {
+    //TODO: fix bug when on trimmer view they are getting animated from normalized positions
     let originalHidden = hiddenDrawingIndicies.contains(index)
     if originalHidden {
       hiddenDrawingIndicies.remove(index)
@@ -309,7 +282,7 @@ class TGCAChartView: UIView {
   
   private func addGuideLabels() {
     
-    let (spacing, leftover) = chart.labelSpacing(for: chart.xVector.count)
+    let (spacing, _) = chart.labelSpacing(for: chart.xVector.count)
     lastSpacing = spacing
     var actualIndexes = [Int]()
     var j = 0
@@ -333,12 +306,15 @@ class TGCAChartView: UIView {
   var lastSpacing: Int!
   var lastActualIndexes: [Int]!
   
-  private func animateGuideLabelsChange(from: ClosedRange<CGFloat>, to: ClosedRange<CGFloat>, endedTouch: Bool) {
+
+  
+  private func animateGuideLabelsChange(from: ClosedRange<CGFloat>, to: ClosedRange<CGFloat>, event: DisplayRangeChangeEvent) {
     
     
     let (spacing, leftover) = chart.labelSpacing(for: chart.translatedBounds(for: to).distance + 1)
+//    print(leftover)
     if lastSpacing != spacing {
-      
+      removeTransitioningGuideLabels()
       for gl in activeGuideLabels {
         gl.textLayer.removeFromSuperlayer()
       }
@@ -379,12 +355,89 @@ class TGCAChartView: UIView {
       }
       activeGuideLabels = guideLayers
     } else {
-      if leftover >= 0.6 {
+      if leftover > 0.5 {
         //scaling out = increasing range
-      } else if leftover <= 0.4 {
+//        print("more than 0.6")
+        
+        if transitioningGuideLabels == nil {
+          
+          var actualIndexes = [Int]()
+          var i = 0
+          while i < chart.xVector.count {
+            actualIndexes.append(i)
+            i += spacing * 2
+          }
+          
+          print("actual \(actualIndexes)")
+          var currentIndexes = activeGuideLabels.map{$0.indexInChart}
+          print ("current \(currentIndexes)")
+          currentIndexes.removeAll { currentIndex -> Bool in
+            actualIndexes.contains(currentIndex)
+          }
+          print ("current \(currentIndexes)")
+
+          let timeStamps = currentIndexes.map{chart.xVector[$0]}
+          let strings = timeStamps.map{chartLabelFormatterService.prettyDateString(from: $0)}
+          var transitioningLabels = [GuideLabel]()
+          for i in 0..<currentIndexes.count {
+            let textL = textLayer(origin: CGPoint(x: drawings.xPositions[currentIndexes[i]], y: chartBounds.origin.y + chartBounds.height + 5/* + heightForGuideLabels / 2*/), text: strings[i], color: axisLabelColor)
+            transitioningLabels.append(GuideLabel(textLayer: textL, indexInChart: currentIndexes[i]))
+            textL.opacity = Float((1.0 - leftover) * 2.0)
+            layer.addSublayer(textL)
+          }
+          transitioningGuideLabels = transitioningLabels
+          
+          var newActive = [GuideLabel]()
+          for gl in activeGuideLabels {
+            if !actualIndexes.contains(gl.indexInChart) {
+              print("removing \(gl.indexInChart)")
+              gl.textLayer.removeFromSuperlayer()
+            } else {
+              newActive.append(gl)
+            }
+          }
+          activeGuideLabels = newActive
+        } else {
+          for l in transitioningGuideLabels {
+            l.textLayer.opacity = Float((1.0 - leftover) * 2.0)
+          }
+        }
+      } else if leftover < 0.5 {
         //scaling in = decreasing range
+//        print("less than 0.4")
+        if transitioningGuideLabels == nil {
+          
+          var actualIndexes = [Int]()
+          var i = 0
+          while i < chart.xVector.count {
+            actualIndexes.append(i)
+            i += spacing / 2
+          }
+          let timeStamps = actualIndexes.map{chart.xVector[$0]}
+          let strings = timeStamps.map{chartLabelFormatterService.prettyDateString(from: $0)}
+          
+          var transitioningLabels = [GuideLabel]()
+          for i in 0..<actualIndexes.count {
+            let textL = textLayer(origin: CGPoint(x: drawings.xPositions[actualIndexes[i]], y: chartBounds.origin.y + chartBounds.height + 5/* + heightForGuideLabels / 2*/), text: strings[i], color: axisLabelColor)
+            transitioningLabels.append(GuideLabel(textLayer: textL, indexInChart: actualIndexes[i]))
+            textL.opacity = Float(1.0 - leftover)/2.0
+            layer.addSublayer(textL)
+          }
+          transitioningGuideLabels = transitioningLabels
+        } else {
+          for l in transitioningGuideLabels {
+            l.textLayer.opacity = Float(1.0 - leftover)/2.0
+          }
+        }
+
+//        actualIndexes.append(contentsOf: lastActualIndexes)
+//        actualIndexes = Array(Set(actualIndexes)).sorted()
+//        lastActualIndexes = actualIndexes
       } else {
         //perfect position
+       removeTransitioningGuideLabels()
+
+//        print("perfect")
       }
       CATransaction.begin()
       CATransaction.setDisableActions(true)
@@ -392,7 +445,20 @@ class TGCAChartView: UIView {
         guideLabel.textLayer.frame.origin = CGPoint(x: drawings.xPositions[guideLabel.indexInChart], y: guideLabel.textLayer.frame.origin.y)
 //        guideLabel.textLayer.opacity = Float(leftover/2)
       }
+      if transitioningGuideLabels != nil {
+      for guideLabel in transitioningGuideLabels {
+        guideLabel.textLayer.frame.origin = CGPoint(x: drawings.xPositions[guideLabel.indexInChart], y: guideLabel.textLayer.frame.origin.y)
+        //        guideLabel.textLayer.opacity = Float(leftover/2)
+      }
+      }
       CATransaction.commit()
+    }
+    if event == .Ended {
+      if transitioningGuideLabels != nil {
+        for l in transitioningGuideLabels {
+          l.textLayer.opacity = 0
+        }
+      }
     }
   }
 
@@ -723,7 +789,57 @@ class TGCAChartView: UIView {
     currentChartAnnotation?.updateDiplayedIndex(to: index)
   }
   
-  func removeChartAnnotation() {
+  // MARK: - Reset
+  
+  private func reset() {
+    self.chart = nil
+    removeDrawings()
+    removeAxis()
+    removeGuideLabels()
+    self.hiddenDrawingIndicies = nil
+    removeChartAnnotation()
+    currentYValueRange = 0...0
+  }
+  private func removeDrawings() {
+    self.drawings?.drawings.forEach{$0.shapeLayer.removeFromSuperlayer()}
+    self.drawings = nil
+  }
+  
+  private func removeAxis() {
+    removeZeroAxis()
+    removeSupportAxis()
+  }
+  
+  private func removeZeroAxis() {
+    self.zeroAxis?.labelLayer.removeFromSuperlayer()
+    self.zeroAxis?.lineLayer.removeFromSuperlayer()
+    self.zeroAxis = nil
+  }
+  
+  private func removeSupportAxis() {
+    self.supportAxis?.forEach{
+      $0.labelLayer.removeFromSuperlayer()
+      $0.lineLayer.removeFromSuperlayer()
+    }
+    self.supportAxis = nil
+  }
+  
+  private func removeGuideLabels() {
+    removeActiveGuideLabels()
+    removeTransitioningGuideLabels()
+  }
+  
+  private func removeActiveGuideLabels() {
+    self.activeGuideLabels?.forEach{$0.textLayer.removeFromSuperlayer()}
+    self.activeGuideLabels = nil
+  }
+  
+  private func removeTransitioningGuideLabels() {
+    self.transitioningGuideLabels?.forEach{$0.textLayer.removeFromSuperlayer()}
+    self.transitioningGuideLabels = nil
+  }
+  
+  private func removeChartAnnotation() {
     if let annotation = currentChartAnnotation {
       annotation.lineLayer.removeFromSuperlayer()
       annotation.annotationView.removeFromSuperview()
@@ -808,22 +924,21 @@ extension TGCAChartView: ThemeChangeObserving {
     circlePointFillColor = theme.foregroundColor.cgColor
     
     func applyChanges() {
-      if let annotation = currentChartAnnotation {
-        for circle in annotation.circleLayers {
-          circle.fillColor = circlePointFillColor
-        }
-        annotation.lineLayer.strokeColor = axisColor
+      //annotation
+      self.currentChartAnnotation?.circleLayers.forEach{$0.fillColor = circlePointFillColor}
+      self.currentChartAnnotation?.lineLayer.strokeColor = axisColor
+
+      //axis
+      self.supportAxis?.forEach{
+        $0.lineLayer.strokeColor = axisColor
+        $0.labelLayer.foregroundColor = axisLabelColor
       }
-      if let supportAxis = supportAxis {
-        for axis in supportAxis {
-          axis.labelLayer.foregroundColor = axisLabelColor
-          axis.lineLayer.strokeColor = axisColor
-        }
-      }
-      if let zeroAxis = zeroAxis {
-        zeroAxis.labelLayer.foregroundColor = axisLabelColor
-        zeroAxis.lineLayer.strokeColor = axisColor
-      }
+      self.zeroAxis?.labelLayer.foregroundColor = axisLabelColor
+      self.zeroAxis?.lineLayer.strokeColor = axisColor
+      
+      //guide labels
+      self.activeGuideLabels?.forEach{$0.textLayer.foregroundColor = axisLabelColor}
+      self.transitioningGuideLabels?.forEach{$0.textLayer.foregroundColor = axisLabelColor}
     }
     
     if animated {

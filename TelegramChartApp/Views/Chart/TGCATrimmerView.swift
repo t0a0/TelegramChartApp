@@ -9,7 +9,18 @@
 import Foundation
 import UIKit
 
+enum DisplayRangeChangeEvent {
+  case Started
+  case Scrolled
+  case Scaled
+  case Ended
+  case Reset
+}
+
 protocol TGCATrimmerViewDelegate: class {
+  
+  
+  
   /**
    lmao
    
@@ -17,10 +28,7 @@ protocol TGCATrimmerViewDelegate: class {
    - chartSlider ad asda sd
    - from (0, minimumRangeLength) to (100 - minimumRangeLength, 100)
    */
-  func trimmerView(_ trimmerView: TGCATrimmerView, didChangeDisplayRange range: ClosedRange<CGFloat>, panStopped: Bool)
-  
-  func trimmerViewDidBeginDragging(_ trimmerView: TGCATrimmerView)
-  func trimmerViewDidEndDragging(_ trimmerView: TGCATrimmerView)
+  func trimmerView(_ trimmerView: TGCATrimmerView, didChangeDisplayRange range: ClosedRange<CGFloat>, event: DisplayRangeChangeEvent)
   
 }
 
@@ -39,7 +47,7 @@ class TGCATrimmerView: UIView, ThemeChangeObserving {
     }
   }
   
-  var shoulderWidth: CGFloat = 15.0
+  var shoulderWidth: CGFloat = 12.0
   private let totalRange = ZORange
   // MARK: - Subviews
   private let trimmedAreaView = UIView()
@@ -227,7 +235,6 @@ class TGCATrimmerView: UIView, ThemeChangeObserving {
     switch panGestureRecognizer.state {
       
     case .began:
-      delegate?.trimmerViewDidBeginDragging(self)
       if isLeftGesture {
         deactivateTrimmedAreaGestureRecognizers()
         currentLeftConstraint = leftConstraint!.constant
@@ -240,28 +247,32 @@ class TGCATrimmerView: UIView, ThemeChangeObserving {
         currentRightConstraint = rightConstraint!.constant
         currentDistanceConstraint = frame.width - currentLeftConstraint + currentRightConstraint
       }
-      notifyRangeChanged()
+      notifyRangeChanged(event: .Started)
     case .changed:
       let translation = panGestureRecognizer.translation(in: superView)
       if isLeftGesture {
         updateLeftConstraint(with: translation)
+        layoutIfNeeded()
+        notifyRangeChanged(event: .Scaled)
       } else if isRightGesture{
         updateRightConstraint(with: translation)
+        layoutIfNeeded()
+        notifyRangeChanged(event: .Scaled)
       } else {
         updateBothConstraints(with: translation)
+        layoutIfNeeded()
+        notifyRangeChanged(event: .Scrolled)
       }
-      layoutIfNeeded()
-      notifyRangeChanged()
+      
     case .cancelled, .ended, .failed:
-      delegate?.trimmerViewDidEndDragging(self)
       reactivateGestureRecognizers()
-      notifyRangeChanged(panStopped: true)
+      notifyRangeChanged(event: .Ended)
     default: break
     }
   }
   
-  private func notifyRangeChanged(panStopped: Bool = false) {
-    delegate?.trimmerView(self, didChangeDisplayRange: currentRange, panStopped: panStopped)
+  private func notifyRangeChanged(event: DisplayRangeChangeEvent) {
+    delegate?.trimmerView(self, didChangeDisplayRange: currentRange, event: event)
   }
   
   private func updateLeftConstraint(with translation: CGPoint) {
@@ -299,7 +310,7 @@ class TGCATrimmerView: UIView, ThemeChangeObserving {
     leftConstraint?.constant = 0
     rightConstraint?.constant = 0
     layoutIfNeeded()
-    notifyRangeChanged()
+    notifyRangeChanged(event: .Reset)
   }
   
   /// The current start position of trimmed area in own coordinates.
