@@ -145,6 +145,17 @@ class TGCAChartView: UIView {
   private func mapToChartBoundsHeight(_ vector: ValueVector) -> ValueVector {
     return vector.map{chartBounds.size.height - ($0 * chartBounds.size.height) + chartBounds.origin.y}
   }
+  
+  private func bestIndexSpacing(for indexCount: Int) -> (spacing: Int, leftover: CGFloat) {
+    var i = 1
+    while i*numOfGuideLabels < indexCount {
+      i *= 2
+    }
+    let extra = indexCount % ((i/2)*numOfGuideLabels)
+    let higherBound = i*numOfGuideLabels
+    let leftover = 2.0 * CGFloat(extra) / CGFloat(higherBound)
+    return (i, leftover)
+  }
 
   // MARK: - Public functions
   
@@ -309,7 +320,7 @@ class TGCAChartView: UIView {
   
   private func addGuideLabels() {
     
-    let (spacing, leftover) = chart.labelSpacing(for: chart.xVector.count)
+    let (spacing, leftover) = bestIndexSpacing(for: chart.xVector.count)
     lastLeftover = leftover
     lastSpacing = spacing
     var actualIndexes = [Int]()
@@ -347,7 +358,7 @@ class TGCAChartView: UIView {
   
   private func animateGuideLabelsChange(from fromRange: ClosedRange<Int>, to toRange: ClosedRange<Int>, event: DisplayRangeChangeEvent) {
     //TODO: TRANSITIONING SHIT IS SHOWING EXTRA LABELS! BUT U CANT SEE COS THEY HAVE ALPHA
-    let (spacing, leftover) = chart.labelSpacing(for: toRange.distance + 1)
+    let (spacing, leftover) = bestIndexSpacing(for: toRange.distance + 1)
     lastLeftover = leftover
     if lastSpacing != spacing {
       removeActiveGuideLabels()

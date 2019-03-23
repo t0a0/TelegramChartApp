@@ -29,17 +29,6 @@ struct LinearChart {
     self.title = title
   }
   
-  func labelSpacing(for count: Int) -> (spacing: Int, leftover: CGFloat) {
-    var i = 1
-    while i*6 < count {
-      i *= 2
-    }
-    let extra = count % ((i/2)*6)
-    let higherBound = i*6
-    let leftover = 2.0 * CGFloat(extra) / CGFloat(higherBound)
-    return (i, leftover)
-  }
-  
   func normalizedYVectorsFromZeroMinimum(in xRange: ClosedRange<Int>, excludedIdxs: Set<Int>) -> NormalizedYVectors {
 
     let vectors = yVectors.map{$0.vector}
