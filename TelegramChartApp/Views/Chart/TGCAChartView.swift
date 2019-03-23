@@ -312,17 +312,12 @@ class TGCAChartView: UIView {
     
     
     let (spacing, leftover) = chart.labelSpacing(for: chart.translatedBounds(for: to).distance + 1)
-//    print(leftover)
     if lastSpacing != spacing {
-      removeTransitioningGuideLabels()
-      for gl in activeGuideLabels {
-        gl.textLayer.removeFromSuperlayer()
-      }
-      activeGuideLabels = nil
-      
-      
+      removeActiveGuideLabels()
       
       if spacing < lastSpacing {
+        removeTransitioningGuideLabels()
+
         var actualIndexes = [Int]()
         var i = 0
         while i < chart.xVector.count {
@@ -355,11 +350,8 @@ class TGCAChartView: UIView {
       }
       activeGuideLabels = guideLayers
     } else {
-      if leftover > 0.5 {
-        //scaling out = increasing range
-//        print("more than 0.6")
-        
-        if transitioningGuideLabels == nil {
+      if leftover >= 0.6 {
+        if transitioningGuideLabels == nil && leftover <= 0.9 {
           
           var actualIndexes = [Int]()
           var i = 0
@@ -368,18 +360,16 @@ class TGCAChartView: UIView {
             i += spacing * 2
           }
           
-          print("actual \(actualIndexes)")
           var currentIndexes = activeGuideLabels.map{$0.indexInChart}
-          print ("current \(currentIndexes)")
           currentIndexes.removeAll { currentIndex -> Bool in
             actualIndexes.contains(currentIndex)
           }
-          print ("current \(currentIndexes)")
-
+          
           let timeStamps = currentIndexes.map{chart.xVector[$0]}
           let strings = timeStamps.map{chartLabelFormatterService.prettyDateString(from: $0)}
           var transitioningLabels = [GuideLabel]()
           for i in 0..<currentIndexes.count {
+            print("appending trans: \(currentIndexes[i])")
             let textL = textLayer(origin: CGPoint(x: drawings.xPositions[currentIndexes[i]], y: chartBounds.origin.y + chartBounds.height + 5/* + heightForGuideLabels / 2*/), text: strings[i], color: axisLabelColor)
             transitioningLabels.append(GuideLabel(textLayer: textL, indexInChart: currentIndexes[i]))
             textL.opacity = Float((1.0 - leftover) * 2.0)
@@ -387,25 +377,22 @@ class TGCAChartView: UIView {
           }
           transitioningGuideLabels = transitioningLabels
           
-          var newActive = [GuideLabel]()
-          for gl in activeGuideLabels {
-            if !actualIndexes.contains(gl.indexInChart) {
-              print("removing \(gl.indexInChart)")
-              gl.textLayer.removeFromSuperlayer()
-            } else {
-              newActive.append(gl)
-            }
-          }
-          activeGuideLabels = newActive
-        } else {
-          for l in transitioningGuideLabels {
-            l.textLayer.opacity = Float((1.0 - leftover) * 2.0)
-          }
+//          var newActive = [GuideLabel]()
+//          for gl in activeGuideLabels {
+//            if !actualIndexes.contains(gl.indexInChart) {
+//              print("removing \(gl.indexInChart)")
+//              gl.textLayer.removeFromSuperlayer()
+//            } else {
+//              newActive.append(gl)
+//            }
+//          }
+//          activeGuideLabels = newActive
         }
-      } else if leftover < 0.5 {
+        self.transitioningGuideLabels?.forEach{$0.textLayer.opacity = Float((1.0 - leftover) * 2.0)}
+      } else if leftover <= 0.4  {
         //scaling in = decreasing range
-//        print("less than 0.4")
-        if transitioningGuideLabels == nil {
+        //        print("less than 0.4")
+        if transitioningGuideLabels == nil  && leftover >= 0.1{
           
           var actualIndexes = [Int]()
           var i = 0
@@ -424,42 +411,32 @@ class TGCAChartView: UIView {
             layer.addSublayer(textL)
           }
           transitioningGuideLabels = transitioningLabels
-        } else {
-          for l in transitioningGuideLabels {
-            l.textLayer.opacity = Float(1.0 - leftover)/2.0
-          }
         }
-
-//        actualIndexes.append(contentsOf: lastActualIndexes)
-//        actualIndexes = Array(Set(actualIndexes)).sorted()
-//        lastActualIndexes = actualIndexes
+        self.transitioningGuideLabels?.forEach{$0.textLayer.opacity = Float((1.0 - leftover)/2.0)}
       } else {
         //perfect position
-       removeTransitioningGuideLabels()
+               removeTransitioningGuideLabels()
+//        self.transitioningGuideLabels?.forEach{$0.textLayer.opacity = 0}
 
-//        print("perfect")
+        //        print("perfect")
       }
       CATransaction.begin()
       CATransaction.setDisableActions(true)
       for guideLabel in activeGuideLabels {
         guideLabel.textLayer.frame.origin = CGPoint(x: drawings.xPositions[guideLabel.indexInChart], y: guideLabel.textLayer.frame.origin.y)
-//        guideLabel.textLayer.opacity = Float(leftover/2)
-      }
-      if transitioningGuideLabels != nil {
-      for guideLabel in transitioningGuideLabels {
-        guideLabel.textLayer.frame.origin = CGPoint(x: drawings.xPositions[guideLabel.indexInChart], y: guideLabel.textLayer.frame.origin.y)
         //        guideLabel.textLayer.opacity = Float(leftover/2)
       }
+      if transitioningGuideLabels != nil {
+        for guideLabel in transitioningGuideLabels {
+          guideLabel.textLayer.frame.origin = CGPoint(x: drawings.xPositions[guideLabel.indexInChart], y: guideLabel.textLayer.frame.origin.y)
+          //        guideLabel.textLayer.opacity = Float(leftover/2)
+        }
       }
       CATransaction.commit()
     }
-    if event == .Ended {
-      if transitioningGuideLabels != nil {
-        for l in transitioningGuideLabels {
-          l.textLayer.opacity = 0
+        if event == .Ended {
+          self.transitioningGuideLabels?.forEach{$0.textLayer.opacity = 0}
         }
-      }
-    }
   }
 
   
