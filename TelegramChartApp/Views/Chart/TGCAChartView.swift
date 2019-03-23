@@ -507,7 +507,8 @@ class TGCAChartView: UIView {
     
     //TODO: Doesnt repect the starts from zero stuff. to do it should be line specific coefficient
     let coefficient: CGFloat = newRange.upperBound / previousRange.upperBound
-    
+    let isZero = coefficient == 0
+    let isInf = coefficient == CGFloat.infinity
     var blocks = [()->()]()
     var removalBlocks = [()->()]()
     var newAxis = [SupportAxis]()
