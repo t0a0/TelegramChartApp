@@ -310,7 +310,6 @@ class TGCAChartView: UIView {
   
   private func animateGuideLabelsChange(from: ClosedRange<CGFloat>, to: ClosedRange<CGFloat>, event: DisplayRangeChangeEvent) {
     
-    
     let (spacing, leftover) = chart.labelSpacing(for: chart.translatedBounds(for: to).distance + 1)
     if lastSpacing != spacing {
       removeActiveGuideLabels()
@@ -376,23 +375,10 @@ class TGCAChartView: UIView {
             layer.addSublayer(textL)
           }
           transitioningGuideLabels = transitioningLabels
-          
-//          var newActive = [GuideLabel]()
-//          for gl in activeGuideLabels {
-//            if !actualIndexes.contains(gl.indexInChart) {
-//              print("removing \(gl.indexInChart)")
-//              gl.textLayer.removeFromSuperlayer()
-//            } else {
-//              newActive.append(gl)
-//            }
-//          }
-//          activeGuideLabels = newActive
         }
         self.transitioningGuideLabels?.forEach{$0.textLayer.opacity = Float((1.0 - leftover) * 2.0)}
       } else if leftover <= 0.4  {
-        //scaling in = decreasing range
-        //        print("less than 0.4")
-        if transitioningGuideLabels == nil  && leftover >= 0.1{
+        if transitioningGuideLabels == nil && leftover >= 0.1 {
           
           var actualIndexes = [Int]()
           var i = 0
@@ -414,11 +400,7 @@ class TGCAChartView: UIView {
         }
         self.transitioningGuideLabels?.forEach{$0.textLayer.opacity = Float((1.0 - leftover)/2.0)}
       } else {
-        //perfect position
-               removeTransitioningGuideLabels()
-//        self.transitioningGuideLabels?.forEach{$0.textLayer.opacity = 0}
-
-        //        print("perfect")
+        removeTransitioningGuideLabels()
       }
       CATransaction.begin()
       CATransaction.setDisableActions(true)
@@ -434,9 +416,9 @@ class TGCAChartView: UIView {
       }
       CATransaction.commit()
     }
-        if event == .Ended {
-          self.transitioningGuideLabels?.forEach{$0.textLayer.opacity = 0}
-        }
+    if event != .Scaled {
+      self.transitioningGuideLabels?.forEach{$0.textLayer.opacity = 0}
+    }
   }
 
   
