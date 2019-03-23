@@ -504,8 +504,8 @@ class TGCAChartView: UIView {
     
     //TODO: Doesnt repect the starts from zero stuff. to do it should be line specific coefficient
     let coefficient: CGFloat = newRange.upperBound / previousRange.upperBound
-    let isZero = coefficient == 0
-    let isInf = coefficient == CGFloat.infinity
+    let coefIsZero = coefficient == 0
+    let coefIsInf = coefficient == CGFloat.infinity
     var blocks = [()->()]()
     var removalBlocks = [()->()]()
     var newAxis = [SupportAxis]()
@@ -513,8 +513,8 @@ class TGCAChartView: UIView {
     for i in 0..<supportAxis.count {
       let ax = supportAxis[i]
       
-      let newLinePosition = CGPoint(x: ax.lineLayer.position.x, y: chartBounds.origin.y + chartBounds.height - (chartBounds.origin.y + chartBounds.height - ax.lineLayer.position.y) / coefficient)
-      let newTextPosition = CGPoint(x: ax.labelLayer.position.x, y: chartBounds.origin.y + chartBounds.height - (chartBounds.origin.y + chartBounds.height - ax.labelLayer.position.y) / coefficient)
+      let newLinePosition = CGPoint(x: ax.lineLayer.position.x, y: coefIsZero ? chartBounds.origin.y + chartBounds.origin.y : chartBounds.origin.y + chartBounds.height - (chartBounds.origin.y + chartBounds.height - ax.lineLayer.position.y) / coefficient)
+      let newTextPosition = CGPoint(x: ax.labelLayer.position.x, y: coefIsZero ? chartBounds.origin.y + chartBounds.origin.y : chartBounds.origin.y + chartBounds.height - (chartBounds.origin.y + chartBounds.height - ax.labelLayer.position.y) / coefficient)
       
       
       let position = supportAxisDefaultYPositions[i]
@@ -529,8 +529,8 @@ class TGCAChartView: UIView {
       layer.addSublayer(textL)
       let oldShapePos = shapeL.position
       let oldTextPos = textL.position
-      shapeL.position = CGPoint(x: shapeL.position.x, y: chartBounds.origin.y + chartBounds.height - (chartBounds.origin.y + chartBounds.height - shapeL.position.y) * coefficient)
-      textL.position = CGPoint(x: textL.position.x, y: chartBounds.origin.y + chartBounds.height - (chartBounds.origin.y + chartBounds.height - textL.position.y) * coefficient)
+      shapeL.position = CGPoint(x: shapeL.position.x, y: coefIsInf ? chartBounds.origin.y :  chartBounds.origin.y + chartBounds.height - (chartBounds.origin.y + chartBounds.height - shapeL.position.y) * coefficient)
+      textL.position = CGPoint(x: textL.position.x, y: coefIsInf ? chartBounds.origin.y :   chartBounds.origin.y + chartBounds.height - (chartBounds.origin.y + chartBounds.height - textL.position.y) * coefficient)
       newAxis.append((shapeL, textL))
       
       
