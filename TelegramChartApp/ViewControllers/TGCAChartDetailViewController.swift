@@ -108,7 +108,6 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
         let yLineIndex = indexPath.row - 2
         let cell = tableView.dequeueReusableCell(withIdentifier: "chartColumnLabelCell")!
         cell.selectionStyle = .none
-        //TODO: FIX LABEL POSITION
         if let chart = chart {
           cell.imageView?.image = UIImage.from(color: chart.yVectors[yLineIndex].metaData.color, size: CGSize(width: 12, height: 12))
         }

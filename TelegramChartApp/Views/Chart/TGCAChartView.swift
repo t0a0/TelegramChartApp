@@ -55,7 +55,7 @@ class TGCAChartView: UIView {
   
   override var bounds: CGRect {
     didSet {
-      //we need to inset drawing so that if the minimum or maximum points are selected, the circle is fully visible in the view
+      //we need to inset drawing so that if the minimum or maximum points are selected, the circular point on the graph is fully visible in the view
       let inset = circlePointRadius + graphLineWidth
       chartBounds = CGRect(x: bounds.origin.x + inset,
                            y: bounds.origin.y + inset,
@@ -215,7 +215,6 @@ class TGCAChartView: UIView {
 
   /// Call to hide graph at index.
   func hide(at index: Int) {
-    //TODO: fix bug when on trimmer view they are getting animated from normalized positions
     let originalHidden = hiddenDrawingIndicies.contains(index)
     if originalHidden {
       hiddenDrawingIndicies.remove(index)
@@ -264,7 +263,6 @@ class TGCAChartView: UIView {
         drawing.shapeLayer.opacity = originalHidden ? 1 : 0
         opacityAnimation.toValue = drawing.shapeLayer.opacity
         opacityAnimation.duration = 0.25
-        // TODO: LOOK INTO FADING TIME
         opacityAnimation.timingFunction = CAMediaTimingFunction(name: .easeIn)
 
         drawing.shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")

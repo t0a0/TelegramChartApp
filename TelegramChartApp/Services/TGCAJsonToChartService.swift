@@ -101,7 +101,6 @@ struct TGCAJsonToChartService: JsonParserServiceProtocol {
         let values: [CGFloat]
         
         init(from decoder: Decoder) throws {
-          //TODO: make prettier
           var vals = [CGFloat]()
           var container = try decoder.unkeyedContainer()
           var la: String? = nil
