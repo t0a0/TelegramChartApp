@@ -20,7 +20,7 @@ class TGCAChartsViewController: UIViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
-    guard let charts = TGCAJsonToChartService().parse() else {
+    guard let charts = TGCAJsonToChartService().parseJson(named: "chart_data") else {
       let alert = UIAlertController(title: "Could not parse JSON", message: nil, preferredStyle: .alert)
       alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: nil))
       present(alert, animated: true, completion: nil)
@@ -82,7 +82,7 @@ extension TGCAChartsViewController: UITableViewDataSource {
     let v = TGCATableViewSupplementView(frame: CGRect.zero)
     v.bottomLabel.isHidden = true
     v.topLabel.textColor = UIApplication.myDelegate.currentTheme.tableViewFooterHeaderColor
-    v.topLabel.text = "Copyright © 2019 Igor Fedotov. All Rights Reserved."
+    v.topLabel.text = "App created by Igor Fedotov"
     sectionfooterView = v
     return v
   }

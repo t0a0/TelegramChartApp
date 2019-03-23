@@ -9,11 +9,17 @@
 import Foundation
 import UIKit
 
-class TGCAJsonToChartService {
+protocol JsonParserServiceProtocol {
   
-  func parse() -> [LinearChart]? {
+  func parseJson(named resourceName: String) -> [LinearChart]?
+  
+}
+
+struct TGCAJsonToChartService: JsonParserServiceProtocol {
+  
+  func parseJson(named resourceName: String) -> [LinearChart]? {
     guard
-      let url = Bundle.main.url(forResource: "chart_data", withExtension: "json"),
+      let url = Bundle.main.url(forResource: resourceName, withExtension: "json"),
       let data = try? Data(contentsOf: url),
       let charts = try? JSONDecoder().decode(JsonCharts.self, from: data).charts else {
         return nil
@@ -23,7 +29,7 @@ class TGCAJsonToChartService {
   }
   
   private func jsonChartToChart(_ jsonChart: JsonCharts.JsonChart) -> LinearChart {
-    //TODO: may be do sorting?
+    //TODO: Sorting might be required
     let yVectors: [ChartValueVector] = jsonChart.yColumns.map{
       let identifier = $0.identifier
       return ChartValueVector(vector: $0.values, metaData: ChartValueVectorMetaData(identifier, jsonChart.name(forIdentifier: identifier), jsonChart.color(forIdentifier: identifier)))
@@ -77,7 +83,6 @@ class TGCAJsonToChartService {
       }
       
       func color(forIdentifier identifier: String) -> UIColor {
-        //TODO: REDO
         guard let colorHex = colors[identifier] else {
           return .black
         }

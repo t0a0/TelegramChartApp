@@ -130,8 +130,7 @@
 			isa = PBXGroup;
 			children = (
 				168DDC892241AC8200F51300 /* Chart */,
-				168DDC8A2241ACA300F51300 /* TGCATableViewSupplementView.xib */,
-				168DDC8C2241ACBA00F51300 /* TGCATableViewSupplementView.swift */,
+				1682D8092245E27D000E76E4 /* TableViewViews */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -139,6 +138,7 @@
 		1657644422354E0B00173E97 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				167FCAD52234334A001CA7E5 /* Assets.xcassets */,
 				1657644522354E1600173E97 /* chart_data.json */,
 			);
 			path = Resources;
@@ -159,6 +159,7 @@
 			isa = PBXGroup;
 			children = (
 				165764592236F81400173E97 /* TGCAChartStructs.swift */,
+				1657646B223D1DDD00173E97 /* TGCAColorTheme.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -205,20 +206,16 @@
 		167FCACD22343348001CA7E5 /* TelegramChartApp */ = {
 			isa = PBXGroup;
 			children = (
-				1657644722354F3400173E97 /* Extensions */,
-				1657643122343A4300173E97 /* Views */,
-				167FCAFE2234377D001CA7E5 /* TableViewCells */,
 				167FCACE22343348001CA7E5 /* AppDelegate.swift */,
+				1657645D2237135000173E97 /* Constants.swift */,
 				1657644E2235757F00173E97 /* ViewControllers */,
-				167FCAD222343348001CA7E5 /* Main.storyboard */,
-				167FCAD52234334A001CA7E5 /* Assets.xcassets */,
-				167FCAD72234334A001CA7E5 /* LaunchScreen.storyboard */,
-				167FCADA2234334A001CA7E5 /* Info.plist */,
+				1657643122343A4300173E97 /* Views */,
+				1682D80A2245E2DA000E76E4 /* Storyboards */,
 				1657644C22356BAA00173E97 /* Models */,
 				1657644D22356BB800173E97 /* Services */,
 				1657644422354E0B00173E97 /* Resources */,
-				1657645D2237135000173E97 /* Constants.swift */,
-				1657646B223D1DDD00173E97 /* TGCAColorTheme.swift */,
+				1657644722354F3400173E97 /* Extensions */,
+				167FCADA2234334A001CA7E5 /* Info.plist */,
 			);
 			path = TelegramChartApp;
 			sourceTree = "<group>";
@@ -254,15 +251,34 @@
 			path = TableViewCells;
 			sourceTree = "<group>";
 		};
+		1682D8092245E27D000E76E4 /* TableViewViews */ = {
+			isa = PBXGroup;
+			children = (
+				168DDC8A2241ACA300F51300 /* TGCATableViewSupplementView.xib */,
+				168DDC8C2241ACBA00F51300 /* TGCATableViewSupplementView.swift */,
+				167FCAFE2234377D001CA7E5 /* TableViewCells */,
+			);
+			path = TableViewViews;
+			sourceTree = "<group>";
+		};
+		1682D80A2245E2DA000E76E4 /* Storyboards */ = {
+			isa = PBXGroup;
+			children = (
+				167FCAD222343348001CA7E5 /* Main.storyboard */,
+				167FCAD72234334A001CA7E5 /* LaunchScreen.storyboard */,
+			);
+			path = Storyboards;
+			sourceTree = "<group>";
+		};
 		168DDC892241AC8200F51300 /* Chart */ = {
 			isa = PBXGroup;
 			children = (
 				167FCAFC22343523001CA7E5 /* TGCAChartView.swift */,
 				1657643222343A5600173E97 /* TGCAChartView.xib */,
-				1657643C22349B0000173E97 /* TGCATrimmerShoulderView.swift */,
-				1657643E2234A0FE00173E97 /* TGCATrimmerView.swift */,
 				16576471223E63A100173E97 /* TGCAChartAnnotationView.swift */,
 				16576473223E640D00173E97 /* TGCAChartAnnotationView.xib */,
+				1657643C22349B0000173E97 /* TGCATrimmerShoulderView.swift */,
+				1657643E2234A0FE00173E97 /* TGCATrimmerView.swift */,
 			);
 			path = Chart;
 			sourceTree = "<group>";
