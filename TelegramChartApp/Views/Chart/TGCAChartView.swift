@@ -231,7 +231,7 @@ class TGCAChartView: UIView {
         }
       }
     }
-    drawings = ChartDrawings(drawings: newDrawings, xPositions: xVector)
+    self.drawings = ChartDrawings(drawings: newDrawings, xPositions: xVector)
     animateGuideLabelsChange(from: currentXIndexRange, to: newBounds, event: event)
     removeChartAnnotation()
   }
@@ -557,7 +557,7 @@ class TGCAChartView: UIView {
       }
     }
     
-    supportAxis = newAxis
+    self.supportAxis = newAxis
     
     DispatchQueue.main.async {
       CATransaction.flush()
