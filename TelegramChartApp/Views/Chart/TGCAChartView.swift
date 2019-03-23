@@ -213,6 +213,8 @@ class TGCAChartView: UIView {
         pathAnimation.duration = 0.25
         if !didYChange {
           pathAnimation.beginTime = oldAnim.beginTime
+        } else {
+          pathAnimation.beginTime = CACurrentMediaTime()
         }
         drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
       } else {
@@ -222,6 +224,7 @@ class TGCAChartView: UIView {
           drawing.shapeLayer.path = newPath.cgPath
           pathAnimation.toValue = drawing.shapeLayer.path
           pathAnimation.duration = 0.25
+          pathAnimation.beginTime = CACurrentMediaTime()
           drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
         } else {
           drawing.shapeLayer.path = newPath.cgPath
