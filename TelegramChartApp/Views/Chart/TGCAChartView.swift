@@ -185,6 +185,8 @@ class TGCAChartView: UIView {
     let normalizedYVectors = getNormalizedYVectors()
     let normalizedXVector = chart.normalizedXVector(in: normalizedCurrentXRange)
     
+    let didYChange = currentYValueRange != normalizedYVectors.yRange
+    
     currentYValueRange = normalizedYVectors.yRange
     
     let xVector = normalizedXVector.map{$0 * chartBounds.size.width + chartBounds.origin.x}
@@ -196,23 +198,37 @@ class TGCAChartView: UIView {
       
       let points = convertToPoints(xVector: xVector, yVector: yVector)
       newDrawings.append(Drawing(identifier: drawing.identifier, shapeLayer: drawing.shapeLayer, yPositions: yVector))
-      if drawing.shapeLayer.animationKeys() != nil && !ended {
-        continue
-      }
       let newPath = bezierLine(withPoints: points)
-      let pathAnimation = CABasicAnimation(keyPath: "path")
-      pathAnimation.fromValue = drawing.shapeLayer.path
-      drawing.shapeLayer.path = newPath.cgPath
-      pathAnimation.toValue = drawing.shapeLayer.path
-      pathAnimation.duration = ended ? 0.25 : 0.075
-      
-      drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
+
+      if let oldAnim = drawing.shapeLayer.animation(forKey: "pathAnimation") {
+        drawing.shapeLayer.removeAnimation(forKey: "pathAnimation")
+        let pathAnimation = CABasicAnimation(keyPath: "path")
+        pathAnimation.fromValue = drawing.shapeLayer.presentation()?.value(forKey: "path") ?? drawing.shapeLayer.path
+        drawing.shapeLayer.path = newPath.cgPath
+        pathAnimation.toValue = drawing.shapeLayer.path
+        pathAnimation.duration = 0.25
+        if !didYChange {
+          pathAnimation.beginTime = oldAnim.beginTime
+        }
+        drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
+      } else {
+        if didYChange  {
+          let pathAnimation = CABasicAnimation(keyPath: "path")
+          pathAnimation.fromValue = drawing.shapeLayer.path
+          drawing.shapeLayer.path = newPath.cgPath
+          pathAnimation.toValue = drawing.shapeLayer.path
+          pathAnimation.duration = 0.25
+          drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
+        } else {
+          drawing.shapeLayer.path = newPath.cgPath
+        }
+      }
     }
     self.drawings = ChartDrawings(drawings: newDrawings, xPositions: xVector)
     animateGuideLabelsChange(from: normalizedCurrentXRange, to: newRange, event: event)
     removeChartAnnotation()
   }
-
+  
   /// Call to hide graph at index.
   func hide(at index: Int) {
     let originalHidden = hiddenDrawingIndicies.contains(index)
@@ -235,13 +251,22 @@ class TGCAChartView: UIView {
       let newPath = bezierLine(withPoints: points)
       
       let positionChangeBlock = {
-        let pathAnimation = CABasicAnimation(keyPath: "path")
-        pathAnimation.fromValue = drawing.shapeLayer.path
-        drawing.shapeLayer.path = newPath.cgPath
-        pathAnimation.toValue = drawing.shapeLayer.path
-        pathAnimation.duration = 0.25
-        pathAnimation.timingFunction = CAMediaTimingFunction(name: .easeIn)
-        drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
+        if let oldAnim = drawing.shapeLayer.animation(forKey: "pathAnimation") {
+          drawing.shapeLayer.removeAnimation(forKey: "pathAnimation")
+          let pathAnimation = CABasicAnimation(keyPath: "path")
+          pathAnimation.fromValue = drawing.shapeLayer.presentation()?.value(forKey: "path") ?? drawing.shapeLayer.path
+          drawing.shapeLayer.path = newPath.cgPath
+          pathAnimation.toValue = drawing.shapeLayer.path
+          pathAnimation.duration = 0.25
+          drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
+        } else {
+          let pathAnimation = CABasicAnimation(keyPath: "path")
+          pathAnimation.fromValue = drawing.shapeLayer.path
+          drawing.shapeLayer.path = newPath.cgPath
+          pathAnimation.toValue = drawing.shapeLayer.path
+          pathAnimation.duration = 0.25
+          drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
+        }
       }
       
       if animatesPositionOnHide {
@@ -258,14 +283,24 @@ class TGCAChartView: UIView {
 
       
       if i == index {
+        if let oldAnim = drawing.shapeLayer.animation(forKey: "opacityAnimation") {
+          drawing.shapeLayer.removeAnimation(forKey: "opacityAnimation")
+          let opacityAnimation = CABasicAnimation(keyPath: "opacity")
+          opacityAnimation.fromValue = drawing.shapeLayer.presentation()?.value(forKey: "opacity") ?? drawing.shapeLayer.opacity
+          drawing.shapeLayer.opacity = originalHidden ? 1 : 0
+          opacityAnimation.toValue = drawing.shapeLayer.opacity
+          opacityAnimation.duration = 0.25
+          drawing.shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
+        } else {
         let opacityAnimation = CABasicAnimation(keyPath: "opacity")
         opacityAnimation.fromValue = drawing.shapeLayer.opacity
         drawing.shapeLayer.opacity = originalHidden ? 1 : 0
         opacityAnimation.toValue = drawing.shapeLayer.opacity
         opacityAnimation.duration = 0.25
-        opacityAnimation.timingFunction = CAMediaTimingFunction(name: .easeIn)
+//        opacityAnimation.timingFunction = CAMediaTimingFunction(name: .easeIn)
 
         drawing.shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
+        }
       }
 
     }
