@@ -116,10 +116,7 @@ class TGCAChartView: UIView {
     labelTextsForCurrentYRange = textsForAxisLabels
   }
   
-  /// From 0 to 1.0.
   private var currentXIndexRange: ClosedRange<Int>!
-  
-  
   
   // MARK: - Helping functions
   
@@ -136,6 +133,18 @@ class TGCAChartView: UIView {
       ? chart.normalizedYVectorsFromZeroMinimum(in: currentXIndexRange, excludedIdxs: hiddenDrawingIndicies)
       : chart.normalizedYVectorsFromLocalMinimum(in: currentXIndexRange, excludedIdxs: hiddenDrawingIndicies)
   }
+  
+  private func getNormalizedXVector() -> ValueVector {
+    return chart.normalizedXVector(in: currentXIndexRange)
+  }
+  
+  private func mapToChartBoundsWidth(_ vector: ValueVector) -> ValueVector {
+    return vector.map{$0 * chartBounds.size.width + chartBounds.origin.x}
+  }
+  
+  private func mapToChartBoundsHeight(_ vector: ValueVector) -> ValueVector {
+    return vector.map{chartBounds.size.height - ($0 * chartBounds.size.height) + chartBounds.origin.y}
+  }
 
   // MARK: - Public functions
   
@@ -147,8 +156,8 @@ class TGCAChartView: UIView {
     self.hiddenDrawingIndicies = Set()
     self.currentXIndexRange = self.currentXIndexRange ?? 0...chart.xVector.count-1
     let normalizedYVectors = getNormalizedYVectors()
-    let yVectors = normalizedYVectors.vectors.map{$0.map{chartBounds.size.height - ($0 * chartBounds.size.height) + chartBounds.origin.y}}
-    let xVector = chart.normalizedXVector(in: currentXIndexRange).map{$0 * chartBounds.size.width + chartBounds.origin.x}
+    let yVectors = normalizedYVectors.vectors.map{mapToChartBoundsHeight($0)}
+    let xVector = mapToChartBoundsWidth(getNormalizedXVector())
     
     currentYValueRange = normalizedYVectors.yRange
     
@@ -174,25 +183,23 @@ class TGCAChartView: UIView {
   /// Call to update the diplayed X range. Accepted are subranges of 0...1.
   func updateDisplayRange(with newRange: ClosedRange<CGFloat>, event: DisplayRangeChangeEvent) {
     let newBounds = chart.translatedBounds(for: newRange)
-    guard let drawings = drawings, let chart = chart, currentXIndexRange != newBounds else {
+    guard let drawings = drawings, chart != nil, currentXIndexRange != newBounds else {
       return
     }
     currentXIndexRange = newBounds
 
     let normalizedYVectors = getNormalizedYVectors()
-    let normalizedXVector = chart.normalizedXVector(in: currentXIndexRange)
     
     let didYChange = currentYValueRange != normalizedYVectors.yRange
     
     currentYValueRange = normalizedYVectors.yRange
     
-    let xVector = normalizedXVector.map{$0 * chartBounds.size.width + chartBounds.origin.x}
+    let xVector = mapToChartBoundsWidth(getNormalizedXVector())
     
     var newDrawings = [Drawing]()
     for i in 0..<drawings.drawings.count {
       let drawing = drawings.drawings[i]
-      let yVector = normalizedYVectors.vectors[i].map{chartBounds.size.height - ($0 * chartBounds.size.height) + chartBounds.origin.y}
-      
+      let yVector = mapToChartBoundsHeight(normalizedYVectors.vectors[i])
       let points = convertToPoints(xVector: xVector, yVector: yVector)
       newDrawings.append(Drawing(identifier: drawing.identifier, shapeLayer: drawing.shapeLayer, yPositions: yVector))
       let newPath = bezierLine(withPoints: points)
@@ -235,15 +242,14 @@ class TGCAChartView: UIView {
       hiddenDrawingIndicies.insert(index)
     }
     let normalizedYVectors = getNormalizedYVectors()
-    let normalizedXVector = chart.normalizedXVector(in: currentXIndexRange)
-    let xVector = normalizedXVector.map{$0 * chartBounds.size.width + chartBounds.origin.x}
-    
+    let xVector = mapToChartBoundsWidth(getNormalizedXVector())
+
     currentYValueRange = normalizedYVectors.yRange
     
     var newDrawings = [Drawing]()
     for i in 0..<drawings.drawings.count {
       let drawing = drawings.drawings[i]
-      let yVector = normalizedYVectors.vectors[i].map{chartBounds.size.height + chartBounds.origin.y - ($0 * chartBounds.size.height)}
+      let yVector = mapToChartBoundsHeight(normalizedYVectors.vectors[i])
       let points = convertToPoints(xVector: xVector, yVector: yVector)
       let newPath = bezierLine(withPoints: points)
       
