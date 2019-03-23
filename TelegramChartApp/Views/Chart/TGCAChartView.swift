@@ -89,7 +89,7 @@ class TGCAChartView: UIView {
   private var activeGuideLabels: [GuideLabel]!
   private var transitioningGuideLabels: [GuideLabel]!
   
-  // MARK: Range changing
+  // MARK: - Range changing
   
   /// Range between total min and max of non-hidden graphs
   private var currentYValueRange: ClosedRange<CGFloat> = 0...0 {
