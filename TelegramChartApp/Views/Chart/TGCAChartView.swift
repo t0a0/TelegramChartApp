@@ -193,19 +193,27 @@ class TGCAChartView: UIView {
   
   /// Call to update the diplayed X range. Accepted are subranges of 0...1.
   func updateDisplayRange(with newRange: ClosedRange<CGFloat>, event: DisplayRangeChangeEvent) {
+    guard let drawings = drawings, chart != nil else {
+      return
+    }
+    
     let newBounds = chart.translatedBounds(for: newRange)
-    guard let drawings = drawings, chart != nil, currentXIndexRange != newBounds else {
+
+    if currentXIndexRange == newBounds {
+      if event == .Ended {
+        animateGuideLabelsChange(from: currentXIndexRange, to: newBounds, event: event)
+      }
       return
     }
     currentXIndexRange = newBounds
-
+    
+    let xVector = mapToChartBoundsWidth(getNormalizedXVector())
     let normalizedYVectors = getNormalizedYVectors()
     
     let didYChange = currentYValueRange != normalizedYVectors.yRange
-    
+
     currentYValueRange = normalizedYVectors.yRange
-    
-    let xVector = mapToChartBoundsWidth(getNormalizedXVector())
+
     
     var newDrawings = [Drawing]()
     for i in 0..<drawings.drawings.count {
