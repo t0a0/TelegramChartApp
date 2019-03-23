@@ -117,7 +117,7 @@ class TGCAChartView: UIView {
   }
   
   /// From 0 to 1.0.
-  private var normalizedCurrentXRange: ClosedRange<CGFloat> = ZORange
+  private var currentXIndexRange: ClosedRange<Int>!
   
   
   
@@ -133,8 +133,8 @@ class TGCAChartView: UIView {
   
   private func getNormalizedYVectors() -> NormalizedYVectors{
     return valuesStartFromZero
-      ? chart.normalizedYVectorsFromZeroMinimum(in: normalizedCurrentXRange, excludedIdxs: hiddenDrawingIndicies)
-      : chart.normalizedYVectorsFromLocalMinimum(in: normalizedCurrentXRange, excludedIdxs: hiddenDrawingIndicies)
+      ? chart.normalizedYVectorsFromZeroMinimum(in: currentXIndexRange, excludedIdxs: hiddenDrawingIndicies)
+      : chart.normalizedYVectorsFromLocalMinimum(in: currentXIndexRange, excludedIdxs: hiddenDrawingIndicies)
   }
 
   // MARK: - Public functions
@@ -145,9 +145,10 @@ class TGCAChartView: UIView {
     configureAxisDefaultPositions()
     self.chart = chart
     self.hiddenDrawingIndicies = Set()
+    self.currentXIndexRange = self.currentXIndexRange ?? 0...chart.xVector.count-1
     let normalizedYVectors = getNormalizedYVectors()
     let yVectors = normalizedYVectors.vectors.map{$0.map{chartBounds.size.height - ($0 * chartBounds.size.height) + chartBounds.origin.y}}
-    let xVector = chart.normalizedXVector(in: normalizedCurrentXRange).map{$0 * chartBounds.size.width + chartBounds.origin.x}
+    let xVector = chart.normalizedXVector(in: currentXIndexRange).map{$0 * chartBounds.size.width + chartBounds.origin.x}
     
     currentYValueRange = normalizedYVectors.yRange
     
@@ -172,13 +173,14 @@ class TGCAChartView: UIView {
   
   /// Call to update the diplayed X range. Accepted are subranges of 0...1.
   func updateDisplayRange(with newRange: ClosedRange<CGFloat>, event: DisplayRangeChangeEvent) {
-    guard let drawings = drawings, let chart = chart, chart.translatedBounds(for: normalizedCurrentXRange) != chart.translatedBounds(for: newRange) else {
+    let newBounds = chart.translatedBounds(for: newRange)
+    guard let drawings = drawings, let chart = chart, currentXIndexRange != newBounds else {
       return
     }
-    normalizedCurrentXRange = newRange
+    currentXIndexRange = newBounds
 
     let normalizedYVectors = getNormalizedYVectors()
-    let normalizedXVector = chart.normalizedXVector(in: normalizedCurrentXRange)
+    let normalizedXVector = chart.normalizedXVector(in: currentXIndexRange)
     
     let didYChange = currentYValueRange != normalizedYVectors.yRange
     
@@ -220,7 +222,7 @@ class TGCAChartView: UIView {
       }
     }
     self.drawings = ChartDrawings(drawings: newDrawings, xPositions: xVector)
-    animateGuideLabelsChange(from: normalizedCurrentXRange, to: newRange, event: event)
+    animateGuideLabelsChange(from: currentXIndexRange, to: newBounds, event: event)
     removeChartAnnotation()
   }
   
@@ -233,7 +235,7 @@ class TGCAChartView: UIView {
       hiddenDrawingIndicies.insert(index)
     }
     let normalizedYVectors = getNormalizedYVectors()
-    let normalizedXVector = chart.normalizedXVector(in: normalizedCurrentXRange)
+    let normalizedXVector = chart.normalizedXVector(in: currentXIndexRange)
     let xVector = normalizedXVector.map{$0 * chartBounds.size.width + chartBounds.origin.x}
     
     currentYValueRange = normalizedYVectors.yRange
@@ -335,9 +337,9 @@ class TGCAChartView: UIView {
   }
 
   
-  private func animateGuideLabelsChange(from: ClosedRange<CGFloat>, to: ClosedRange<CGFloat>, event: DisplayRangeChangeEvent) {
+  private func animateGuideLabelsChange(from fromRange: ClosedRange<Int>, to toRange: ClosedRange<Int>, event: DisplayRangeChangeEvent) {
     //TODO: TRANSITIONING SHIT IS SHOWING EXTRA LABELS! BUT U CANT SEE COS THEY HAVE ALPHA
-    let (spacing, leftover) = chart.labelSpacing(for: chart.translatedBounds(for: to).distance + 1)
+    let (spacing, leftover) = chart.labelSpacing(for: toRange.distance + 1)
     lastLeftover = leftover
     if lastSpacing != spacing {
       removeActiveGuideLabels()
@@ -672,8 +674,8 @@ class TGCAChartView: UIView {
   
   private func closestIndex(for touchLocation: CGPoint) -> Int {
     let xPositionInChartBounds = touchLocation.x - chartBounds.origin.x
-    let translatedToDisplayRange = (normalizedCurrentXRange.upperBound - normalizedCurrentXRange.lowerBound) * (xPositionInChartBounds / chartBounds.width) + normalizedCurrentXRange.lowerBound
-    return chart.translatedIndex(for: translatedToDisplayRange)
+    let translatedToDisplayRange = (CGFloat(currentXIndexRange.upperBound) - CGFloat(currentXIndexRange.lowerBound)) * (xPositionInChartBounds / chartBounds.width) + CGFloat(currentXIndexRange.lowerBound)
+    return Int(round(translatedToDisplayRange))
   }
   
   private func addChartAnnotation(for index: Int) {
@@ -790,6 +792,7 @@ class TGCAChartView: UIView {
     self.hiddenDrawingIndicies = nil
     removeChartAnnotation()
     currentYValueRange = 0...0
+    //do not reset x range
   }
   private func removeDrawings() {
     self.drawings?.drawings.forEach{$0.shapeLayer.removeFromSuperlayer()}

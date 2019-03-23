@@ -40,16 +40,15 @@ struct LinearChart {
     return (i, leftover)
   }
   
-  func normalizedYVectorsFromZeroMinimum(in xRange: ClosedRange<CGFloat>, excludedIdxs: Set<Int>) -> NormalizedYVectors {
+  func normalizedYVectorsFromZeroMinimum(in xRange: ClosedRange<Int>, excludedIdxs: Set<Int>) -> NormalizedYVectors {
 
     let vectors = yVectors.map{$0.vector}
-    let bounds = translatedBounds(for: xRange)
     
     let minimum: CGFloat = 0
     var maximum: CGFloat = 0
     for i in 0..<vectors.count {
       if !excludedIdxs.contains(i) {
-        maximum = max(maximum, vectors[i][bounds].max() ?? 0)
+        maximum = max(maximum, vectors[i][xRange].max() ?? 0)
       }
     }
     guard minimum != maximum else {
@@ -59,10 +58,9 @@ struct LinearChart {
     return (vectors.map{$0.map{(($0 - minimum) / (maximum - minimum))}}, minimum...maximum)
   }
   
-  func normalizedYVectorsFromLocalMinimum(in xRange: ClosedRange<CGFloat>, excludedIdxs: Set<Int>) -> NormalizedYVectors {
+  func normalizedYVectorsFromLocalMinimum(in xRange: ClosedRange<Int>, excludedIdxs: Set<Int>) -> NormalizedYVectors {
     
     let vectors = yVectors.map{$0.vector}
-    let bounds = translatedBounds(for: xRange)
     
     var notExcludedVectors = [ValueVector]()
     for i in 0..<vectors.count {
@@ -70,8 +68,8 @@ struct LinearChart {
         notExcludedVectors.append(vectors[i])
       }
     }
-    let minimum = notExcludedVectors.map{$0[bounds].min() ?? 0}.min() ?? 0
-    let maximum = notExcludedVectors.map{$0[bounds].max() ?? 0}.max() ?? 0
+    let minimum = notExcludedVectors.map{$0[xRange].min() ?? 0}.min() ?? 0
+    let maximum = notExcludedVectors.map{$0[xRange].max() ?? 0}.max() ?? 0
     
     guard minimum != maximum else {
       return (vectors.map{$0.map{_ in 0}}, 0...0)
@@ -87,10 +85,9 @@ struct LinearChart {
     return translatedIndex(for: xRange.lowerBound)...translatedIndex(for: xRange.upperBound)
   }
   
-  func normalizedXVector(in xRange: ClosedRange<CGFloat>) -> ValueVector {
-    let bounds = translatedBounds(for: xRange)
-    let maxValue = xVector[bounds].max() ?? 0
-    let minValue = xVector[bounds].min() ?? 0
+  func normalizedXVector(in xRange: ClosedRange<Int>) -> ValueVector {
+    let maxValue = xVector[xRange].max() ?? 0
+    let minValue = xVector[xRange].min() ?? 0
     guard maxValue != minValue else {
       return xVector.map{_ in 0}
     }
