@@ -445,11 +445,11 @@ class TGCAChartView: UIView {
     }
     CATransaction.commit()
 
-    if event != .Scaled {
-      transitioningGuideLabels?.forEach{$0.textLayer.opacity = 0}
-    } else {
+    if event == .Scaled {
       let coef: CGFloat = (leftover > 0.5 && leftover < 1.0) ? 2 : 0.5
       transitioningGuideLabels?.forEach{$0.textLayer.opacity = Float((1.0 - leftover) * coef)}
+    } else {
+      transitioningGuideLabels?.forEach{$0.textLayer.opacity = 0}
     }
   }
 
