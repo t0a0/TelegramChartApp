@@ -335,7 +335,6 @@ class TGCAChartView: UIView {
       }
     }
   }
-
   
   private func animateGuideLabelsChange(from fromRange: ClosedRange<Int>, to toRange: ClosedRange<Int>, event: DisplayRangeChangeEvent) {
     //TODO: TRANSITIONING SHIT IS SHOWING EXTRA LABELS! BUT U CANT SEE COS THEY HAVE ALPHA
@@ -607,9 +606,9 @@ class TGCAChartView: UIView {
   private func textLayer(origin: CGPoint, text: String, color: CGColor) -> CATextLayer {
     let textLayer = CATextLayer()
     textLayer.font = "Helvetica" as CFTypeRef
-    textLayer.fontSize = 13.0
+    textLayer.fontSize = 13.5
     textLayer.string = text
-    textLayer.frame = CGRect(origin: origin, size: CGSize(width: 100, height: heightForGuideLabels))
+    textLayer.frame = CGRect(origin: origin, size: CGSize(width: 50, height: heightForGuideLabels))
     textLayer.contentsScale = UIScreen.main.scale
     textLayer.foregroundColor = color
     return textLayer
@@ -618,9 +617,9 @@ class TGCAChartView: UIView {
   private func textLayer(position: CGPoint, text: String, color: CGColor) -> CATextLayer {
     let textLayer = CATextLayer()
     textLayer.font = "Helvetica" as CFTypeRef
-    textLayer.fontSize = 13.0
+    textLayer.fontSize = 13.5
     textLayer.string = text
-    textLayer.frame = CGRect(origin: CGPoint.zero, size: CGSize(width: 45, height: heightForGuideLabels))
+    textLayer.frame = CGRect(origin: CGPoint.zero, size: CGSize(width: 50, height: heightForGuideLabels))
     textLayer.position = position
     textLayer.contentsScale = UIScreen.main.scale
     textLayer.foregroundColor = color

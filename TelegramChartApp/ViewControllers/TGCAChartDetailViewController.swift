@@ -117,6 +117,7 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
         cell.accessoryType = hiddenGrapsIndicies.contains(yLineIndex) ? .none : .checkmark
         cell.backgroundColor = theme.foregroundColor
         cell.textLabel?.textColor = theme.mainTextColor
+        cell.textLabel?.font = UIFont.systemFont(ofSize: 18.0)
         return cell
       }
     } else {
