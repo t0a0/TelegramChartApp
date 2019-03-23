@@ -11,8 +11,19 @@ import UIKit
 
 struct TGCAColorTheme {
   
-  let themId_normal = "Normal"
-  let themeId_dark = "Darl"
+  let identifier: ThemeIdentifier
+  let backgroundColor: UIColor
+  let foregroundColor: UIColor
+  let accentColor: UIColor
+  let buttonTextColor: UIColor
+  let mainTextColor: UIColor
+  let axisColor: UIColor
+  let axisLabelColor: UIColor
+  let trimmerShoulderColor: UIColor
+  let annotationColor: UIColor
+  let annotationLabelColor: UIColor
+  let tableViewFooterHeaderColor: UIColor
+  let statusBarStyle: UIStatusBarStyle
   
   static let normal = TGCAColorTheme(
     identifier: ThemeIdentifier.normal,
@@ -44,19 +55,6 @@ struct TGCAColorTheme {
     tableViewFooterHeaderColor: UIColor(red: 91.0/255.0, green: 107.0/255.0, blue: 127.0/255.0, alpha: 1),
     statusBarStyle: .lightContent)
   
-  let identifier: ThemeIdentifier
-  let backgroundColor: UIColor
-  let foregroundColor: UIColor
-  let accentColor: UIColor
-  let buttonTextColor: UIColor
-  let mainTextColor: UIColor
-  let axisColor: UIColor
-  let axisLabelColor: UIColor
-  let trimmerShoulderColor: UIColor
-  let annotationColor: UIColor
-  let annotationLabelColor: UIColor
-  let tableViewFooterHeaderColor: UIColor
-  let statusBarStyle: UIStatusBarStyle
 }
 
 enum ThemeIdentifier: String {
