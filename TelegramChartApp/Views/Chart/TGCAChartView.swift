@@ -427,16 +427,13 @@ class TGCAChartView: UIView {
     }
     
     CATransaction.begin()
+    // position is animated by default but we dont want it
     CATransaction.setDisableActions(true)
-    for guideLabel in activeGuideLabels {
-      guideLabel.textLayer.frame.origin = CGPoint(x: drawings.xPositions[guideLabel.indexInChart], y: guideLabel.textLayer.frame.origin.y)
-      //        guideLabel.textLayer.opacity = Float(leftover/2)
+    activeGuideLabels?.forEach{
+      $0.textLayer.frame.origin = CGPoint(x: drawings.xPositions[$0.indexInChart], y: $0.textLayer.frame.origin.y)
     }
-    if transitioningGuideLabels != nil {
-      for guideLabel in transitioningGuideLabels {
-        guideLabel.textLayer.frame.origin = CGPoint(x: drawings.xPositions[guideLabel.indexInChart], y: guideLabel.textLayer.frame.origin.y)
-        //        guideLabel.textLayer.opacity = Float(leftover/2)
-      }
+    transitioningGuideLabels?.forEach{
+      $0.textLayer.frame.origin = CGPoint(x: drawings.xPositions[$0.indexInChart], y: $0.textLayer.frame.origin.y)
     }
     CATransaction.commit()
 
