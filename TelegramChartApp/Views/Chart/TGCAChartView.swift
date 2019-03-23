@@ -282,7 +282,8 @@ class TGCAChartView: UIView {
   
   private func addGuideLabels() {
     
-    let (spacing, _) = chart.labelSpacing(for: chart.xVector.count)
+    let (spacing, leftover) = chart.labelSpacing(for: chart.xVector.count)
+    lastLeftover = leftover
     lastSpacing = spacing
     var actualIndexes = [Int]()
     var j = 0
@@ -305,12 +306,23 @@ class TGCAChartView: UIView {
   
   var lastSpacing: Int!
   var lastActualIndexes: [Int]!
-  
+  var lastLeftover: CGFloat! {
+    didSet {
+      guard oldValue != nil else {
+        return
+      }
+      if (oldValue > 0 && oldValue < 0.5 && (lastLeftover <= 1 || lastLeftover >= 0.5)) ||
+        (oldValue > 0.5 && oldValue < 1 && (lastLeftover <= 0.5 || lastLeftover >= 0)) {
+        removeTransitioningGuideLabels()
+      }
+    }
+  }
 
   
   private func animateGuideLabelsChange(from: ClosedRange<CGFloat>, to: ClosedRange<CGFloat>, event: DisplayRangeChangeEvent) {
-    
+    //TODO: TRANSITIONING SHIT IS SHOWING EXTRA LABELS! BUT U CANT SEE COS THEY HAVE ALPHA
     let (spacing, leftover) = chart.labelSpacing(for: chart.translatedBounds(for: to).distance + 1)
+    lastLeftover = leftover
     if lastSpacing != spacing {
       removeActiveGuideLabels()
       
@@ -349,9 +361,8 @@ class TGCAChartView: UIView {
       }
       activeGuideLabels = guideLayers
     } else {
-      if leftover >= 0.6 {
-        if transitioningGuideLabels == nil && leftover <= 0.9 {
-          
+      if transitioningGuideLabels == nil {
+        if leftover > 0.5 && leftover < 1 {
           var actualIndexes = [Int]()
           var i = 0
           while i < chart.xVector.count {
@@ -368,18 +379,13 @@ class TGCAChartView: UIView {
           let strings = timeStamps.map{chartLabelFormatterService.prettyDateString(from: $0)}
           var transitioningLabels = [GuideLabel]()
           for i in 0..<currentIndexes.count {
-            print("appending trans: \(currentIndexes[i])")
             let textL = textLayer(origin: CGPoint(x: drawings.xPositions[currentIndexes[i]], y: chartBounds.origin.y + chartBounds.height + 5/* + heightForGuideLabels / 2*/), text: strings[i], color: axisLabelColor)
             transitioningLabels.append(GuideLabel(textLayer: textL, indexInChart: currentIndexes[i]))
             textL.opacity = Float((1.0 - leftover) * 2.0)
             layer.addSublayer(textL)
           }
           transitioningGuideLabels = transitioningLabels
-        }
-        self.transitioningGuideLabels?.forEach{$0.textLayer.opacity = Float((1.0 - leftover) * 2.0)}
-      } else if leftover <= 0.4  {
-        if transitioningGuideLabels == nil && leftover >= 0.1 {
-          
+        } else if leftover < 0.5 && leftover > 0 {
           var actualIndexes = [Int]()
           var i = 0
           while i < chart.xVector.count {
@@ -398,26 +404,29 @@ class TGCAChartView: UIView {
           }
           transitioningGuideLabels = transitioningLabels
         }
-        self.transitioningGuideLabels?.forEach{$0.textLayer.opacity = Float((1.0 - leftover)/2.0)}
-      } else {
-        removeTransitioningGuideLabels()
       }
-      CATransaction.begin()
-      CATransaction.setDisableActions(true)
-      for guideLabel in activeGuideLabels {
+      
+    }
+    
+    CATransaction.begin()
+    CATransaction.setDisableActions(true)
+    for guideLabel in activeGuideLabels {
+      guideLabel.textLayer.frame.origin = CGPoint(x: drawings.xPositions[guideLabel.indexInChart], y: guideLabel.textLayer.frame.origin.y)
+      //        guideLabel.textLayer.opacity = Float(leftover/2)
+    }
+    if transitioningGuideLabels != nil {
+      for guideLabel in transitioningGuideLabels {
         guideLabel.textLayer.frame.origin = CGPoint(x: drawings.xPositions[guideLabel.indexInChart], y: guideLabel.textLayer.frame.origin.y)
         //        guideLabel.textLayer.opacity = Float(leftover/2)
       }
-      if transitioningGuideLabels != nil {
-        for guideLabel in transitioningGuideLabels {
-          guideLabel.textLayer.frame.origin = CGPoint(x: drawings.xPositions[guideLabel.indexInChart], y: guideLabel.textLayer.frame.origin.y)
-          //        guideLabel.textLayer.opacity = Float(leftover/2)
-        }
-      }
-      CATransaction.commit()
     }
+    CATransaction.commit()
+
     if event != .Scaled {
       self.transitioningGuideLabels?.forEach{$0.textLayer.opacity = 0}
+    } else {
+      let coef: CGFloat = (leftover > 0.5 && leftover < 1.0) ? 2 : 0.5
+      self.transitioningGuideLabels?.forEach{$0.textLayer.opacity = Float((1.0 - leftover) * coef)}
     }
   }
 
