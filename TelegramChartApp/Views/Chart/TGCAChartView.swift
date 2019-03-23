@@ -250,23 +250,19 @@ class TGCAChartView: UIView {
       let points = convertToPoints(xVector: xVector, yVector: yVector)
       let newPath = bezierLine(withPoints: points)
       
+      var oldPath: Any?
+      if let _ = drawing.shapeLayer.animation(forKey: "pathAnimation") {
+        oldPath = drawing.shapeLayer.presentation()?.value(forKey: "path")
+        drawing.shapeLayer.removeAnimation(forKey: "pathAnimation")
+      }
+      
       let positionChangeBlock = {
-        if let oldAnim = drawing.shapeLayer.animation(forKey: "pathAnimation") {
-          drawing.shapeLayer.removeAnimation(forKey: "pathAnimation")
-          let pathAnimation = CABasicAnimation(keyPath: "path")
-          pathAnimation.fromValue = drawing.shapeLayer.presentation()?.value(forKey: "path") ?? drawing.shapeLayer.path
-          drawing.shapeLayer.path = newPath.cgPath
-          pathAnimation.toValue = drawing.shapeLayer.path
-          pathAnimation.duration = 0.25
-          drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
-        } else {
-          let pathAnimation = CABasicAnimation(keyPath: "path")
-          pathAnimation.fromValue = drawing.shapeLayer.path
-          drawing.shapeLayer.path = newPath.cgPath
-          pathAnimation.toValue = drawing.shapeLayer.path
-          pathAnimation.duration = 0.25
-          drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
-        }
+        let pathAnimation = CABasicAnimation(keyPath: "path")
+        pathAnimation.fromValue = oldPath ?? drawing.shapeLayer.path
+        drawing.shapeLayer.path = newPath.cgPath
+        pathAnimation.toValue = drawing.shapeLayer.path
+        pathAnimation.duration = 0.25
+        drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
       }
       
       if animatesPositionOnHide {
@@ -283,24 +279,17 @@ class TGCAChartView: UIView {
 
       
       if i == index {
-        if let oldAnim = drawing.shapeLayer.animation(forKey: "opacityAnimation") {
+        var oldOpacity: Any?
+        if let _ = drawing.shapeLayer.animation(forKey: "opacityAnimation") {
+          oldOpacity = drawing.shapeLayer.presentation()?.value(forKey: "opacity")
           drawing.shapeLayer.removeAnimation(forKey: "opacityAnimation")
-          let opacityAnimation = CABasicAnimation(keyPath: "opacity")
-          opacityAnimation.fromValue = drawing.shapeLayer.presentation()?.value(forKey: "opacity") ?? drawing.shapeLayer.opacity
-          drawing.shapeLayer.opacity = originalHidden ? 1 : 0
-          opacityAnimation.toValue = drawing.shapeLayer.opacity
-          opacityAnimation.duration = 0.25
-          drawing.shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
-        } else {
+        }
         let opacityAnimation = CABasicAnimation(keyPath: "opacity")
-        opacityAnimation.fromValue = drawing.shapeLayer.opacity
+        opacityAnimation.fromValue = oldOpacity ?? drawing.shapeLayer.opacity
         drawing.shapeLayer.opacity = originalHidden ? 1 : 0
         opacityAnimation.toValue = drawing.shapeLayer.opacity
         opacityAnimation.duration = 0.25
-//        opacityAnimation.timingFunction = CAMediaTimingFunction(name: .easeIn)
-
         drawing.shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
-        }
       }
 
     }
@@ -571,7 +560,6 @@ class TGCAChartView: UIView {
       CATransaction.flush()
       CATransaction.begin()
       CATransaction.setAnimationDuration(0.25)
-      CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: .easeIn))
       CATransaction.setCompletionBlock{
         for r in removalBlocks {
           r()
@@ -752,21 +740,28 @@ class TGCAChartView: UIView {
       let circleLayer = annotation.circleLayers[i]
       
       if animated {
+        var oldPath: Any?
+        var oldOpacity: Any?
+        if let _ = circleLayer.animation(forKey: "circleGrpAnimation") {
+          oldPath = circleLayer.presentation()?.value(forKey: "path")
+          oldOpacity = circleLayer.presentation()?.value(forKey: "opacity")
+          circleLayer.removeAnimation(forKey: "circleGrpAnimation")
+        }
+        
         let pathAnim = CABasicAnimation(keyPath: "path")
-        pathAnim.fromValue = circleLayer.path
+        pathAnim.fromValue = oldPath ?? circleLayer.path
         circleLayer.path = circle.cgPath
         pathAnim.toValue = circleLayer.path
-        
+
         let opacityAnim = CABasicAnimation(keyPath: "opacity")
-        opacityAnim.fromValue = circleLayer.opacity
+        opacityAnim.fromValue = oldOpacity ?? circleLayer.opacity
         circleLayer.opacity = hiddenDrawingIndicies.contains(i) ? 0 : 1
         opacityAnim.toValue = circleLayer.opacity
         
         let grp = CAAnimationGroup()
         grp.duration = 0.25
-        grp.timingFunction = CAMediaTimingFunction(name: .easeIn)
         grp.animations = [pathAnim, opacityAnim]
-        circleLayer.add(grp, forKey: nil)
+        circleLayer.add(grp, forKey: "circleGrpAnimation")
         
       } else {
         circleLayer.path = circle.cgPath
