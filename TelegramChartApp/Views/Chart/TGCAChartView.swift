@@ -172,16 +172,11 @@ class TGCAChartView: UIView {
   
   /// Call to update the diplayed X range. Accepted are subranges of 0...1.
   func updateDisplayRange(with newRange: ClosedRange<CGFloat>, event: DisplayRangeChangeEvent) {
-    let ended = event == .Ended
-    guard normalizedCurrentXRange != newRange || ended else {
+    guard let drawings = drawings, let chart = chart, chart.translatedBounds(for: normalizedCurrentXRange) != chart.translatedBounds(for: newRange) else {
       return
     }
-    normalizedCurrentXRange = newRange//max(0, newRange.lowerBound)...min(1.0, newRange.upperBound)
+    normalizedCurrentXRange = newRange
 
-    guard let drawings = drawings, let chart = chart else {
-      return
-    }
-    
     let normalizedYVectors = getNormalizedYVectors()
     let normalizedXVector = chart.normalizedXVector(in: normalizedCurrentXRange)
     
