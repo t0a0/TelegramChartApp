@@ -25,10 +25,10 @@ struct TGCAJsonToChartService: JsonParserServiceProtocol {
         return nil
     }
     
-    return charts.map{jsonChartToChart($0)}
+    return charts.map{jsonChartToLinearChart($0)}
   }
   
-  private func jsonChartToChart(_ jsonChart: JsonCharts.JsonChart) -> LinearChart {
+  private func jsonChartToLinearChart(_ jsonChart: JsonCharts.JsonChart) -> LinearChart {
     //TODO: Sorting might be required
     let yVectors: [ChartValueVector] = jsonChart.yColumns.map{
       let identifier = $0.identifier
