@@ -133,7 +133,7 @@ class TGCAChartView: UIView {
   
   private func getNormalizedYVectors() -> NormalizedYVectors{
     return valuesStartFromZero
-      ? chart.normalizedYVectors(in: normalizedCurrentXRange, excludedIdxs: hiddenDrawingIndicies)
+      ? chart.normalizedYVectorsFromZeroMinimum(in: normalizedCurrentXRange, excludedIdxs: hiddenDrawingIndicies)
       : chart.normalizedYVectorsFromLocalMinimum(in: normalizedCurrentXRange, excludedIdxs: hiddenDrawingIndicies)
   }
 
