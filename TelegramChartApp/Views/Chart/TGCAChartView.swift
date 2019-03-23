@@ -94,6 +94,9 @@ class TGCAChartView: UIView {
   /// Range between total min and max of non-hidden graphs
   private var currentYValueRange: ClosedRange<CGFloat> = 0...0 {
     didSet {
+      guard oldValue != currentYValueRange else {
+        return
+      }
       if shouldDisplaySupportAxis {
         configureTextsForSupportAxisLabels()
         if !valuesStartFromZero {
@@ -182,10 +185,8 @@ class TGCAChartView: UIView {
     let normalizedYVectors = getNormalizedYVectors()
     let normalizedXVector = chart.normalizedXVector(in: normalizedCurrentXRange)
     
-    let newYrange = normalizedYVectors.yRange
-    if currentYValueRange != newYrange {
-      currentYValueRange = newYrange
-    }
+    currentYValueRange = normalizedYVectors.yRange
+    
     let xVector = normalizedXVector.map{$0 * chartBounds.size.width + chartBounds.origin.x}
     
     var newDrawings = [Drawing]()
@@ -225,16 +226,14 @@ class TGCAChartView: UIView {
     let normalizedXVector = chart.normalizedXVector(in: normalizedCurrentXRange)
     let xVector = normalizedXVector.map{$0 * chartBounds.size.width + chartBounds.origin.x}
     
-    let newYrange = normalizedYVectors.yRange
-    if currentYValueRange != newYrange {
-      currentYValueRange = newYrange
-    }
+    currentYValueRange = normalizedYVectors.yRange
+    
     var newDrawings = [Drawing]()
     for i in 0..<drawings.drawings.count {
       let drawing = drawings.drawings[i]
-      let yVector = normalizedYVectors.vectors[i].map{self.chartBounds.size.height + self.chartBounds.origin.y - ($0 * self.chartBounds.size.height)}
-      let points = self.convertToPoints(xVector: xVector, yVector: yVector)
-      let newPath = self.bezierLine(withPoints: points)
+      let yVector = normalizedYVectors.vectors[i].map{chartBounds.size.height + chartBounds.origin.y - ($0 * chartBounds.size.height)}
+      let points = convertToPoints(xVector: xVector, yVector: yVector)
+      let newPath = bezierLine(withPoints: points)
       
       let positionChangeBlock = {
         let pathAnimation = CABasicAnimation(keyPath: "path")
@@ -248,16 +247,16 @@ class TGCAChartView: UIView {
       
       if animatesPositionOnHide {
         positionChangeBlock()
-        newDrawings.append(Drawing(identifier: drawing.identifier, shapeLayer: drawing.shapeLayer, yPositions: yVector))
       } else {
-        if !hiddenDrawingIndicies.contains(i) {
+        if !hiddenDrawingIndicies.contains(i) && !(originalHidden && i == index) {
           positionChangeBlock()
-          newDrawings.append(Drawing(identifier: drawing.identifier, shapeLayer: drawing.shapeLayer, yPositions: yVector))
-
-        } else {
-          newDrawings.append(drawing)
+        }
+        if (originalHidden && i == index) {
+          drawing.shapeLayer.path = newPath.cgPath
         }
       }
+      newDrawings.append(Drawing(identifier: drawing.identifier, shapeLayer: drawing.shapeLayer, yPositions: yVector))
+
       
       if i == index {
         let opacityAnimation = CABasicAnimation(keyPath: "opacity")
