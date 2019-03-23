@@ -9,19 +9,41 @@
 import Foundation
 import UIKit
 
-class TGCAChartAnnotationView: UIView, ThemeChangeObserving {
+class TGCAChartAnnotationView: UIView {
+  
+  typealias ColoredValue = (value: CGFloat, color: UIColor)
+  
+  // MARK: - Outlets
   @IBOutlet var contentView: UIView!
   @IBOutlet weak var topLabel: UILabel!
   @IBOutlet weak var bottomLabel: UILabel!
-
   @IBOutlet weak var valuesStackView: UIStackView!
+  
+  // MARK: - Constraints
   
   @IBOutlet weak var bottomConstraint: NSLayoutConstraint!
   @IBOutlet weak var trailingConstraint: NSLayoutConstraint!
   @IBOutlet weak var topConstraint: NSLayoutConstraint!
   @IBOutlet weak var leadingContsraint: NSLayoutConstraint!
+  
+  // MARK: - Formatters
+  
   private let dateFormatter = DateFormatter()
   private let numberFormatter = NumberFormatter()
+  
+  private func configureNumberFormatter() {
+    numberFormatter.numberStyle = .decimal
+    numberFormatter.minimumFractionDigits = 0
+    numberFormatter.maximumFractionDigits = 2
+    numberFormatter.locale = Locale.current
+    numberFormatter.usesGroupingSeparator = true
+    numberFormatter.groupingSeparator = ","
+  }
+  
+  private func configureDateFormatter() {
+    dateFormatter.locale = Locale.current
+  }
+  
   // MARK: - Init
   
   override init(frame: CGRect) {
@@ -58,70 +80,10 @@ class TGCAChartAnnotationView: UIView, ThemeChangeObserving {
     }
   }
   
-  private func configureNumberFormatter() {
-    numberFormatter.numberStyle = .decimal
-    numberFormatter.minimumFractionDigits = 0
-    numberFormatter.maximumFractionDigits = 2
-    numberFormatter.locale = Locale.current
-    numberFormatter.usesGroupingSeparator = true
-    numberFormatter.groupingSeparator = ","
-  }
-  
-  private func configureDateFormatter() {
-    dateFormatter.locale = Locale.current
-  }
-  
-  internal func handleThemeChangedNotification() {
-    applyCurrentTheme(animated: true)
-  }
-  
-  private func applyCurrentTheme(animated: Bool = false) {
-    let theme = UIApplication.myDelegate.currentTheme
-    
-    func applyChanges() {
-      backgroundColor = theme.annotationColor
-      topLabel.textColor = theme.annotationLabelColor
-      bottomLabel.textColor = theme.annotationLabelColor
-    }
-    
-    if animated {
-      UIView.animate(withDuration: 0.25) {
-        applyChanges()
-      }
-    } else {
-      applyChanges()
-    }
-    
-  }
-  
   // MARK: - Configuration
-  let boldFont = UIFont.systemFont(ofSize: 13.0, weight: .bold)
-  let heightForLabel: CGFloat = 16.0
-  typealias ColoredValue = (value: CGFloat, color: UIColor)
-  private var arrangedLabels = [UILabel]()
   
   func configure(date: Date, coloredValues: [ColoredValue]) -> CGSize {
-//    for subview in valuesStackView.subviews {
-//      subview.removeFromSuperview()
-//    }
-    
-    //TODO: FIX LABELS SIZE
-    let difference = arrangedLabels.count - coloredValues.count
-    if difference > 0 {
-      for _ in 0..<difference {
-        let label = arrangedLabels.popLast()
-        label?.removeFromSuperview()
-      }
-    } else if difference < 0 {
-      for _ in difference..<0 {
-        let label = UILabel(frame: CGRect(origin: CGPoint.zero, size: CGSize(width: 50.0, height: heightForLabel)))
-        label.numberOfLines = 1
-        label.lineBreakMode = .byWordWrapping
-        label.font = boldFont
-        valuesStackView.addArrangedSubview(label)
-        arrangedLabels.append(label)
-      }
-    }
+    prepareArrangedLabels(withCount: coloredValues.count)
     
     let texts = transformDateToString(date)
     topLabel.text = texts.dateString
@@ -137,12 +99,15 @@ class TGCAChartAnnotationView: UIView, ThemeChangeObserving {
     }
     let widthThatFitsTopLabel: CGFloat = 50.0
     
-    let width = max(maxLabelWidth, widthThatFitsTopLabel) * 2 
+    let width = max(maxLabelWidth, widthThatFitsTopLabel) * 2
     let height = max((heightForLabel + 2.0) * CGFloat(coloredValues.count), 40.0)
     let newSize = CGSize(width: width + leadingContsraint.constant + trailingConstraint.constant, height: height + topConstraint.constant + bottomConstraint.constant)
+    
     bounds = CGRect(origin: bounds.origin, size: newSize)
     return bounds.size
   }
+
+  // MARK: - Helper methods
   
   private func transformValueToString(_ value: CGFloat) -> String {
     return numberFormatter.string(from: NSNumber(floatLiteral: Double(value))) ?? "\(value)"
@@ -154,6 +119,56 @@ class TGCAChartAnnotationView: UIView, ThemeChangeObserving {
     dateFormatter.dateFormat = "YYYY"
     let yearString = dateFormatter.string(from: date)
     return (monthDayString, yearString)
+  }
+  
+  private let boldFont = UIFont.systemFont(ofSize: 13.0, weight: .bold)
+  private let heightForLabel: CGFloat = 16.0
+  
+  private var arrangedLabels = [UILabel]()
+  
+  func prepareArrangedLabels(withCount count: Int) {
+    let difference = arrangedLabels.count - count
+    if difference > 0 {
+      for _ in 0..<difference {
+        let label = arrangedLabels.popLast()
+        label?.removeFromSuperview()
+      }
+    } else if difference < 0 {
+      for _ in difference..<0 {
+        let label = UILabel(frame: CGRect(origin: CGPoint.zero, size: CGSize(width: 50.0, height: heightForLabel)))
+        label.numberOfLines = 1
+        label.lineBreakMode = .byWordWrapping
+        label.font = boldFont
+        valuesStackView.addArrangedSubview(label)
+        arrangedLabels.append(label)
+      }
+    }
+  }
+  
+}
+
+extension TGCAChartAnnotationView: ThemeChangeObserving {
+  
+  func handleThemeChangedNotification() {
+    applyCurrentTheme(animated: true)
+  }
+  
+  func applyCurrentTheme(animated: Bool = false) {
+    let theme = UIApplication.myDelegate.currentTheme
+    
+    func applyChanges() {
+      backgroundColor = theme.annotationColor
+      topLabel.textColor = theme.annotationLabelColor
+      bottomLabel.textColor = theme.annotationLabelColor
+    }
+    
+    if animated {
+      UIView.animate(withDuration: 0.25) {
+        applyChanges()
+      }
+    } else {
+      applyChanges()
+    }
   }
   
 }
