@@ -107,7 +107,7 @@ class TGCAChartView: UIView {
     }
   }
   
-  func configureTextsForSupportAxisLabels() {
+  private func configureTextsForSupportAxisLabels() {
     var textsForAxisLabels = [String]()
     for i in 0..<numOfSupportAxis {
       let value = (((currentYValueRange.upperBound - currentYValueRange.lowerBound) * capHeightMultiplierForAxis / CGFloat(numOfSupportAxis)) * CGFloat(i+1)) + currentYValueRange.lowerBound
@@ -301,9 +301,9 @@ class TGCAChartView: UIView {
     activeGuideLabels = guideLayers
   }
   
-  var lastSpacing: Int!
-  var lastActualIndexes: [Int]!
-  var lastLeftover: CGFloat! {
+  private var lastSpacing: Int!
+  private var lastActualIndexes: [Int]!
+  private var lastLeftover: CGFloat! {
     didSet {
       guard oldValue != nil else {
         return
@@ -586,7 +586,7 @@ class TGCAChartView: UIView {
     return shapeLayer
   }
   
-  func textLayer(origin: CGPoint, text: String, color: CGColor) -> CATextLayer {
+  private func textLayer(origin: CGPoint, text: String, color: CGColor) -> CATextLayer {
     let textLayer = CATextLayer()
     textLayer.font = "Helvetica" as CFTypeRef
     textLayer.fontSize = 13.0
@@ -597,7 +597,7 @@ class TGCAChartView: UIView {
     return textLayer
   }
   
-  func textLayer(position: CGPoint, text: String, color: CGColor) -> CATextLayer {
+  private func textLayer(position: CGPoint, text: String, color: CGColor) -> CATextLayer {
     let textLayer = CATextLayer()
     textLayer.font = "Helvetica" as CFTypeRef
     textLayer.fontSize = 13.0
