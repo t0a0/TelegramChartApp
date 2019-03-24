@@ -95,6 +95,8 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
         cell.chartView.graphLineWidth = 1.0
         cell.chartView.animatesPositionOnHide = false
         cell.chartView.valuesStartFromZero = false
+        cell.chartView.canShowAnnotations = false
+        cell.chartView.isUserInteractionEnabled = false
         if let chart = chart {
           cell.chartView.configure(with: chart)
         }
@@ -180,8 +182,8 @@ extension TGCAChartDetailViewController: UITableViewDelegate {
       } else {
         hiddenGrapsIndicies.append(yLineIndex)
       }
-      chartCell?.chartView.hide(at: yLineIndex)
-      chartTrimCell?.chartView.hide(at: yLineIndex)
+      chartCell?.chartView.toggleHidden(at: yLineIndex)
+      chartTrimCell?.chartView.toggleHidden(at: yLineIndex)
       tableView.cellForRow(at: indexPath)?.accessoryType = hiddenGrapsIndicies.contains(yLineIndex) ? .none : .checkmark
     }
   }
@@ -195,7 +197,7 @@ extension TGCAChartDetailViewController: TGCATrimmerViewDelegate {
     } else if event == .Ended {
       chartCell?.chartView.isUserInteractionEnabled = false
     }
-    chartCell?.chartView.updateDisplayRange(with: range, event: event)
+    chartCell?.chartView.trimDisplayRange(to: range, with: event)
   }
 }
 

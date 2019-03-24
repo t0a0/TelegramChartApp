@@ -74,19 +74,6 @@ extension TGCAChartsViewController: UITableViewDataSource {
     return cell
   }
   
-  func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
-    return 30.0
-  }
-  
-  func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
-    let v = TGCATableViewSupplementView(frame: CGRect.zero)
-    v.bottomLabel.isHidden = true
-    v.topLabel.textColor = UIApplication.myDelegate.currentTheme.tableViewFooterHeaderColor
-    v.topLabel.text = "App created by Igor Fedotov"
-    sectionfooterView = v
-    return v
-  }
-  
 }
 
 extension TGCAChartsViewController: UITableViewDelegate {

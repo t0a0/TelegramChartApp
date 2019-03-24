@@ -38,7 +38,7 @@ class TGCATrimmerView: UIView {
   
   weak var delegate: TGCATrimmerViewDelegate?
   
-  /// The minimum range in percentage allowed for the trimming. Between 0.0 and 1.0.
+  /// The minimum range allowed for the trimming. Between 0.0 and 1.0.
   private let minimumRangeLength: CGFloat = 0.25
   private let shoulderWidth: CGFloat = 12.0
   private let totalRange = ZORange

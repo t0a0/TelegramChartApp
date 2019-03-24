@@ -85,6 +85,15 @@ struct LinearChart {
     return normalizedVector
   }
   
+  func indexOfChartValueVector(withId identifier: String) -> Int? {
+    for i in 0..<yVectors.count {
+      if yVectors[i].metaData.identifier.elementsEqual(identifier) {
+        return i
+      }
+    }
+    return nil
+  }
+  
 }
 
 struct ChartValueVector {
