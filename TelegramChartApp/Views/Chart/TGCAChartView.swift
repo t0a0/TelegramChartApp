@@ -196,6 +196,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
     }
     
     // Crutch to fix the issue when trimmer view is scrolling, the constraints cant update properly, so sometimes the index bounds would change disproportionally. E.g. -2 from left and -1 from right or +3 from left and + 1 from right
+    // Better solution would be to not animate the .path property of shape layers with every change, but add them all to one layer and on scroll just move the layer position, and on scaling / local max change redraw the path.
     if event == .Scrolled {
       let lowerBoundDiff = newBounds.lowerBound - currentXIndexRange.lowerBound
       let upperBoundDiff = newBounds.upperBound - currentXIndexRange.upperBound
@@ -207,7 +208,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
           // scrolled left
           newBounds = (currentXIndexRange.lowerBound - minChange)...(currentXIndexRange.upperBound - minChange)
         } else {
-          //scrolled right
+          // scrolled right
           newBounds = (currentXIndexRange.lowerBound + minChange)...(currentXIndexRange.upperBound + minChange)
         }
       }
