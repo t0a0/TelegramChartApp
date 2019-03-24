@@ -20,7 +20,7 @@ protocol LinearChartDisplaying {
 }
 
 class TGCAChartView: UIView, LinearChartDisplaying {
-
+  
   @IBOutlet var contentView: UIView!
   
   private var axisColor = UIColor.gray.cgColor
@@ -62,7 +62,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
   
   /// Service that knows how to format values for Y axes and dates for X axis.
   private let chartLabelFormatterService: ChartLabelFormatterProtocol = TGCAChartLabelFormatterService()
-
+  
   var graphLineWidth: CGFloat = 2.0
   
   var shouldDisplayAxesAndLabels = false
@@ -341,7 +341,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
     }
     horizontalAxesDefaultYPositions = retVal
   }
-
+  
   private func configureStringsForHorizontalAxesLabels() {
     var textsForAxesLabels = [String]()
     for i in 0..<numOfHorizontalAxes {
@@ -350,7 +350,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
     }
     labelTextsForCurrentYRange = textsForAxesLabels
   }
-
+  
   // MARK: - Guide Labels
   
   private func addGuideLabels() {
@@ -400,7 +400,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
       
       if spacing < lastSpacing {
         removeTransitioningGuideLabels()
-
+        
         var actualIndexes = [Int]()
         var i = 0
         while i < chart.xVector.count {
@@ -490,7 +490,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
       $0.textLayer.frame.origin = CGPoint(x: drawings.xPositions[$0.indexInChart], y: $0.textLayer.frame.origin.y)
     }
     CATransaction.commit()
-
+    
     if event == .Scaled {
       let coef: CGFloat = (leftover > 0.5 && leftover < 1.0) ? 2 : 0.5
       transitioningGuideLabels?.forEach{$0.textLayer.opacity = Float((1.0 - leftover) * coef)}
@@ -498,7 +498,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
       transitioningGuideLabels?.forEach{$0.textLayer.opacity = 0}
     }
   }
-
+  
   
   // MARK: - Horizontal axes
   
@@ -527,7 +527,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
   
   private func addHorizontalAxes() {
     var newAxis = [HorizontalAxis]()
-
+    
     for i in 0..<horizontalAxesDefaultYPositions.count {
       let position = horizontalAxesDefaultYPositions[i]
       let line = bezierLine(from: CGPoint(x: bounds.origin.x, y: position), to: CGPoint(x: bounds.origin.x + bounds.width, y: position))
@@ -627,7 +627,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
     
     var coloredValues = [(CGFloat, UIColor)]()
     let date = Date(timeIntervalSince1970: TimeInterval(chart.xVector[index])/1000)
-
+    
     for i in 0..<drawings.drawings.count {
       let drawing = drawings.drawings[i]
       let point = CGPoint(x: xPoint, y: drawing.yPositions[index])
@@ -661,7 +661,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
     }
     annotationView.layer.zPosition = zPositions.Annotation.view.rawValue
     addSubview(annotationView)
-
+    
     currentChartAnnotation = ChartAnnotation(lineLayer: lineLayer, annotationView: annotationView, circleLayers: circleLayers, displayedIndex: index)
   }
   
@@ -693,7 +693,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
         pathAnim.fromValue = oldPath ?? circleLayer.path
         circleLayer.path = circle.cgPath
         pathAnim.toValue = circleLayer.path
-
+        
         let opacityAnim = CABasicAnimation(keyPath: "opacity")
         opacityAnim.fromValue = oldOpacity ?? circleLayer.opacity
         circleLayer.opacity = hiddenDrawingIndicies.contains(i) ? 0 : 1
@@ -924,7 +924,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
     let leftover = 2.0 * CGFloat(extra) / CGFloat(higherBound)
     return (i, leftover)
   }
-
+  
   // MARK: - Structs and typealiases
   
   private struct HorizontalAxis {
@@ -1003,7 +1003,7 @@ extension TGCAChartView: ThemeChangeObserving {
       //annotation
       currentChartAnnotation?.circleLayers.forEach{$0.fillColor = circlePointFillColor}
       currentChartAnnotation?.lineLayer.strokeColor = axisColor
-
+      
       //axis
       horizontalAxes?.forEach{
         $0.lineLayer.strokeColor = axisColor
