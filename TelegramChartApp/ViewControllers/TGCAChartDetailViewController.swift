@@ -15,6 +15,9 @@ class TGCAChartDetailViewController: UIViewController {
   
   weak var sectionheaderView: TGCATableViewSupplementView?
   
+  weak var chartCell: TGCAChartTableViewCell?
+  weak var chartTrimCell: TGCAChartTrimTableViewCell?
+  
   var chart: LinearChart? {
     didSet {
       tableView?.reloadData()
@@ -47,14 +50,6 @@ class TGCAChartDetailViewController: UIViewController {
     unsubscribe()
   }
   
-  var chartCell: TGCAChartTableViewCell? {
-    return tableView.cellForRow(at: IndexPath(row: 0, section: 0)) as? TGCAChartTableViewCell
-  }
-  
-  var chartTrimCell: TGCAChartTrimTableViewCell? {
-    return tableView.cellForRow(at: IndexPath(row: 1, section: 0)) as? TGCAChartTrimTableViewCell
-  }
-  
 }
 
 extension TGCAChartDetailViewController: UITableViewDataSource {
@@ -74,70 +69,26 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
     }
   }
   
-  
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    let theme = UIApplication.myDelegate.currentTheme
     if indexPath.section == 0 {
       if indexPath.row == 0 {
         let cell = tableView.dequeueReusableCell(withIdentifier: TGCAChartTableViewCell.defaultReuseId) as! TGCAChartTableViewCell
-        cell.chartView.graphLineWidth = 2.0
-        cell.chartView.shouldDisplayAxesAndLabels = true
-        if let chart = chart {
-          cell.chartView.configure(with: chart)
-        }
-        cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: CGFloat.greatestFiniteMagnitude)
-        cell.directionalLayoutMargins = .zero
-        cell.selectionStyle = .none
-        cell.backgroundColor = theme.foregroundColor
+        configureChartCell(cell)
+        chartCell = cell
         return cell
       } else if indexPath.row == 1 {
         let cell = tableView.dequeueReusableCell(withIdentifier: TGCAChartTrimTableViewCell.defaultReuseId) as! TGCAChartTrimTableViewCell
-        cell.chartView.graphLineWidth = 1.0
-        cell.chartView.animatesPositionOnHide = false
-        cell.chartView.valuesStartFromZero = false
-        cell.chartView.canShowAnnotations = false
-        cell.chartView.isUserInteractionEnabled = false
-        if let chart = chart {
-          cell.chartView.configure(with: chart)
-        }
-        cell.trimmerView.delegate = self
-        cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: CGFloat.greatestFiniteMagnitude)
-        cell.directionalLayoutMargins = .zero
-        cell.selectionStyle = .none
-        cell.backgroundColor = theme.foregroundColor
+        configureChartTrimCell(cell)
+        chartTrimCell = cell
         return cell
       } else {
-        let yLineIndex = indexPath.row - 2
         let cell = tableView.dequeueReusableCell(withIdentifier: "chartColumnLabelCell")!
-        cell.selectionStyle = .none
-        if let chart = chart {
-          cell.imageView?.image = UIImage.from(color: chart.yVectors[yLineIndex].metaData.color, size: CGSize(width: 12, height: 12))
-        }
-        cell.imageView?.layer.cornerRadius = 3.0
-        cell.imageView?.clipsToBounds = true
-        cell.textLabel?.text = chart?.yVectors[yLineIndex].metaData.name
-        cell.accessoryType = hiddenGrapsIndicies.contains(yLineIndex) ? .none : .checkmark
-        cell.backgroundColor = theme.foregroundColor
-        cell.textLabel?.textColor = theme.mainTextColor
-        cell.textLabel?.font = UIFont.systemFont(ofSize: 18.0)
+        configureChartColumnCell(cell, columnIndex: indexPath.row - 2)
         return cell
       }
     } else {
       let cell = tableView.dequeueReusableCell(withIdentifier: TGCAButtonTableViewCell.defaultReuseId) as! TGCAButtonTableViewCell
-      cell.selectionStyle = .none
-      let currentThemeId = UIApplication.myDelegate.currentTheme.identifier
-      UIView.performWithoutAnimation {
-        cell.button.setTitle(currentThemeId == ThemeIdentifier.dark ? "Switch to Day Mode" : "Switch to Night Mode", for: .normal)
-        cell.button.layoutIfNeeded()
-      }
-      cell.onClickHandler = {
-        UIApplication.myDelegate.toggleTheme()
-        let currentThemeId = UIApplication.myDelegate.currentTheme.identifier
-        UIView.performWithoutAnimation {
-          cell.button.setTitle(currentThemeId == ThemeIdentifier.dark ? "Switch to Day Mode" : "Switch to Night Mode", for: .normal)
-          cell.button.layoutIfNeeded()
-        }
-      }
+      configureButtonCell(cell)
       return cell
     }
   }
@@ -151,6 +102,65 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
       }
     }
     return 44.0
+  }
+  
+  func configureChartCell(_ cell: TGCAChartTableViewCell) {
+    cell.chartView.graphLineWidth = 2.0
+    cell.chartView.shouldDisplayAxesAndLabels = true
+    if let chart = chart {
+      cell.chartView.configure(with: chart)
+    }
+    cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: CGFloat.greatestFiniteMagnitude)
+    cell.directionalLayoutMargins = .zero
+    cell.selectionStyle = .none
+    cell.backgroundColor = UIApplication.myDelegate.currentTheme.foregroundColor
+  }
+  
+  func configureChartTrimCell(_ cell: TGCAChartTrimTableViewCell) {
+    cell.chartView.graphLineWidth = 1.0
+    cell.chartView.animatesPositionOnHide = false
+    cell.chartView.valuesStartFromZero = false
+    cell.chartView.canShowAnnotations = false
+    cell.chartView.isUserInteractionEnabled = false
+    if let chart = chart {
+      cell.chartView.configure(with: chart)
+    }
+    cell.trimmerView.delegate = self
+    cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: CGFloat.greatestFiniteMagnitude)
+    cell.directionalLayoutMargins = .zero
+    cell.selectionStyle = .none
+    cell.backgroundColor = UIApplication.myDelegate.currentTheme.foregroundColor
+  }
+  
+  func configureChartColumnCell(_ cell: UITableViewCell, columnIndex: Int) {
+    cell.selectionStyle = .none
+    if let chart = chart {
+      cell.imageView?.image = UIImage.from(color: chart.yVectors[columnIndex].metaData.color, size: CGSize(width: 12, height: 12))
+    }
+    cell.imageView?.layer.cornerRadius = 3.0
+    cell.imageView?.clipsToBounds = true
+    cell.textLabel?.text = chart?.yVectors[columnIndex].metaData.name
+    cell.accessoryType = hiddenGrapsIndicies.contains(columnIndex) ? .none : .checkmark
+    cell.backgroundColor = UIApplication.myDelegate.currentTheme.foregroundColor
+    cell.textLabel?.textColor = UIApplication.myDelegate.currentTheme.mainTextColor
+    cell.textLabel?.font = UIFont.systemFont(ofSize: 18.0)
+  }
+  
+  func configureButtonCell(_ cell: TGCAButtonTableViewCell) {
+    cell.selectionStyle = .none
+    let currentThemeId = UIApplication.myDelegate.currentTheme.identifier
+    UIView.performWithoutAnimation {
+      cell.button.setTitle(currentThemeId == ThemeIdentifier.dark ? "Switch to Day Mode" : "Switch to Night Mode", for: .normal)
+      cell.button.layoutIfNeeded()
+    }
+    cell.onClickHandler = {
+      UIApplication.myDelegate.toggleTheme()
+      let currentThemeId = UIApplication.myDelegate.currentTheme.identifier
+      UIView.performWithoutAnimation {
+        cell.button.setTitle(currentThemeId == ThemeIdentifier.dark ? "Switch to Day Mode" : "Switch to Night Mode", for: .normal)
+        cell.button.layoutIfNeeded()
+      }
+    }
   }
   
 }
