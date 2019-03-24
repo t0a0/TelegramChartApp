@@ -55,7 +55,6 @@ class TGCATrimmerView: UIView {
   
   private var currentLeftConstraint: CGFloat = 0
   private var currentRightConstraint: CGFloat = 0
-  private var currentDistanceConstraint: CGFloat = 0
   private var leftConstraint: NSLayoutConstraint!
   private var rightConstraint: NSLayoutConstraint!
   
@@ -230,8 +229,6 @@ class TGCATrimmerView: UIView {
       } else {
         deactivateShoulderGestureRecognizers()
         currentLeftConstraint = leftConstraint.constant
-        currentRightConstraint = rightConstraint.constant
-        currentDistanceConstraint = frame.width - currentLeftConstraint + currentRightConstraint
       }
       notifyRangeChanged(event: .Started)
     case .changed:
@@ -260,7 +257,7 @@ class TGCATrimmerView: UIView {
   // MARK: - Updating constraints
   
   private func updateLeftConstraint(with translation: CGPoint) {
-    let maxConstraint = max(rightShoulderView.frame.origin.x + shoulderWidth - minimumDistanceBetweenShoulders, 0)
+    let maxConstraint = max(rightShoulderView.frame.origin.x + rightShoulderView.frame.width - minimumDistanceBetweenShoulders, 0)
     let newConstraint = min(max(0, currentLeftConstraint + translation.x), maxConstraint)
     leftConstraint.constant = newConstraint
   }
@@ -272,14 +269,18 @@ class TGCATrimmerView: UIView {
   }
   
   private func updateBothConstraints(with translation: CGPoint) {
-    let leftMaxConstraint = max(rightShoulderView.frame.origin.x + shoulderWidth - currentDistanceConstraint, 0)
-    let leftNewConstraint = min(max(0, currentLeftConstraint + translation.x), leftMaxConstraint)
+    let pendingChange = currentLeftConstraint + translation.x - leftConstraint.constant
+    var cappedChange = pendingChange
+    if leftConstraint.constant + pendingChange < 0 {
+      cappedChange = -leftConstraint.constant
+    }
     
-    let rightMaxConstraint = min(leftShoulderView.frame.origin.x + currentDistanceConstraint - frame.size.width, 0)
-    let rightNewConstraint = max(min(0, currentRightConstraint + translation.x), rightMaxConstraint)
+    if rightConstraint.constant + cappedChange > 0 {
+      cappedChange = -rightConstraint.constant
+    }
     
-    leftConstraint.constant = leftNewConstraint
-    rightConstraint.constant = rightNewConstraint
+    leftConstraint.constant = leftConstraint.constant + cappedChange
+    rightConstraint.constant = rightConstraint.constant + cappedChange
   }
   
   override var bounds: CGRect {
@@ -312,12 +313,12 @@ class TGCATrimmerView: UIView {
   
   /// The current start position of trimmed area in own coordinates.
   private var startPosition: CGFloat {
-    return leftShoulderView.frame.origin.x
+    return leftConstraint.constant
   }
   
   /// The current end position of trimmed area in own coordinates.
   private var endPosition: CGFloat {
-    return rightShoulderView.frame.origin.x + rightShoulderView.frame.width
+    return frame.width + rightConstraint.constant
   }
   
 }

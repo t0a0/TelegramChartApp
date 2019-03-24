@@ -176,7 +176,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
     
     removeChartAnnotation()
     
-    var newBounds = chart.translatedBounds(for: newRange)
+    let newBounds = chart.translatedBounds(for: newRange)
     
     if currentXIndexRange == newBounds {
       if event == .Ended {
@@ -184,27 +184,6 @@ class TGCAChartView: UIView, LinearChartDisplaying {
       }
       return
     }
-    
-    // Crutch to fix the issue when trimmer view is scrolling very fast, the constraints cant update properly, so sometimes the index bounds would change disproportionally. E.g. -2 from left and -1 from right or +3 from left and + 1 from right.
-    // Better solution would be to not animate the .path property of shape layers with every change, but add them all to one layer and on scroll just move the layer position, and on scaling / local max change redraw the path.
-    // Or may be do the trim view differently.
-    if event == .Scrolled {
-      let lowerBoundDiff = newBounds.lowerBound - currentXIndexRange.lowerBound
-      let upperBoundDiff = newBounds.upperBound - currentXIndexRange.upperBound
-      let leftChange = abs(lowerBoundDiff)
-      let rightChange = abs(upperBoundDiff)
-      if leftChange != rightChange {
-        let minChange = min(leftChange, rightChange)
-        if lowerBoundDiff < 0 {
-          // scrolled left
-          newBounds = (currentXIndexRange.lowerBound - minChange)...(currentXIndexRange.upperBound - minChange)
-        } else {
-          // scrolled right
-          newBounds = (currentXIndexRange.lowerBound + minChange)...(currentXIndexRange.upperBound + minChange)
-        }
-      }
-    }
-    
     
     currentXIndexRange = newBounds
     
@@ -214,7 +193,6 @@ class TGCAChartView: UIView, LinearChartDisplaying {
     let didYChange = currentYValueRange != normalizedYVectors.yRange
     
     currentYValueRange = normalizedYVectors.yRange
-    
     
     var newDrawings = [Drawing]()
     for i in 0..<drawings.drawings.count {
