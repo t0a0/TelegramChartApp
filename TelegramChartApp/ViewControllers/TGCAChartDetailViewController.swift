@@ -18,11 +18,7 @@ class TGCAChartDetailViewController: UIViewController {
   weak var chartCell: TGCAChartTableViewCell?
   weak var chartTrimCell: TGCAChartTrimTableViewCell?
   
-  var chart: LinearChart? {
-    didSet {
-      tableView?.reloadData()
-    }
-  }
+  var chart: LinearChart?
   
   var hiddenGrapsIndicies = [Int]()
   
@@ -148,18 +144,19 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
   
   func configureButtonCell(_ cell: TGCAButtonTableViewCell) {
     cell.selectionStyle = .none
-    let currentThemeId = UIApplication.myDelegate.currentTheme.identifier
-    UIView.performWithoutAnimation {
-      cell.button.setTitle(currentThemeId == ThemeIdentifier.dark ? "Switch to Day Mode" : "Switch to Night Mode", for: .normal)
-      cell.button.layoutIfNeeded()
-    }
-    cell.onClickHandler = {
-      UIApplication.myDelegate.toggleTheme()
-      let currentThemeId = UIApplication.myDelegate.currentTheme.identifier
+    cell.backgroundColor = UIApplication.myDelegate.currentTheme.foregroundColor
+
+    let applyThemeBlock = {
       UIView.performWithoutAnimation {
+        let currentThemeId = UIApplication.myDelegate.currentTheme.identifier
         cell.button.setTitle(currentThemeId == ThemeIdentifier.dark ? "Switch to Day Mode" : "Switch to Night Mode", for: .normal)
         cell.button.layoutIfNeeded()
       }
+    }
+    applyThemeBlock()
+    cell.onClickHandler = {
+      UIApplication.myDelegate.toggleTheme()
+      applyThemeBlock()
     }
   }
   
@@ -225,14 +222,9 @@ extension TGCAChartDetailViewController: ThemeChangeObserving {
       tableView.separatorColor = theme.axisColor
       tableView.tintColor = theme.accentColor
       sectionheaderView?.bottomLabel.textColor = theme.tableViewFooterHeaderColor
-      for section in 0..<tableView.numberOfSections {
-        for row in 0..<tableView.numberOfRows(inSection: section) {
-          let cell = tableView.cellForRow(at: IndexPath(row: row, section: section))
-          cell?.backgroundColor = theme.foregroundColor
-          if section == 0 && row >= 2 {
-            cell?.textLabel?.textColor = theme.mainTextColor
-          }
-        }
+      tableView.visibleCells.forEach{
+        $0.backgroundColor = theme.foregroundColor
+        $0.textLabel?.textColor = theme.mainTextColor
       }
     }
     
