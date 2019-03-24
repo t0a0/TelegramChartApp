@@ -916,11 +916,11 @@ class TGCAChartView: UIView, LinearChartDisplaying {
   /// Calculates what is the best "power of two" for the provided count, depending on the max number of labels that fit the screen. Leftover is how far am I to the point, where the best index would change. < 0.5 is changing towards smaller spacing. >0.5 changing towards higher spacing.
   private func bestIndexSpacing(for indexCount: Int) -> (spacing: Int, leftover: CGFloat) {
     var i = 1
-    while i*numOfGuideLabels < indexCount {
+    while i * numOfGuideLabels < indexCount {
       i *= 2
     }
-    let extra = indexCount % ((i/2)*numOfGuideLabels)
-    let higherBound = i*numOfGuideLabels
+    let extra = indexCount % ((i / 2) * numOfGuideLabels)
+    let higherBound = i * numOfGuideLabels
     let leftover = 2.0 * CGFloat(extra) / CGFloat(higherBound)
     return (i, leftover)
   }
