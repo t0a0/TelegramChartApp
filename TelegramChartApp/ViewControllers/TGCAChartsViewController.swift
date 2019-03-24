@@ -20,13 +20,13 @@ class TGCAChartsViewController: UIViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
-    guard let charts = TGCAJsonToChartService().parseJson(named: "chart_data") else {
+    if let charts = TGCAJsonToChartService().parseJson(named: "chart_data"){
+      self.charts = charts
+    } else {
       let alert = UIAlertController(title: "Could not parse JSON", message: nil, preferredStyle: .alert)
       alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: nil))
       present(alert, animated: true, completion: nil)
-      return
     }
-    self.charts = charts
     
     applyCurrentTheme()
     subscribe()
