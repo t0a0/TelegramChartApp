@@ -186,7 +186,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
     
     removeChartAnnotation()
     
-    let newBounds = chart.translatedBounds(for: newRange)
+    var newBounds = chart.translatedBounds(for: newRange)
     
     if currentXIndexRange == newBounds {
       if event == .Ended {
@@ -194,6 +194,25 @@ class TGCAChartView: UIView, LinearChartDisplaying {
       }
       return
     }
+    
+    // Crutch to fix the issue when trimmer view is scrolling, the constraints cant update properly, so sometimes the index bounds would change disproportionally. E.g. -2 from left and -1 from right or +3 from left and + 1 from right
+    if event == .Scrolled {
+      let lowerBoundDiff = newBounds.lowerBound - currentXIndexRange.lowerBound
+      let upperBoundDiff = newBounds.upperBound - currentXIndexRange.upperBound
+      let leftChange = abs(lowerBoundDiff)
+      let rightChange = abs(upperBoundDiff)
+      if leftChange != rightChange {
+        let minChange = min(leftChange, rightChange)
+        if lowerBoundDiff < 0 {
+          // scrolled left
+          newBounds = (currentXIndexRange.lowerBound - minChange)...(currentXIndexRange.upperBound - minChange)
+        } else {
+          //scrolled right
+          newBounds = (currentXIndexRange.lowerBound + minChange)...(currentXIndexRange.upperBound + minChange)
+        }
+      }
+    }
+    
     
     currentXIndexRange = newBounds
     
