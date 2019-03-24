@@ -370,16 +370,12 @@ class TGCAChartView: UIView, LinearChartDisplaying {
       j += lastSpacing
     }
     lastActualIndexes = actualIndexes
-    let timeStamps = actualIndexes.map{chart.xVector[$0]}
-    let strings = timeStamps.map{chartLabelFormatterService.prettyDateString(from: $0)}
     
-    var guideLayers = [GuideLabel]()
-    for i in 0..<strings.count {
-      let textL = textLayer(origin: CGPoint(x: drawings.xPositions[lastActualIndexes[i]], y: chartBounds.origin.y + chartBounds.height + 5 /*+ heightForGuideLabels / 2*/), text: strings[i], color: axisLabelColor)
-      guideLayers.append(GuideLabel(textLayer: textL, indexInChart: lastActualIndexes[i]))
-      layer.addSublayer(textL)
+    let newActiveGuideLabels = generateGuideLabels(for: lastActualIndexes)
+    newActiveGuideLabels.forEach{
+      layer.addSublayer($0.textLayer)
     }
-    activeGuideLabels = guideLayers
+    activeGuideLabels = newActiveGuideLabels
   }
   
   private var lastSpacing: Int!
@@ -426,17 +422,15 @@ class TGCAChartView: UIView, LinearChartDisplaying {
           actualIndexes.contains(elem)
         }
       }
-      lastSpacing = spacing
-      let timeStamps = lastActualIndexes.map{chart.xVector[$0]}
-      let strings = timeStamps.map{chartLabelFormatterService.prettyDateString(from: $0)}
       
-      var guideLayers = [GuideLabel]()
-      for i in 0..<strings.count {
-        let textL = textLayer(origin: CGPoint(x: drawings.xPositions[lastActualIndexes[i]], y: chartBounds.origin.y + chartBounds.height + 5/* + heightForGuideLabels / 2*/), text: strings[i], color: axisLabelColor)
-        guideLayers.append(GuideLabel(textLayer: textL, indexInChart: lastActualIndexes[i]))
-        layer.addSublayer(textL)
+      lastSpacing = spacing
+      
+      let newActiveGuideLabels = generateGuideLabels(for: lastActualIndexes)
+      newActiveGuideLabels.forEach{
+        layer.addSublayer($0.textLayer)
       }
-      activeGuideLabels = guideLayers
+      activeGuideLabels = newActiveGuideLabels
+      
     }
     if transitioningGuideLabels == nil {
       if leftover > 0.5 && leftover < 1 {
@@ -452,16 +446,13 @@ class TGCAChartView: UIView, LinearChartDisplaying {
           actualIndexes.contains(currentIndex)
         }
         
-        let timeStamps = currentIndexes.map{chart.xVector[$0]}
-        let strings = timeStamps.map{chartLabelFormatterService.prettyDateString(from: $0)}
-        var transitioningLabels = [GuideLabel]()
-        for i in 0..<currentIndexes.count {
-          let textL = textLayer(origin: CGPoint(x: drawings.xPositions[currentIndexes[i]], y: chartBounds.origin.y + chartBounds.height + 5/* + heightForGuideLabels / 2*/), text: strings[i], color: axisLabelColor)
-          transitioningLabels.append(GuideLabel(textLayer: textL, indexInChart: currentIndexes[i]))
-          textL.opacity = Float((1.0 - leftover) * 2.0)
-          layer.addSublayer(textL)
+        let newTransitioningLabels = generateGuideLabels(for: currentIndexes)
+        newTransitioningLabels.forEach{
+          $0.textLayer.opacity = Float((1.0 - leftover) * 2.0)
+          layer.addSublayer($0.textLayer)
         }
-        transitioningGuideLabels = transitioningLabels
+        transitioningGuideLabels = newTransitioningLabels
+        
       } else if leftover < 0.5 && leftover > 0 {
         var actualIndexes = [Int]()
         var i = 0
@@ -469,17 +460,13 @@ class TGCAChartView: UIView, LinearChartDisplaying {
           actualIndexes.append(i)
           i += spacing / 2
         }
-        let timeStamps = actualIndexes.map{chart.xVector[$0]}
-        let strings = timeStamps.map{chartLabelFormatterService.prettyDateString(from: $0)}
         
-        var transitioningLabels = [GuideLabel]()
-        for i in 0..<actualIndexes.count {
-          let textL = textLayer(origin: CGPoint(x: drawings.xPositions[actualIndexes[i]], y: chartBounds.origin.y + chartBounds.height + 5/* + heightForGuideLabels / 2*/), text: strings[i], color: axisLabelColor)
-          transitioningLabels.append(GuideLabel(textLayer: textL, indexInChart: actualIndexes[i]))
-          textL.opacity = Float(1.0 - leftover)/2.0
-          layer.addSublayer(textL)
+        let newTransitioningLabels = generateGuideLabels(for: actualIndexes)
+        newTransitioningLabels.forEach{
+          $0.textLayer.opacity = Float(1.0 - leftover)/2.0
+          layer.addSublayer($0.textLayer)
         }
-        transitioningGuideLabels = transitioningLabels
+        transitioningGuideLabels = newTransitioningLabels
       }
     }
     
@@ -502,6 +489,18 @@ class TGCAChartView: UIView, LinearChartDisplaying {
     }
   }
   
+  private func generateGuideLabels(for xIndexes: [Int]) -> [GuideLabel] {
+    
+    let timeStamps = xIndexes.map{chart.xVector[$0]}
+    let strings = timeStamps.map{chartLabelFormatterService.prettyDateString(from: $0)}
+    
+    var labels = [GuideLabel]()
+    for i in 0..<xIndexes.count {
+      let textL = textLayer(origin: CGPoint(x: drawings.xPositions[xIndexes[i]], y: chartBounds.origin.y + chartBounds.height + 5/* + heightForGuideLabels / 2*/), text: strings[i], color: axisLabelColor)
+      labels.append(GuideLabel(textLayer: textL, indexInChart: xIndexes[i]))
+    }
+    return labels
+  }
   
   // MARK: - Horizontal axes
   
