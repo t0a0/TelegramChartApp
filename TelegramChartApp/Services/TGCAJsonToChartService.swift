@@ -9,12 +9,6 @@
 import Foundation
 import UIKit
 
-protocol JsonParserServiceProtocol {
-  
-  func parseJson(named resourceName: String) -> [LinearChart]?
-  
-}
-
 struct TGCAJsonToChartService: JsonParserServiceProtocol {
   
   func parseJson(named resourceName: String) -> [LinearChart]? {

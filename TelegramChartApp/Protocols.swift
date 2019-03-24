@@ -9,6 +9,8 @@
 import Foundation
 import UIKit
 
+// MARK: Theme
+
 @objc protocol ThemeChangeObserving {
   
   @objc func handleThemeChangedNotification()
@@ -27,3 +29,28 @@ extension ThemeChangeObserving {
   
 }
 
+// MARK: - IoC protocols
+
+protocol JsonParserServiceProtocol {
+  
+  func parseJson(named resourceName: String) -> [LinearChart]?
+  
+}
+
+protocol ChartLabelFormatterProtocol {
+  
+  func prettyValueString(from value: CGFloat) -> String
+  
+  func prettyDateString(from timeIntervalSince1970inMillis: CGFloat) -> String
+  
+}
+
+protocol LinearChartDisplaying {
+  
+  func configure(with chart: LinearChart)
+  func toggleHidden(identifier: String)
+  func toggleHidden(at index: Int)
+  func trimDisplayRange(to newRange: ClosedRange<CGFloat>, with event: DisplayRangeChangeEvent)
+  func reset(alsoResetHidden: Bool)
+  
+}

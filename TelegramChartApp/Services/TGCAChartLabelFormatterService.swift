@@ -9,14 +9,6 @@
 import Foundation
 import UIKit
 
-protocol ChartLabelFormatterProtocol {
-  
-  func prettyValueString(from value: CGFloat) -> String
-  
-  func prettyDateString(from timeIntervalSince1970inMillis: CGFloat) -> String
-  
-}
-
 struct TGCAChartLabelFormatterService: ChartLabelFormatterProtocol {
   
   private let dateFormatter: DateFormatter

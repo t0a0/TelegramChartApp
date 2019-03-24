@@ -9,16 +9,6 @@
 import UIKit
 import QuartzCore
 
-protocol LinearChartDisplaying {
-  
-  func configure(with chart: LinearChart)
-  func toggleHidden(identifier: String)
-  func toggleHidden(at index: Int)
-  func trimDisplayRange(to newRange: ClosedRange<CGFloat>, with event: DisplayRangeChangeEvent)
-  func reset(alsoResetHidden: Bool)
-  
-}
-
 class TGCAChartView: UIView, LinearChartDisplaying {
   
   @IBOutlet var contentView: UIView!
