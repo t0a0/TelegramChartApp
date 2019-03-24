@@ -382,7 +382,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
   }
   
   private func animateGuideLabelsChange(from fromRange: ClosedRange<Int>, to toRange: ClosedRange<Int>, event: DisplayRangeChangeEvent) {
-    //TODO: TRANSITIONING SHIT IS SHOWING EXTRA LABELS! BUT U CANT SEE COS THEY HAVE ALPHA
+  
     let (spacing, leftover) = bestIndexSpacing(for: toRange.distance + 1)
     lastLeftover = leftover
     if lastSpacing != spacing {
@@ -422,32 +422,17 @@ class TGCAChartView: UIView, LinearChartDisplaying {
       
     }
     if transitioningGuideLabels == nil {
-      if leftover > 0.5 && leftover < 1 {
-        var actualIndexes = [Int]()
-        var i = 0
-        while i < chart.xVector.count {
-          actualIndexes.append(i)
-          i += spacing * 2
-        }
-        
-        var currentIndexes = activeGuideLabels.map{$0.indexInChart}
-        currentIndexes.removeAll { currentIndex -> Bool in
-          actualIndexes.contains(currentIndex)
-        }
-        
-        let newTransitioningLabels = generateGuideLabels(for: currentIndexes)
-        newTransitioningLabels.forEach{
-          $0.textLayer.opacity = Float((1.0 - leftover) * 2.0)
-          layer.addSublayer($0.textLayer)
-        }
-        transitioningGuideLabels = newTransitioningLabels
-        
-      } else if leftover < 0.5 && leftover > 0 {
+      if leftover < 0.5 && leftover > 0 {
         var actualIndexes = [Int]()
         var i = 0
         while i < chart.xVector.count {
           actualIndexes.append(i)
           i += spacing / 2
+        }
+        
+        let currentIndexes = activeGuideLabels.map{$0.indexInChart}
+        actualIndexes.removeAll { actualIndex -> Bool in
+          currentIndexes.contains(actualIndex)
         }
         
         let newTransitioningLabels = generateGuideLabels(for: actualIndexes)
