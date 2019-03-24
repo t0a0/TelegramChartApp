@@ -383,65 +383,75 @@ class TGCAChartView: UIView, LinearChartDisplaying {
   
   private func animateGuideLabelsChange(from fromRange: ClosedRange<Int>, to toRange: ClosedRange<Int>, event: DisplayRangeChangeEvent) {
   
-    let (spacing, leftover) = bestIndexSpacing(for: toRange.distance + 1)
-    lastLeftover = leftover
-    if lastSpacing != spacing {
-      removeActiveGuideLabels()
-      
-      if spacing < lastSpacing {
-        removeTransitioningGuideLabels()
+    if event != .Scrolled {
+      let (spacing, leftover) = bestIndexSpacing(for: toRange.distance + 1)
+      lastLeftover = leftover
+      if lastSpacing != spacing {
+        removeActiveGuideLabels()
         
-        var actualIndexes = [Int]()
-        var i = 0
-        while i < chart.xVector.count {
-          actualIndexes.append(i)
-          i += spacing
-        }
-        actualIndexes.append(contentsOf: lastActualIndexes)
-        actualIndexes = Array(Set(actualIndexes)).sorted()
-        lastActualIndexes = actualIndexes
-      } else {
-        var actualIndexes = [Int]()
-        var i = lastSpacing!
-        while i < chart.xVector.count {
-          actualIndexes.append(i)
-          i += spacing
-        }
-        lastActualIndexes.removeAll { elem -> Bool in
-          actualIndexes.contains(elem)
-        }
-      }
-      
-      lastSpacing = spacing
-      
-      let newActiveGuideLabels = generateGuideLabels(for: lastActualIndexes)
-      newActiveGuideLabels.forEach{
-        layer.addSublayer($0.textLayer)
-      }
-      activeGuideLabels = newActiveGuideLabels
-      
-    }
-    if transitioningGuideLabels == nil {
-      if leftover < 0.5 && leftover > 0 {
-        var actualIndexes = [Int]()
-        var i = 0
-        while i < chart.xVector.count {
-          actualIndexes.append(i)
-          i += spacing / 2
+        if spacing < lastSpacing {
+          removeTransitioningGuideLabels()
+          
+          var actualIndexes = [Int]()
+          var i = 0
+          while i < chart.xVector.count {
+            actualIndexes.append(i)
+            i += spacing
+          }
+          actualIndexes.append(contentsOf: lastActualIndexes)
+          actualIndexes = Array(Set(actualIndexes)).sorted()
+          lastActualIndexes = actualIndexes
+        } else {
+          var actualIndexes = [Int]()
+          var i = lastSpacing!
+          while i < chart.xVector.count {
+            actualIndexes.append(i)
+            i += spacing
+          }
+          lastActualIndexes.removeAll { elem -> Bool in
+            actualIndexes.contains(elem)
+          }
         }
         
-        let currentIndexes = activeGuideLabels.map{$0.indexInChart}
-        actualIndexes.removeAll { actualIndex -> Bool in
-          currentIndexes.contains(actualIndex)
-        }
+        lastSpacing = spacing
         
-        let newTransitioningLabels = generateGuideLabels(for: actualIndexes)
-        newTransitioningLabels.forEach{
-          $0.textLayer.opacity = Float(1.0 - leftover)/2.0
+        let newActiveGuideLabels = generateGuideLabels(for: lastActualIndexes)
+        newActiveGuideLabels.forEach{
           layer.addSublayer($0.textLayer)
         }
-        transitioningGuideLabels = newTransitioningLabels
+        activeGuideLabels = newActiveGuideLabels
+        
       }
+      if transitioningGuideLabels == nil {
+        if leftover < 0.5 && leftover > 0 {
+          var actualIndexes = [Int]()
+          var i = 0
+          while i < chart.xVector.count {
+            actualIndexes.append(i)
+            i += spacing / 2
+          }
+          
+          let currentIndexes = activeGuideLabels.map{$0.indexInChart}
+          actualIndexes.removeAll { actualIndex -> Bool in
+            currentIndexes.contains(actualIndex)
+          }
+          
+          let newTransitioningLabels = generateGuideLabels(for: actualIndexes)
+          newTransitioningLabels.forEach{
+            $0.textLayer.opacity = Float(1.0 - leftover)/2.0
+            layer.addSublayer($0.textLayer)
+          }
+          transitioningGuideLabels = newTransitioningLabels
+        }
+      }
+      
+      if event == .Scaled {
+        let coef: CGFloat = (leftover > 0.5 && leftover < 1.0) ? 2 : 0.5
+        transitioningGuideLabels?.forEach{$0.textLayer.opacity = Float((1.0 - leftover) * coef)}
+      } else {
+        transitioningGuideLabels?.forEach{$0.textLayer.opacity = 0}
+      }
+      
     }
     
     CATransaction.begin()
@@ -455,12 +465,6 @@ class TGCAChartView: UIView, LinearChartDisplaying {
     }
     CATransaction.commit()
     
-    if event == .Scaled {
-      let coef: CGFloat = (leftover > 0.5 && leftover < 1.0) ? 2 : 0.5
-      transitioningGuideLabels?.forEach{$0.textLayer.opacity = Float((1.0 - leftover) * coef)}
-    } else {
-      transitioningGuideLabels?.forEach{$0.textLayer.opacity = 0}
-    }
   }
   
   private func generateGuideLabels(for xIndexes: [Int]) -> [GuideLabel] {
