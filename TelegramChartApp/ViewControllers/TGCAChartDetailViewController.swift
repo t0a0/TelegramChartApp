@@ -81,7 +81,7 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
       if indexPath.row == 0 {
         let cell = tableView.dequeueReusableCell(withIdentifier: TGCAChartTableViewCell.defaultReuseId) as! TGCAChartTableViewCell
         cell.chartView.graphLineWidth = 2.0
-        cell.chartView.shouldDisplayHorizontalAxes = true
+        cell.chartView.shouldDisplayAxesAndLabels = true
         if let chart = chart {
           cell.chartView.configure(with: chart)
         }
