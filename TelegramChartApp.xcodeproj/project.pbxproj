@@ -7,46 +7,73 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1657643322343A5600173E97 /* TGCAChartView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1657643222343A5600173E97 /* TGCAChartView.xib */; };
+		1657643622343B5B00173E97 /* TGCAChartTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657643422343B5B00173E97 /* TGCAChartTableViewCell.swift */; };
+		1657643722343B5B00173E97 /* TGCAChartTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1657643522343B5B00173E97 /* TGCAChartTableViewCell.xib */; };
+		1657643D22349B0000173E97 /* TGCATrimmerShoulderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657643C22349B0000173E97 /* TGCATrimmerShoulderView.swift */; };
+		1657643F2234A0FE00173E97 /* TGCATrimmerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657643E2234A0FE00173E97 /* TGCATrimmerView.swift */; };
+		1657644622354E1600173E97 /* chart_data.json in Resources */ = {isa = PBXBuildFile; fileRef = 1657644522354E1600173E97 /* chart_data.json */; };
+		1657644922354F4100173E97 /* UIColor+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657644822354F4100173E97 /* UIColor+Hex.swift */; };
+		16576450223575C800173E97 /* TGCAChartsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657644F223575C800173E97 /* TGCAChartsViewController.swift */; };
+		165764562235C77100173E97 /* TGCAChartDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 165764552235C77100173E97 /* TGCAChartDetailViewController.swift */; };
+		165764582235D70700173E97 /* UIImage+Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 165764572235D70700173E97 /* UIImage+Color.swift */; };
+		1657645A2236F81400173E97 /* TGCAChartStructs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 165764592236F81400173E97 /* TGCAChartStructs.swift */; };
+		1657645C2237019700173E97 /* TGCAJsonToChartService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657645B2237019700173E97 /* TGCAJsonToChartService.swift */; };
+		1657645E2237135000173E97 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657645D2237135000173E97 /* Constants.swift */; };
+		16576469223C4DFD00173E97 /* TGCAChartTrimTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16576467223C4DFD00173E97 /* TGCAChartTrimTableViewCell.swift */; };
+		1657646A223C4DFD00173E97 /* TGCAChartTrimTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 16576468223C4DFD00173E97 /* TGCAChartTrimTableViewCell.xib */; };
+		1657646C223D1DDE00173E97 /* TGCAColorTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657646B223D1DDD00173E97 /* TGCAColorTheme.swift */; };
+		1657646E223D27E600173E97 /* TGCANavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657646D223D27E600173E97 /* TGCANavigationController.swift */; };
+		16576470223D287F00173E97 /* Protocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657646F223D287F00173E97 /* Protocols.swift */; };
+		16576472223E63A100173E97 /* TGCAChartAnnotationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16576471223E63A100173E97 /* TGCAChartAnnotationView.swift */; };
+		16576474223E640D00173E97 /* TGCAChartAnnotationView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 16576473223E640D00173E97 /* TGCAChartAnnotationView.xib */; };
 		167FCACF22343348001CA7E5 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167FCACE22343348001CA7E5 /* AppDelegate.swift */; };
-		167FCAD122343348001CA7E5 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167FCAD022343348001CA7E5 /* ViewController.swift */; };
 		167FCAD422343348001CA7E5 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 167FCAD222343348001CA7E5 /* Main.storyboard */; };
 		167FCAD62234334A001CA7E5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 167FCAD52234334A001CA7E5 /* Assets.xcassets */; };
 		167FCAD92234334A001CA7E5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 167FCAD72234334A001CA7E5 /* LaunchScreen.storyboard */; };
-		167FCAE42234334A001CA7E5 /* TelegramChartAppTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167FCAE32234334A001CA7E5 /* TelegramChartAppTests.swift */; };
-		167FCAEF2234334A001CA7E5 /* TelegramChartAppUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167FCAEE2234334A001CA7E5 /* TelegramChartAppUITests.swift */; };
+		167FCAFD22343523001CA7E5 /* TGCAChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167FCAFC22343523001CA7E5 /* TGCAChartView.swift */; };
+		167FCB012234379F001CA7E5 /* TGCAButtonTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167FCAFF2234379F001CA7E5 /* TGCAButtonTableViewCell.swift */; };
+		167FCB022234379F001CA7E5 /* TGCAButtonTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 167FCB002234379F001CA7E5 /* TGCAButtonTableViewCell.xib */; };
+		168DDC8622415EB300F51300 /* TGCAChartLabelFormatterService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 168DDC8522415EB300F51300 /* TGCAChartLabelFormatterService.swift */; };
+		168DDC88224198D500F51300 /* ClosedRange+Distance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 168DDC87224198D500F51300 /* ClosedRange+Distance.swift */; };
+		168DDC8B2241ACA300F51300 /* TGCATableViewSupplementView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 168DDC8A2241ACA300F51300 /* TGCATableViewSupplementView.xib */; };
+		168DDC8D2241ACBA00F51300 /* TGCATableViewSupplementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 168DDC8C2241ACBA00F51300 /* TGCATableViewSupplementView.swift */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXContainerItemProxy section */
-		167FCAE02234334A001CA7E5 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 167FCAC322343348001CA7E5 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 167FCACA22343348001CA7E5;
-			remoteInfo = TelegramChartApp;
-		};
-		167FCAEB2234334A001CA7E5 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 167FCAC322343348001CA7E5 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 167FCACA22343348001CA7E5;
-			remoteInfo = TelegramChartApp;
-		};
-/* End PBXContainerItemProxy section */
-
 /* Begin PBXFileReference section */
+		1657643222343A5600173E97 /* TGCAChartView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TGCAChartView.xib; sourceTree = "<group>"; };
+		1657643422343B5B00173E97 /* TGCAChartTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartTableViewCell.swift; sourceTree = "<group>"; };
+		1657643522343B5B00173E97 /* TGCAChartTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TGCAChartTableViewCell.xib; sourceTree = "<group>"; };
+		1657643C22349B0000173E97 /* TGCATrimmerShoulderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCATrimmerShoulderView.swift; sourceTree = "<group>"; };
+		1657643E2234A0FE00173E97 /* TGCATrimmerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCATrimmerView.swift; sourceTree = "<group>"; };
+		1657644522354E1600173E97 /* chart_data.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = chart_data.json; sourceTree = "<group>"; };
+		1657644822354F4100173E97 /* UIColor+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+Hex.swift"; sourceTree = "<group>"; };
+		1657644F223575C800173E97 /* TGCAChartsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartsViewController.swift; sourceTree = "<group>"; };
+		165764552235C77100173E97 /* TGCAChartDetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartDetailViewController.swift; sourceTree = "<group>"; };
+		165764572235D70700173E97 /* UIImage+Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+Color.swift"; sourceTree = "<group>"; };
+		165764592236F81400173E97 /* TGCAChartStructs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartStructs.swift; sourceTree = "<group>"; };
+		1657645B2237019700173E97 /* TGCAJsonToChartService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAJsonToChartService.swift; sourceTree = "<group>"; };
+		1657645D2237135000173E97 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		16576467223C4DFD00173E97 /* TGCAChartTrimTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartTrimTableViewCell.swift; sourceTree = "<group>"; };
+		16576468223C4DFD00173E97 /* TGCAChartTrimTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TGCAChartTrimTableViewCell.xib; sourceTree = "<group>"; };
+		1657646B223D1DDD00173E97 /* TGCAColorTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAColorTheme.swift; sourceTree = "<group>"; };
+		1657646D223D27E600173E97 /* TGCANavigationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCANavigationController.swift; sourceTree = "<group>"; };
+		1657646F223D287F00173E97 /* Protocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Protocols.swift; sourceTree = "<group>"; };
+		16576471223E63A100173E97 /* TGCAChartAnnotationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartAnnotationView.swift; sourceTree = "<group>"; };
+		16576473223E640D00173E97 /* TGCAChartAnnotationView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TGCAChartAnnotationView.xib; sourceTree = "<group>"; };
 		167FCACB22343348001CA7E5 /* TelegramChartApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TelegramChartApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		167FCACE22343348001CA7E5 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		167FCAD022343348001CA7E5 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		167FCAD322343348001CA7E5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		167FCAD52234334A001CA7E5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		167FCAD82234334A001CA7E5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		167FCADA2234334A001CA7E5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		167FCADF2234334A001CA7E5 /* TelegramChartAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TelegramChartAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		167FCAE32234334A001CA7E5 /* TelegramChartAppTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelegramChartAppTests.swift; sourceTree = "<group>"; };
-		167FCAE52234334A001CA7E5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		167FCAEA2234334A001CA7E5 /* TelegramChartAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TelegramChartAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		167FCAEE2234334A001CA7E5 /* TelegramChartAppUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelegramChartAppUITests.swift; sourceTree = "<group>"; };
-		167FCAF02234334A001CA7E5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		167FCAFC22343523001CA7E5 /* TGCAChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartView.swift; sourceTree = "<group>"; };
+		167FCAFF2234379F001CA7E5 /* TGCAButtonTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAButtonTableViewCell.swift; sourceTree = "<group>"; };
+		167FCB002234379F001CA7E5 /* TGCAButtonTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TGCAButtonTableViewCell.xib; sourceTree = "<group>"; };
+		168DDC8522415EB300F51300 /* TGCAChartLabelFormatterService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartLabelFormatterService.swift; sourceTree = "<group>"; };
+		168DDC87224198D500F51300 /* ClosedRange+Distance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ClosedRange+Distance.swift"; sourceTree = "<group>"; };
+		168DDC8A2241ACA300F51300 /* TGCATableViewSupplementView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TGCATableViewSupplementView.xib; sourceTree = "<group>"; };
+		168DDC8C2241ACBA00F51300 /* TGCATableViewSupplementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCATableViewSupplementView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,29 +84,69 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		167FCADC2234334A001CA7E5 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		167FCAE72234334A001CA7E5 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1657643122343A4300173E97 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				168DDC892241AC8200F51300 /* Chart */,
+				1682D8092245E27D000E76E4 /* TableViewViews */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		1657644422354E0B00173E97 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				167FCAD52234334A001CA7E5 /* Assets.xcassets */,
+				1657644522354E1600173E97 /* chart_data.json */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		1657644722354F3400173E97 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				1657644822354F4100173E97 /* UIColor+Hex.swift */,
+				165764572235D70700173E97 /* UIImage+Color.swift */,
+				168DDC87224198D500F51300 /* ClosedRange+Distance.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		1657644C22356BAA00173E97 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				165764592236F81400173E97 /* TGCAChartStructs.swift */,
+				1657646B223D1DDD00173E97 /* TGCAColorTheme.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		1657644D22356BB800173E97 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				1657645B2237019700173E97 /* TGCAJsonToChartService.swift */,
+				168DDC8522415EB300F51300 /* TGCAChartLabelFormatterService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		1657644E2235757F00173E97 /* ViewControllers */ = {
+			isa = PBXGroup;
+			children = (
+				1657644F223575C800173E97 /* TGCAChartsViewController.swift */,
+				165764552235C77100173E97 /* TGCAChartDetailViewController.swift */,
+				1657646D223D27E600173E97 /* TGCANavigationController.swift */,
+			);
+			path = ViewControllers;
+			sourceTree = "<group>";
+		};
 		167FCAC222343348001CA7E5 = {
 			isa = PBXGroup;
 			children = (
 				167FCACD22343348001CA7E5 /* TelegramChartApp */,
-				167FCAE22234334A001CA7E5 /* TelegramChartAppTests */,
-				167FCAED2234334A001CA7E5 /* TelegramChartAppUITests */,
 				167FCACC22343348001CA7E5 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -88,8 +155,6 @@
 			isa = PBXGroup;
 			children = (
 				167FCACB22343348001CA7E5 /* TelegramChartApp.app */,
-				167FCADF2234334A001CA7E5 /* TelegramChartAppTests.xctest */,
-				167FCAEA2234334A001CA7E5 /* TelegramChartAppUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -98,31 +163,63 @@
 			isa = PBXGroup;
 			children = (
 				167FCACE22343348001CA7E5 /* AppDelegate.swift */,
-				167FCAD022343348001CA7E5 /* ViewController.swift */,
-				167FCAD222343348001CA7E5 /* Main.storyboard */,
-				167FCAD52234334A001CA7E5 /* Assets.xcassets */,
-				167FCAD72234334A001CA7E5 /* LaunchScreen.storyboard */,
+				1657645D2237135000173E97 /* Constants.swift */,
+				1657644E2235757F00173E97 /* ViewControllers */,
+				1657643122343A4300173E97 /* Views */,
+				1682D80A2245E2DA000E76E4 /* Storyboards */,
+				1657644C22356BAA00173E97 /* Models */,
+				1657644D22356BB800173E97 /* Services */,
+				1657644422354E0B00173E97 /* Resources */,
+				1657644722354F3400173E97 /* Extensions */,
+				1657646F223D287F00173E97 /* Protocols.swift */,
 				167FCADA2234334A001CA7E5 /* Info.plist */,
 			);
 			path = TelegramChartApp;
 			sourceTree = "<group>";
 		};
-		167FCAE22234334A001CA7E5 /* TelegramChartAppTests */ = {
+		167FCAFE2234377D001CA7E5 /* TableViewCells */ = {
 			isa = PBXGroup;
 			children = (
-				167FCAE32234334A001CA7E5 /* TelegramChartAppTests.swift */,
-				167FCAE52234334A001CA7E5 /* Info.plist */,
+				167FCAFF2234379F001CA7E5 /* TGCAButtonTableViewCell.swift */,
+				167FCB002234379F001CA7E5 /* TGCAButtonTableViewCell.xib */,
+				1657643422343B5B00173E97 /* TGCAChartTableViewCell.swift */,
+				1657643522343B5B00173E97 /* TGCAChartTableViewCell.xib */,
+				16576467223C4DFD00173E97 /* TGCAChartTrimTableViewCell.swift */,
+				16576468223C4DFD00173E97 /* TGCAChartTrimTableViewCell.xib */,
 			);
-			path = TelegramChartAppTests;
+			path = TableViewCells;
 			sourceTree = "<group>";
 		};
-		167FCAED2234334A001CA7E5 /* TelegramChartAppUITests */ = {
+		1682D8092245E27D000E76E4 /* TableViewViews */ = {
 			isa = PBXGroup;
 			children = (
-				167FCAEE2234334A001CA7E5 /* TelegramChartAppUITests.swift */,
-				167FCAF02234334A001CA7E5 /* Info.plist */,
+				168DDC8A2241ACA300F51300 /* TGCATableViewSupplementView.xib */,
+				168DDC8C2241ACBA00F51300 /* TGCATableViewSupplementView.swift */,
+				167FCAFE2234377D001CA7E5 /* TableViewCells */,
 			);
-			path = TelegramChartAppUITests;
+			path = TableViewViews;
+			sourceTree = "<group>";
+		};
+		1682D80A2245E2DA000E76E4 /* Storyboards */ = {
+			isa = PBXGroup;
+			children = (
+				167FCAD222343348001CA7E5 /* Main.storyboard */,
+				167FCAD72234334A001CA7E5 /* LaunchScreen.storyboard */,
+			);
+			path = Storyboards;
+			sourceTree = "<group>";
+		};
+		168DDC892241AC8200F51300 /* Chart */ = {
+			isa = PBXGroup;
+			children = (
+				167FCAFC22343523001CA7E5 /* TGCAChartView.swift */,
+				1657643222343A5600173E97 /* TGCAChartView.xib */,
+				16576471223E63A100173E97 /* TGCAChartAnnotationView.swift */,
+				16576473223E640D00173E97 /* TGCAChartAnnotationView.xib */,
+				1657643C22349B0000173E97 /* TGCATrimmerShoulderView.swift */,
+				1657643E2234A0FE00173E97 /* TGCATrimmerView.swift */,
+			);
+			path = Chart;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -145,62 +242,19 @@
 			productReference = 167FCACB22343348001CA7E5 /* TelegramChartApp.app */;
 			productType = "com.apple.product-type.application";
 		};
-		167FCADE2234334A001CA7E5 /* TelegramChartAppTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 167FCAF62234334A001CA7E5 /* Build configuration list for PBXNativeTarget "TelegramChartAppTests" */;
-			buildPhases = (
-				167FCADB2234334A001CA7E5 /* Sources */,
-				167FCADC2234334A001CA7E5 /* Frameworks */,
-				167FCADD2234334A001CA7E5 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				167FCAE12234334A001CA7E5 /* PBXTargetDependency */,
-			);
-			name = TelegramChartAppTests;
-			productName = TelegramChartAppTests;
-			productReference = 167FCADF2234334A001CA7E5 /* TelegramChartAppTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		167FCAE92234334A001CA7E5 /* TelegramChartAppUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 167FCAF92234334A001CA7E5 /* Build configuration list for PBXNativeTarget "TelegramChartAppUITests" */;
-			buildPhases = (
-				167FCAE62234334A001CA7E5 /* Sources */,
-				167FCAE72234334A001CA7E5 /* Frameworks */,
-				167FCAE82234334A001CA7E5 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				167FCAEC2234334A001CA7E5 /* PBXTargetDependency */,
-			);
-			name = TelegramChartAppUITests;
-			productName = TelegramChartAppUITests;
-			productReference = 167FCAEA2234334A001CA7E5 /* TelegramChartAppUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
 		167FCAC322343348001CA7E5 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				CLASSPREFIX = TGCA;
 				LastSwiftUpdateCheck = 1010;
 				LastUpgradeCheck = 1010;
 				ORGANIZATIONNAME = "Fedotov Igor";
 				TargetAttributes = {
 					167FCACA22343348001CA7E5 = {
 						CreatedOnToolsVersion = 10.1;
-					};
-					167FCADE2234334A001CA7E5 = {
-						CreatedOnToolsVersion = 10.1;
-						TestTargetID = 167FCACA22343348001CA7E5;
-					};
-					167FCAE92234334A001CA7E5 = {
-						CreatedOnToolsVersion = 10.1;
-						TestTargetID = 167FCACA22343348001CA7E5;
 					};
 				};
 			};
@@ -218,8 +272,6 @@
 			projectRoot = "";
 			targets = (
 				167FCACA22343348001CA7E5 /* TelegramChartApp */,
-				167FCADE2234334A001CA7E5 /* TelegramChartAppTests */,
-				167FCAE92234334A001CA7E5 /* TelegramChartAppUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -231,21 +283,14 @@
 			files = (
 				167FCAD92234334A001CA7E5 /* LaunchScreen.storyboard in Resources */,
 				167FCAD62234334A001CA7E5 /* Assets.xcassets in Resources */,
+				167FCB022234379F001CA7E5 /* TGCAButtonTableViewCell.xib in Resources */,
+				16576474223E640D00173E97 /* TGCAChartAnnotationView.xib in Resources */,
+				1657643722343B5B00173E97 /* TGCAChartTableViewCell.xib in Resources */,
+				1657643322343A5600173E97 /* TGCAChartView.xib in Resources */,
+				168DDC8B2241ACA300F51300 /* TGCATableViewSupplementView.xib in Resources */,
+				1657644622354E1600173E97 /* chart_data.json in Resources */,
 				167FCAD422343348001CA7E5 /* Main.storyboard in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		167FCADD2234334A001CA7E5 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		167FCAE82234334A001CA7E5 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
+				1657646A223C4DFD00173E97 /* TGCAChartTrimTableViewCell.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -256,41 +301,31 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				167FCAD122343348001CA7E5 /* ViewController.swift in Sources */,
+				1657643D22349B0000173E97 /* TGCATrimmerShoulderView.swift in Sources */,
+				16576450223575C800173E97 /* TGCAChartsViewController.swift in Sources */,
+				1657646C223D1DDE00173E97 /* TGCAColorTheme.swift in Sources */,
+				1657645C2237019700173E97 /* TGCAJsonToChartService.swift in Sources */,
+				16576472223E63A100173E97 /* TGCAChartAnnotationView.swift in Sources */,
+				1657643F2234A0FE00173E97 /* TGCATrimmerView.swift in Sources */,
+				1657645A2236F81400173E97 /* TGCAChartStructs.swift in Sources */,
+				1657643622343B5B00173E97 /* TGCAChartTableViewCell.swift in Sources */,
+				16576469223C4DFD00173E97 /* TGCAChartTrimTableViewCell.swift in Sources */,
+				165764562235C77100173E97 /* TGCAChartDetailViewController.swift in Sources */,
 				167FCACF22343348001CA7E5 /* AppDelegate.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		167FCADB2234334A001CA7E5 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				167FCAE42234334A001CA7E5 /* TelegramChartAppTests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		167FCAE62234334A001CA7E5 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				167FCAEF2234334A001CA7E5 /* TelegramChartAppUITests.swift in Sources */,
+				168DDC8D2241ACBA00F51300 /* TGCATableViewSupplementView.swift in Sources */,
+				16576470223D287F00173E97 /* Protocols.swift in Sources */,
+				168DDC8622415EB300F51300 /* TGCAChartLabelFormatterService.swift in Sources */,
+				165764582235D70700173E97 /* UIImage+Color.swift in Sources */,
+				168DDC88224198D500F51300 /* ClosedRange+Distance.swift in Sources */,
+				167FCB012234379F001CA7E5 /* TGCAButtonTableViewCell.swift in Sources */,
+				1657645E2237135000173E97 /* Constants.swift in Sources */,
+				167FCAFD22343523001CA7E5 /* TGCAChartView.swift in Sources */,
+				1657646E223D27E600173E97 /* TGCANavigationController.swift in Sources */,
+				1657644922354F4100173E97 /* UIColor+Hex.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		167FCAE12234334A001CA7E5 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 167FCACA22343348001CA7E5 /* TelegramChartApp */;
-			targetProxy = 167FCAE02234334A001CA7E5 /* PBXContainerItemProxy */;
-		};
-		167FCAEC2234334A001CA7E5 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 167FCACA22343348001CA7E5 /* TelegramChartApp */;
-			targetProxy = 167FCAEB2234334A001CA7E5 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		167FCAD222343348001CA7E5 /* Main.storyboard */ = {
@@ -435,6 +470,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 476DPCGZ25;
 				INFOPLIST_FILE = TelegramChartApp/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -453,6 +489,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 476DPCGZ25;
 				INFOPLIST_FILE = TelegramChartApp/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -461,88 +498,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
-		167FCAF72234334A001CA7E5 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 476DPCGZ25;
-				INFOPLIST_FILE = TelegramChartAppTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.fedotov.igor.TelegramChartAppTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.2;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TelegramChartApp.app/TelegramChartApp";
-			};
-			name = Debug;
-		};
-		167FCAF82234334A001CA7E5 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 476DPCGZ25;
-				INFOPLIST_FILE = TelegramChartAppTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.fedotov.igor.TelegramChartAppTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.2;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TelegramChartApp.app/TelegramChartApp";
-			};
-			name = Release;
-		};
-		167FCAFA2234334A001CA7E5 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 476DPCGZ25;
-				INFOPLIST_FILE = TelegramChartAppUITests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.fedotov.igor.TelegramChartAppUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.2;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = TelegramChartApp;
-			};
-			name = Debug;
-		};
-		167FCAFB2234334A001CA7E5 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 476DPCGZ25;
-				INFOPLIST_FILE = TelegramChartAppUITests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.fedotov.igor.TelegramChartAppUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.2;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = TelegramChartApp;
 			};
 			name = Release;
 		};
@@ -563,24 +518,6 @@
 			buildConfigurations = (
 				167FCAF42234334A001CA7E5 /* Debug */,
 				167FCAF52234334A001CA7E5 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		167FCAF62234334A001CA7E5 /* Build configuration list for PBXNativeTarget "TelegramChartAppTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				167FCAF72234334A001CA7E5 /* Debug */,
-				167FCAF82234334A001CA7E5 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		167FCAF92234334A001CA7E5 /* Build configuration list for PBXNativeTarget "TelegramChartAppUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				167FCAFA2234334A001CA7E5 /* Debug */,
-				167FCAFB2234334A001CA7E5 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

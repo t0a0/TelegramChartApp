@@ -1,0 +1,1010 @@
+//
+//  TGCAChartView.swift
+//  TelegramChartApp
+//
+//  Created by Igor on 09/03/2019.
+//  Copyright © 2019 Fedotov Igor. All rights reserved.
+//
+
+import UIKit
+import QuartzCore
+
+class TGCAChartView: UIView, LinearChartDisplaying {
+  
+  @IBOutlet var contentView: UIView!
+  
+  private var axisColor = UIColor.gray.cgColor
+  private var axisLabelColor = UIColor.black.cgColor
+  private var circlePointFillColor = UIColor.white.cgColor
+  
+  // MARK: - Init
+  
+  override init(frame: CGRect) {
+    super.init(frame: frame)
+    commonInit()
+  }
+  
+  required init?(coder aDecoder:NSCoder) {
+    super.init(coder: aDecoder)
+    commonInit()
+  }
+  
+  private func commonInit () {
+    Bundle.main.loadNibNamed("TGCAChartView", owner: self, options: nil)
+    addSubview(contentView)
+    contentView.frame = self.bounds
+    contentView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
+    layer.masksToBounds = true
+    isMultipleTouchEnabled = false
+    applyCurrentTheme()
+  }
+  
+  // MARK: - Variables
+  
+  /// Need to redraw the chart when the bounds did change.
+  override var bounds: CGRect {
+    didSet {
+      if chart != nil {
+        configure(with: chart)
+      }
+    }
+  }
+  
+  /// Service that knows how to format values for Y axes and dates for X axis.
+  private let chartLabelFormatterService: ChartLabelFormatterProtocol = TGCAChartLabelFormatterService()
+  
+  var graphLineWidth: CGFloat = 2.0
+  
+  var shouldDisplayAxesAndLabels = false
+  
+  /// If true, than when after some graph was hidden and the local maximum Y has changed, the chart would animate its position relative to the new maximum. If false, it will just fade.
+  var animatesPositionOnHide = true
+  
+  /// If true than the minimum Y value would always be zero
+  var valuesStartFromZero = true
+  
+  var canShowAnnotations = true
+  
+  /// Radius of the circle, layed over the chart when the annotation is shown
+  private let circlePointRadius: CGFloat = 4.0
+  
+  /// Number of horizontal axes that should be shown on screen. Doesnt include zero axis
+  private let numOfHorizontalAxes = 5
+  
+  /// Used to provide additional bottom offset for chart bounds
+  private let heightForGuideLabels: CGFloat = 20.0
+  
+  /// Maximum number of guide labels that should be visible on the screen
+  private let numOfGuideLabels = 6
+  
+  /// The rect in which the chart drawing is happening
+  private var chartBounds: CGRect = CGRect.zero
+  
+  private var chart: LinearChart!
+  private var drawings: ChartDrawings!
+  
+  /// Contains indicies of the hidden charts
+  private var hiddenDrawingIndicies: Set<Int>!
+  private var horizontalAxes: [HorizontalAxis]!
+  private var zeroAxis: HorizontalAxis!
+  private var currentChartAnnotation: ChartAnnotation?
+  
+  /// Guide labels that are currently shown
+  private var activeGuideLabels: [GuideLabel]!
+  
+  /// Guide labels that are currently in fading animation
+  private var transitioningGuideLabels: [GuideLabel]!
+  
+  /// Range of X values that is curently diplayed
+  private var currentXIndexRange: ClosedRange<Int>!
+  
+  /// Range between total min and max Y of currently visible charts
+  private var currentYValueRange: ClosedRange<CGFloat> = 0...0 {
+    didSet {
+      guard oldValue != currentYValueRange else {
+        return
+      }
+      if shouldDisplayAxesAndLabels {
+        configureStringsForHorizontalAxesLabels()
+        if !valuesStartFromZero {
+          updateZeroAxis()
+        }
+        animateHorizontalAxesChange(fromPreviousRange: oldValue, toNewRange: currentYValueRange)
+      }
+    }
+  }
+  
+  /// The axes are drawn from the bottom of the bounds to the top of the bounds, capped by this value.
+  private let capHeightMultiplierForHorizontalAxes: CGFloat = 0.85
+  private var horizontalAxesDefaultYPositions: [CGFloat]!
+  private var labelTextsForCurrentYRange: [String]!
+  
+  // MARK: - Public functions
+  
+  func reset(alsoResetHidden: Bool = false) {
+    chart = nil
+    removeDrawings()
+    removeAxis()
+    removeGuideLabels()
+    removeChartAnnotation()
+    currentYValueRange = 0...0
+    if alsoResetHidden {
+      hiddenDrawingIndicies = nil
+    }
+    //do not reset x range
+  }
+  
+  /// Configures the view to display the chart.
+  func configure(with chart: LinearChart) {
+    reset()
+    configureChartBounds()
+    configureHorizontalAxesDefaultPositions()
+    self.chart = chart
+    hiddenDrawingIndicies = hiddenDrawingIndicies ?? Set()
+    currentXIndexRange = currentXIndexRange ?? 0...chart.xVector.count-1
+    
+    let normalizedYVectors = getNormalizedYVectors()
+    let yVectors = normalizedYVectors.vectors.map{mapToChartBoundsHeight($0)}
+    let xVector = mapToChartBoundsWidth(getNormalizedXVector())
+    
+    currentYValueRange = normalizedYVectors.yRange
+    
+    var draws = [Drawing]()
+    
+    for i in 0..<yVectors.count {
+      let yVector = yVectors[i]
+      let points = convertToPoints(xVector: xVector, yVector: yVector)
+      let shape = shapeLayer(withPath: bezierLine(withPoints: points).cgPath, color: chart.yVectors[i].metaData.color.cgColor, lineWidth: graphLineWidth)
+      shape.zPosition = zPositions.Chart.graph.rawValue
+      if hiddenDrawingIndicies.contains(i) {
+        shape.opacity = 0
+      }
+      layer.addSublayer(shape)
+      draws.append(Drawing(shapeLayer: shape, yPositions: yVector))
+    }
+    drawings = ChartDrawings(drawings: draws, xPositions: xVector)
+    
+    if shouldDisplayAxesAndLabels  {
+      addZeroAxis()
+      addHorizontalAxes()
+      addGuideLabels()
+    }
+  }
+  
+  /// Updates the diplayed X range. Accepted are subranges of 0...1.
+  func trimDisplayRange(to newRange: ClosedRange<CGFloat>, with event: DisplayRangeChangeEvent) {
+    
+    removeChartAnnotation()
+    
+    let newBounds = chart.translatedBounds(for: newRange)
+    
+    if currentXIndexRange == newBounds {
+      if event == .Ended {
+        removeTransitioningGuideLabels()
+      }
+      return
+    }
+    
+    currentXIndexRange = newBounds
+    
+    let xVector = mapToChartBoundsWidth(getNormalizedXVector())
+    let normalizedYVectors = getNormalizedYVectors()
+    
+    let didYChange = currentYValueRange != normalizedYVectors.yRange
+    
+    currentYValueRange = normalizedYVectors.yRange
+    
+    var newDrawings = [Drawing]()
+    for i in 0..<drawings.drawings.count {
+      
+      let drawing = drawings.drawings[i]
+      let yVector = mapToChartBoundsHeight(normalizedYVectors.vectors[i])
+      let points = convertToPoints(xVector: xVector, yVector: yVector)
+      newDrawings.append(Drawing(shapeLayer: drawing.shapeLayer, yPositions: yVector))
+      let newPath = bezierLine(withPoints: points)
+      
+      if let oldAnim = drawing.shapeLayer.animation(forKey: "pathAnimation") {
+        drawing.shapeLayer.removeAnimation(forKey: "pathAnimation")
+        let pathAnimation = CABasicAnimation(keyPath: "path")
+        pathAnimation.fromValue = drawing.shapeLayer.presentation()?.value(forKey: "path") ?? drawing.shapeLayer.path
+        drawing.shapeLayer.path = newPath.cgPath
+        pathAnimation.toValue = drawing.shapeLayer.path
+        pathAnimation.duration = 0.25
+        if !didYChange {
+          pathAnimation.beginTime = oldAnim.beginTime
+        } else {
+          pathAnimation.beginTime = CACurrentMediaTime()
+        }
+        drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
+      } else {
+        if didYChange  {
+          let pathAnimation = CABasicAnimation(keyPath: "path")
+          pathAnimation.fromValue = drawing.shapeLayer.path
+          drawing.shapeLayer.path = newPath.cgPath
+          pathAnimation.toValue = drawing.shapeLayer.path
+          pathAnimation.duration = 0.25
+          pathAnimation.beginTime = CACurrentMediaTime()
+          drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
+        } else {
+          drawing.shapeLayer.path = newPath.cgPath
+        }
+      }
+    }
+    self.drawings = ChartDrawings(drawings: newDrawings, xPositions: xVector)
+    
+    animateGuideLabelsChange(from: currentXIndexRange, to: newBounds, event: event)
+  }
+  
+  /// Hides or shows the graph with identifier.
+  func toggleHidden(identifier: String) {
+    if let index = chart.indexOfChartValueVector(withId: identifier) {
+      toggleHidden(at: index)
+    }
+  }
+  
+  /// Hides or shows the graph at index.
+  func toggleHidden(at index: Int) {
+    
+    let originalHidden = hiddenDrawingIndicies.contains(index)
+    if originalHidden {
+      hiddenDrawingIndicies.remove(index)
+    } else {
+      hiddenDrawingIndicies.insert(index)
+    }
+    
+    let normalizedYVectors = getNormalizedYVectors()
+    let xVector = mapToChartBoundsWidth(getNormalizedXVector())
+    
+    currentYValueRange = normalizedYVectors.yRange
+    
+    var newDrawings = [Drawing]()
+    for i in 0..<drawings.drawings.count {
+      
+      let drawing = drawings.drawings[i]
+      let yVector = mapToChartBoundsHeight(normalizedYVectors.vectors[i])
+      let points = convertToPoints(xVector: xVector, yVector: yVector)
+      let newPath = bezierLine(withPoints: points)
+      
+      var oldPath: Any?
+      if let _ = drawing.shapeLayer.animation(forKey: "pathAnimation") {
+        oldPath = drawing.shapeLayer.presentation()?.value(forKey: "path")
+        drawing.shapeLayer.removeAnimation(forKey: "pathAnimation")
+      }
+      
+      let positionChangeBlock = {
+        let pathAnimation = CABasicAnimation(keyPath: "path")
+        pathAnimation.fromValue = oldPath ?? drawing.shapeLayer.path
+        drawing.shapeLayer.path = newPath.cgPath
+        pathAnimation.toValue = drawing.shapeLayer.path
+        pathAnimation.duration = 0.25
+        drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
+      }
+      
+      if animatesPositionOnHide {
+        positionChangeBlock()
+      } else {
+        if !hiddenDrawingIndicies.contains(i) && !(originalHidden && i == index) {
+          positionChangeBlock()
+        }
+        if (originalHidden && i == index) {
+          drawing.shapeLayer.path = newPath.cgPath
+        }
+      }
+      
+      
+      if i == index {
+        var oldOpacity: Any?
+        if let _ = drawing.shapeLayer.animation(forKey: "opacityAnimation") {
+          oldOpacity = drawing.shapeLayer.presentation()?.value(forKey: "opacity")
+          drawing.shapeLayer.removeAnimation(forKey: "opacityAnimation")
+        }
+        let opacityAnimation = CABasicAnimation(keyPath: "opacity")
+        opacityAnimation.fromValue = oldOpacity ?? drawing.shapeLayer.opacity
+        drawing.shapeLayer.opacity = originalHidden ? 1 : 0
+        opacityAnimation.toValue = drawing.shapeLayer.opacity
+        opacityAnimation.duration = 0.25
+        drawing.shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
+      }
+      
+      newDrawings.append(Drawing(shapeLayer: drawing.shapeLayer, yPositions: yVector))
+    }
+    drawings = ChartDrawings(drawings: newDrawings, xPositions: xVector)
+    
+    if let annotation = currentChartAnnotation {
+      moveChartAnnotation(to: annotation.displayedIndex, animated: true)
+    }
+  }
+  
+  // MARK: - Configuration
+  
+  private func configureChartBounds() {
+    // We need to inset drawing so that if the edge points are selected, the circular point on the graph is fully visible in the view
+    let inset = graphLineWidth + (canShowAnnotations ? circlePointRadius : 0)
+    chartBounds = CGRect(x: bounds.origin.x + inset,
+                         y: bounds.origin.y + inset,
+                         width: bounds.width - inset * 2,
+                         height: bounds.height - inset * 2
+                          - (shouldDisplayAxesAndLabels ? heightForGuideLabels : 0))
+  }
+  
+  private func configureHorizontalAxesDefaultPositions() {
+    let space = chartBounds.height * capHeightMultiplierForHorizontalAxes / CGFloat(numOfHorizontalAxes)
+    var retVal = [CGFloat]()
+    for i in 0..<numOfHorizontalAxes {
+      retVal.append(chartBounds.origin.y + chartBounds.height - (CGFloat(i) * space + space))
+    }
+    horizontalAxesDefaultYPositions = retVal
+  }
+  
+  private func configureStringsForHorizontalAxesLabels() {
+    var textsForAxesLabels = [String]()
+    for i in 0..<numOfHorizontalAxes {
+      let value = (((currentYValueRange.upperBound - currentYValueRange.lowerBound) * capHeightMultiplierForHorizontalAxes / CGFloat(numOfHorizontalAxes)) * CGFloat(i+1)) + currentYValueRange.lowerBound
+      textsForAxesLabels.append(chartLabelFormatterService.prettyValueString(from: value))
+    }
+    labelTextsForCurrentYRange = textsForAxesLabels
+  }
+  
+  // MARK: - Guide Labels
+  
+  private func addGuideLabels() {
+    
+    let (spacing, leftover) = bestIndexSpacing(for: currentXIndexRange.distance + 1)
+    lastLeftover = leftover
+    lastSpacing = spacing
+    var actualIndexes = [Int]()
+    var j = 0
+    while j < chart.xVector.count {
+      actualIndexes.append(j)
+      j += lastSpacing
+    }
+    lastActualIndexes = actualIndexes
+    
+    let newActiveGuideLabels = generateGuideLabels(for: lastActualIndexes)
+    newActiveGuideLabels.forEach{
+      layer.addSublayer($0.textLayer)
+    }
+    activeGuideLabels = newActiveGuideLabels
+  }
+  
+  private var lastSpacing: Int!
+  private var lastActualIndexes: [Int]!
+  private var lastLeftover: CGFloat! {
+    didSet {
+      guard oldValue != nil else {
+        return
+      }
+      if (oldValue > 0 && oldValue < 0.5 && (lastLeftover <= 1 || lastLeftover >= 0.5)) ||
+        (oldValue > 0.5 && oldValue < 1 && (lastLeftover <= 0.5 || lastLeftover >= 0)) {
+        removeTransitioningGuideLabels()
+      }
+    }
+  }
+  
+  private func animateGuideLabelsChange(from fromRange: ClosedRange<Int>, to toRange: ClosedRange<Int>, event: DisplayRangeChangeEvent) {
+  
+    if event != .Scrolled {
+      let (spacing, leftover) = bestIndexSpacing(for: toRange.distance + 1)
+      lastLeftover = leftover
+      if lastSpacing != spacing {
+        removeActiveGuideLabels()
+        
+        if spacing < lastSpacing {
+          removeTransitioningGuideLabels()
+          
+          var actualIndexes = [Int]()
+          var i = 0
+          while i < chart.xVector.count {
+            actualIndexes.append(i)
+            i += spacing
+          }
+          actualIndexes.append(contentsOf: lastActualIndexes)
+          actualIndexes = Array(Set(actualIndexes)).sorted()
+          lastActualIndexes = actualIndexes
+        } else {
+          var actualIndexes = [Int]()
+          var i = lastSpacing!
+          while i < chart.xVector.count {
+            actualIndexes.append(i)
+            i += spacing
+          }
+          lastActualIndexes.removeAll { elem -> Bool in
+            actualIndexes.contains(elem)
+          }
+        }
+        
+        lastSpacing = spacing
+        
+        let newActiveGuideLabels = generateGuideLabels(for: lastActualIndexes)
+        newActiveGuideLabels.forEach{
+          layer.addSublayer($0.textLayer)
+        }
+        activeGuideLabels = newActiveGuideLabels
+        
+      }
+      if transitioningGuideLabels == nil {
+        if leftover < 0.5 && leftover > 0 {
+          var actualIndexes = [Int]()
+          var i = 0
+          while i < chart.xVector.count {
+            actualIndexes.append(i)
+            i += spacing / 2
+          }
+          
+          let currentIndexes = activeGuideLabels.map{$0.indexInChart}
+          actualIndexes.removeAll { actualIndex -> Bool in
+            currentIndexes.contains(actualIndex)
+          }
+          
+          let newTransitioningLabels = generateGuideLabels(for: actualIndexes)
+          newTransitioningLabels.forEach{
+            $0.textLayer.opacity = Float(1.0 - leftover)/2.0
+            layer.addSublayer($0.textLayer)
+          }
+          transitioningGuideLabels = newTransitioningLabels
+        }
+      }
+      
+      if event == .Scaled {
+        let coef: CGFloat = (leftover > 0.5 && leftover < 1.0) ? 2 : 0.5
+        transitioningGuideLabels?.forEach{$0.textLayer.opacity = Float((1.0 - leftover) * coef)}
+      } else {
+        transitioningGuideLabels?.forEach{$0.textLayer.opacity = 0}
+      }
+      
+    }
+    
+    CATransaction.begin()
+    // position is animated by default but we dont want it
+    CATransaction.setDisableActions(true)
+    activeGuideLabels?.forEach{
+      $0.textLayer.frame.origin = CGPoint(x: drawings.xPositions[$0.indexInChart], y: $0.textLayer.frame.origin.y)
+    }
+    transitioningGuideLabels?.forEach{
+      $0.textLayer.frame.origin = CGPoint(x: drawings.xPositions[$0.indexInChart], y: $0.textLayer.frame.origin.y)
+    }
+    CATransaction.commit()
+    
+  }
+  
+  private func generateGuideLabels(for xIndexes: [Int]) -> [GuideLabel] {
+    
+    let timeStamps = xIndexes.map{chart.xVector[$0]}
+    let strings = timeStamps.map{chartLabelFormatterService.prettyDateString(from: $0)}
+    
+    var labels = [GuideLabel]()
+    for i in 0..<xIndexes.count {
+      let textL = textLayer(origin: CGPoint(x: drawings.xPositions[xIndexes[i]], y: chartBounds.origin.y + chartBounds.height + 5/* + heightForGuideLabels / 2*/), text: strings[i], color: axisLabelColor)
+      labels.append(GuideLabel(textLayer: textL, indexInChart: xIndexes[i]))
+    }
+    return labels
+  }
+  
+  // MARK: - Horizontal axes
+  
+  private func addZeroAxis() {
+    let zposition = chartBounds.origin.y + chartBounds.height
+    let zline = bezierLine(from: CGPoint(x: bounds.origin.x, y: zposition), to: CGPoint(x: bounds.origin.x + bounds.width, y: zposition))
+    let zshapeL = shapeLayer(withPath: zline.cgPath, color: axisColor, lineWidth: 0.5)
+    zshapeL.opacity = 1
+    let text = chartLabelFormatterService.prettyValueString(from: currentYValueRange.lowerBound)
+    let ztextL = textLayer(origin: CGPoint(x: bounds.origin.x, y: zposition - 20), text: text, color: axisLabelColor)
+    zshapeL.zPosition = zPositions.Chart.axis.rawValue
+    ztextL.zPosition = zPositions.Chart.axisLabel.rawValue
+    layer.addSublayer(zshapeL)
+    layer.addSublayer(ztextL)
+    
+    zeroAxis = HorizontalAxis(lineLayer: zshapeL, labelLayer: ztextL)
+  }
+  
+  private func updateZeroAxis() {
+    guard let zeroAxis = zeroAxis else {
+      return
+    }
+    let text = chartLabelFormatterService.prettyValueString(from: currentYValueRange.lowerBound)
+    zeroAxis.labelLayer.string = text
+  }
+  
+  private func addHorizontalAxes() {
+    var newAxis = [HorizontalAxis]()
+    
+    for i in 0..<horizontalAxesDefaultYPositions.count {
+      let position = horizontalAxesDefaultYPositions[i]
+      let line = bezierLine(from: CGPoint(x: bounds.origin.x, y: position), to: CGPoint(x: bounds.origin.x + bounds.width, y: position))
+      let shapeL = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: 0.5)
+      shapeL.opacity = 0.75
+      shapeL.zPosition = zPositions.Chart.axis.rawValue
+      let textL = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: labelTextsForCurrentYRange[i], color: axisLabelColor)
+      textL.zPosition = zPositions.Chart.axisLabel.rawValue
+      layer.addSublayer(shapeL)
+      layer.addSublayer(textL)
+      newAxis.append(HorizontalAxis(lineLayer: shapeL, labelLayer: textL))
+    }
+    horizontalAxes = newAxis
+  }
+  
+  private func animateHorizontalAxesChange(fromPreviousRange previousRange: ClosedRange<CGFloat>, toNewRange newRange: ClosedRange<CGFloat>) {
+    guard let horizontalAxis = horizontalAxes else {
+      return
+    }
+    
+    //TODO: Doesnt repect the startsFromZero variable. to do it should calculate line specific coefficient for every line.
+    let coefficient: CGFloat = newRange.upperBound / previousRange.upperBound
+    let coefIsZero = coefficient == 0
+    let coefIsInf = coefficient == CGFloat.infinity
+    var blocks = [()->()]()
+    var removalBlocks = [()->()]()
+    var newAxes = [HorizontalAxis]()
+    
+    for i in 0..<horizontalAxis.count {
+      let ax = horizontalAxis[i]
+      
+      let newLinePosition = CGPoint(x: ax.lineLayer.position.x, y: coefIsZero ? chartBounds.origin.y + chartBounds.origin.y : chartBounds.origin.y + chartBounds.height - (chartBounds.origin.y + chartBounds.height - ax.lineLayer.position.y) / coefficient)
+      let newTextPosition = CGPoint(x: ax.labelLayer.position.x, y: coefIsZero ? chartBounds.origin.y + chartBounds.origin.y : chartBounds.origin.y + chartBounds.height - (chartBounds.origin.y + chartBounds.height - ax.labelLayer.position.y) / coefficient)
+      
+      
+      let position = horizontalAxesDefaultYPositions[i]
+      let line = bezierLine(from: CGPoint(x: bounds.origin.x, y: position), to: CGPoint(x: bounds.origin.x + bounds.width, y: position))
+      let shapeL = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: 0.5)
+      let textL = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: labelTextsForCurrentYRange[i], color: axisLabelColor)
+      textL.opacity = 0
+      shapeL.opacity = 0
+      shapeL.zPosition = zPositions.Chart.axis.rawValue
+      textL.zPosition = zPositions.Chart.axisLabel.rawValue
+      layer.addSublayer(shapeL)
+      layer.addSublayer(textL)
+      let oldShapePos = shapeL.position
+      let oldTextPos = textL.position
+      shapeL.position = CGPoint(x: shapeL.position.x, y: coefIsInf ? chartBounds.origin.y :  chartBounds.origin.y + chartBounds.height - (chartBounds.origin.y + chartBounds.height - shapeL.position.y) * coefficient)
+      textL.position = CGPoint(x: textL.position.x, y: coefIsInf ? chartBounds.origin.y :   chartBounds.origin.y + chartBounds.height - (chartBounds.origin.y + chartBounds.height - textL.position.y) * coefficient)
+      newAxes.append(HorizontalAxis(lineLayer: shapeL, labelLayer: textL))
+      
+      
+      blocks.append {
+        ax.labelLayer.position = newTextPosition
+        ax.labelLayer.opacity = 0
+        ax.lineLayer.opacity = 0
+        ax.lineLayer.position = newLinePosition
+        
+        shapeL.opacity = 0.75
+        shapeL.position = oldShapePos
+        textL.position = oldTextPos
+        textL.opacity = 1.0
+      }
+      removalBlocks.append {
+        ax.lineLayer.removeFromSuperlayer()
+        ax.labelLayer.removeFromSuperlayer()
+      }
+    }
+    
+    self.horizontalAxes = newAxes
+    
+    DispatchQueue.main.async {
+      CATransaction.flush()
+      CATransaction.begin()
+      CATransaction.setAnimationDuration(0.25)
+      CATransaction.setCompletionBlock{
+        for r in removalBlocks {
+          r()
+        }
+      }
+      for b in blocks {
+        b()
+      }
+      CATransaction.commit()
+    }
+    
+  }
+  
+  // MARK: - Annotation
+  
+  private func addChartAnnotation(for index: Int) {
+    guard drawings != nil else {
+      return
+    }
+    let xPoint = drawings.xPositions[index]
+    var circleLayers = [CAShapeLayer]()
+    
+    var coloredValues = [(CGFloat, UIColor)]()
+    let date = Date(timeIntervalSince1970: TimeInterval(chart.xVector[index])/1000)
+    
+    for i in 0..<drawings.drawings.count {
+      let drawing = drawings.drawings[i]
+      let point = CGPoint(x: xPoint, y: drawing.yPositions[index])
+      
+      let circle = bezierCircle(at: point, radius: circlePointRadius)
+      let circleShape = shapeLayer(withPath: circle.cgPath, color: chart.yVectors[i].metaData.color.cgColor, lineWidth: graphLineWidth, fillColor: circlePointFillColor)
+      circleShape.zPosition = zPositions.Annotation.circleShape.rawValue
+      circleLayers.append(circleShape)
+      if hiddenDrawingIndicies.contains(i) {
+        circleShape.opacity = 0
+        continue
+      } else {
+        circleShape.opacity = 1
+      }
+      coloredValues.append((chart.yVectors[i].vector[index], chart.yVectors[i].metaData.color))
+    }
+    coloredValues.sort { (left, right) -> Bool in
+      return left.0 >= right.0
+    }
+    let annotationView = TGCAChartAnnotationView(frame: CGRect.zero)
+    let annotationSize = annotationView.configure(date: date, coloredValues: coloredValues)
+    let xPos = min(bounds.origin.x + bounds.width - annotationSize.width / 2, max(bounds.origin.x + annotationSize.width / 2, xPoint))
+    annotationView.center = CGPoint(x: xPos, y: bounds.origin.y + annotationSize.height / 2)
+    
+    let line = bezierLine(from: CGPoint(x: xPoint, y: annotationView.frame.origin.y + annotationView.frame.height), to: CGPoint(x: xPoint, y: chartBounds.origin.y + chartBounds.height))
+    let lineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: 1.0)
+    lineLayer.zPosition = zPositions.Annotation.lineShape.rawValue
+    layer.addSublayer(lineLayer)
+    for c in circleLayers {
+      layer.addSublayer(c)
+    }
+    annotationView.layer.zPosition = zPositions.Annotation.view.rawValue
+    addSubview(annotationView)
+    
+    currentChartAnnotation = ChartAnnotation(lineLayer: lineLayer, annotationView: annotationView, circleLayers: circleLayers, displayedIndex: index)
+  }
+  
+  private func moveChartAnnotation(to index: Int, animated: Bool = false) {
+    guard let annotation = currentChartAnnotation else {
+      return
+    }
+    let xPoint = drawings.xPositions[index]
+    
+    var coloredValues = [(CGFloat, UIColor)]()
+    let date = Date(timeIntervalSince1970: TimeInterval(chart.xVector[index])/1000)
+    
+    for i in 0..<drawings.drawings.count {
+      let drawing = drawings.drawings[i]
+      let point = CGPoint(x: xPoint, y: drawing.yPositions[index])
+      let circle = bezierCircle(at: point, radius: circlePointRadius)
+      let circleLayer = annotation.circleLayers[i]
+      
+      if animated {
+        var oldPath: Any?
+        var oldOpacity: Any?
+        if let _ = circleLayer.animation(forKey: "circleGrpAnimation") {
+          oldPath = circleLayer.presentation()?.value(forKey: "path")
+          oldOpacity = circleLayer.presentation()?.value(forKey: "opacity")
+          circleLayer.removeAnimation(forKey: "circleGrpAnimation")
+        }
+        
+        let pathAnim = CABasicAnimation(keyPath: "path")
+        pathAnim.fromValue = oldPath ?? circleLayer.path
+        circleLayer.path = circle.cgPath
+        pathAnim.toValue = circleLayer.path
+        
+        let opacityAnim = CABasicAnimation(keyPath: "opacity")
+        opacityAnim.fromValue = oldOpacity ?? circleLayer.opacity
+        circleLayer.opacity = hiddenDrawingIndicies.contains(i) ? 0 : 1
+        opacityAnim.toValue = circleLayer.opacity
+        
+        let grp = CAAnimationGroup()
+        grp.duration = 0.25
+        grp.animations = [pathAnim, opacityAnim]
+        circleLayer.add(grp, forKey: "circleGrpAnimation")
+        
+      } else {
+        circleLayer.path = circle.cgPath
+        circleLayer.opacity = hiddenDrawingIndicies.contains(i) ? 0 : 1
+      }
+      
+      if !hiddenDrawingIndicies.contains(i) {
+        coloredValues.append((chart.yVectors[i].vector[index], chart.yVectors[i].metaData.color))
+      }
+    }
+    coloredValues.sort { (left, right) -> Bool in
+      return left.0 >= right.0
+    }
+    let annotationSize = annotation.annotationView.configure(date: date, coloredValues: coloredValues)
+    let xPos = min(bounds.origin.x + bounds.width - annotationSize.width / 2, max(bounds.origin.x + annotationSize.width / 2, xPoint))
+    annotation.annotationView.center = CGPoint(x: xPos, y: bounds.origin.y + annotationSize.height / 2)
+    
+    let line = bezierLine(from: CGPoint(x: xPoint, y: annotation.annotationView.frame.origin.y + annotation.annotationView.frame.height), to: CGPoint(x: xPoint, y: chartBounds.origin.y + chartBounds.height))
+    currentChartAnnotation?.lineLayer.path = line.cgPath
+    currentChartAnnotation?.updateDiplayedIndex(to: index)
+  }
+  
+  // MARK: - Drawing
+  
+  private func bezierLine(withPoints points: [CGPoint]) -> UIBezierPath {
+    let line = UIBezierPath()
+    let firstPoint = points[0]
+    line.move(to: firstPoint)
+    for i in 1..<points.count {
+      line.addLine(to: points[i])
+    }
+    return line
+  }
+  
+  private func bezierLine(from fromPoint: CGPoint, to toPoint: CGPoint) -> UIBezierPath {
+    let line = UIBezierPath()
+    line.move(to: fromPoint)
+    line.addLine(to: toPoint)
+    return line
+  }
+  
+  private func bezierCircle(at point: CGPoint, radius: CGFloat = 4.0) -> UIBezierPath {
+    let rect = CGRect(x: point.x - radius, y: point.y - radius, width: radius * 2, height: radius * 2)
+    return UIBezierPath(ovalIn: rect)
+  }
+  
+  private func shapeLayer(withPath path: CGPath, color: CGColor, lineWidth: CGFloat = 2, fillColor: CGColor? = nil) -> CAShapeLayer{
+    let shapeLayer = CAShapeLayer()
+    shapeLayer.path = path
+    shapeLayer.strokeColor = color
+    shapeLayer.lineWidth = lineWidth
+    shapeLayer.lineJoin = .round
+    shapeLayer.lineCap = .round
+    shapeLayer.fillColor = fillColor
+    shapeLayer.contentsScale = UIScreen.main.scale
+    return shapeLayer
+  }
+  
+  private func textLayer(origin: CGPoint, text: String, color: CGColor) -> CATextLayer {
+    let textLayer = CATextLayer()
+    textLayer.font = "Helvetica" as CFTypeRef
+    textLayer.fontSize = 13.5
+    textLayer.string = text
+    textLayer.frame = CGRect(origin: origin, size: CGSize(width: 50, height: heightForGuideLabels))
+    textLayer.contentsScale = UIScreen.main.scale
+    textLayer.foregroundColor = color
+    return textLayer
+  }
+  
+  private func textLayer(position: CGPoint, text: String, color: CGColor) -> CATextLayer {
+    let textLayer = CATextLayer()
+    textLayer.font = "Helvetica" as CFTypeRef
+    textLayer.fontSize = 13.5
+    textLayer.string = text
+    textLayer.frame = CGRect(origin: CGPoint.zero, size: CGSize(width: 50, height: heightForGuideLabels))
+    textLayer.position = position
+    textLayer.contentsScale = UIScreen.main.scale
+    textLayer.foregroundColor = color
+    return textLayer
+  }
+  
+  // MARK: - Touches
+  
+  override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+    return bounds.contains(point) ? self : nil
+  }
+  
+  override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+    return bounds.contains(point)
+  }
+  
+  override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+    guard canShowAnnotations else {
+      return super.touchesBegan(touches, with: event)
+    }
+    guard let touchLocation = touches.first?.location(in: self), chartBounds.contains(touchLocation) else {
+      return super.touchesBegan(touches, with: event)
+    }
+    
+    let index = closestIndex(for: touchLocation)
+    
+    if let annotation = currentChartAnnotation {
+      if annotation.annotationView.frame.contains(touchLocation) {
+        removeChartAnnotation()
+        return
+      } else {
+        moveChartAnnotation(to: index)
+      }
+    } else {
+      addChartAnnotation(for: index)
+    }
+  }
+  
+  override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+    guard let touchLocation = touches.first?.location(in: self), chartBounds.contains(touchLocation), let currentAnnotation = currentChartAnnotation else {
+      return
+    }
+    
+    let index = closestIndex(for: touchLocation)
+    if index != currentAnnotation.displayedIndex {
+      moveChartAnnotation(to: index)
+    }
+  }
+  
+  private func closestIndex(for touchLocation: CGPoint) -> Int {
+    let xPositionInChartBounds = touchLocation.x - chartBounds.origin.x
+    let translatedToDisplayRange = (CGFloat(currentXIndexRange.upperBound) - CGFloat(currentXIndexRange.lowerBound)) * (xPositionInChartBounds / chartBounds.width) + CGFloat(currentXIndexRange.lowerBound)
+    return Int(round(translatedToDisplayRange))
+  }
+  
+  // MARK: - Reset
+  
+  private func removeDrawings() {
+    drawings?.drawings.forEach{$0.shapeLayer.removeFromSuperlayer()}
+    drawings = nil
+  }
+  
+  private func removeAxis() {
+    removeZeroAxis()
+    removeHorizontalAxes()
+  }
+  
+  private func removeZeroAxis() {
+    zeroAxis?.labelLayer.removeFromSuperlayer()
+    zeroAxis?.lineLayer.removeFromSuperlayer()
+    zeroAxis = nil
+  }
+  
+  private func removeHorizontalAxes() {
+    horizontalAxes?.forEach{
+      $0.labelLayer.removeFromSuperlayer()
+      $0.lineLayer.removeFromSuperlayer()
+    }
+    horizontalAxes = nil
+  }
+  
+  private func removeGuideLabels() {
+    removeActiveGuideLabels()
+    removeTransitioningGuideLabels()
+  }
+  
+  private func removeActiveGuideLabels() {
+    activeGuideLabels?.forEach{$0.textLayer.removeFromSuperlayer()}
+    activeGuideLabels = nil
+  }
+  
+  private func removeTransitioningGuideLabels() {
+    transitioningGuideLabels?.forEach{$0.textLayer.removeFromSuperlayer()}
+    transitioningGuideLabels = nil
+  }
+  
+  private func removeChartAnnotation() {
+    if let annotation = currentChartAnnotation {
+      annotation.lineLayer.removeFromSuperlayer()
+      annotation.annotationView.removeFromSuperview()
+      for layer in annotation.circleLayers {
+        layer.removeFromSuperlayer()
+      }
+      currentChartAnnotation = nil
+    }
+  }
+  
+  // MARK: - Helping functions
+  
+  private func convertToPoints(xVector: [CGFloat], yVector: [CGFloat]) -> [CGPoint] {
+    var points = [CGPoint]()
+    for i in 0..<xVector.count {
+      points.append(CGPoint(x: xVector[i], y: yVector[i]))
+    }
+    return points
+  }
+  
+  private func getNormalizedYVectors() -> NormalizedYVectors{
+    return valuesStartFromZero
+      ? chart.normalizedYVectorsFromZeroMinimum(in: currentXIndexRange, excludedIdxs: hiddenDrawingIndicies)
+      : chart.normalizedYVectorsFromLocalMinimum(in: currentXIndexRange, excludedIdxs: hiddenDrawingIndicies)
+  }
+  
+  private func getNormalizedXVector() -> ValueVector {
+    return chart.normalizedXVector(in: currentXIndexRange)
+  }
+  
+  private func mapToChartBoundsWidth(_ vector: ValueVector) -> ValueVector {
+    return vector.map{$0 * chartBounds.size.width + chartBounds.origin.x}
+  }
+  
+  private func mapToChartBoundsHeight(_ vector: ValueVector) -> ValueVector {
+    return vector.map{chartBounds.size.height - ($0 * chartBounds.size.height) + chartBounds.origin.y}
+  }
+  
+  /// Calculates what is the best "power of two" for the provided count, depending on the max number of labels that fit the screen. Leftover is how far am I to the point, where the best index would change. < 0.5 is changing towards smaller spacing. >0.5 changing towards higher spacing.
+  private func bestIndexSpacing(for indexCount: Int) -> (spacing: Int, leftover: CGFloat) {
+    var i = 1
+    while i * numOfGuideLabels < indexCount {
+      i *= 2
+    }
+    let extra = indexCount % ((i / 2) * numOfGuideLabels)
+    let higherBound = i * numOfGuideLabels
+    let leftover = 2.0 * CGFloat(extra) / CGFloat(higherBound)
+    return (i, leftover)
+  }
+  
+  // MARK: - Structs and typealiases
+  
+  private struct HorizontalAxis {
+    let lineLayer: CAShapeLayer
+    let labelLayer: CATextLayer
+  }
+  
+  private struct ChartDrawings {
+    let drawings: [Drawing]
+    let xPositions: [CGFloat]
+  }
+  
+  private struct Drawing {
+    let shapeLayer: CAShapeLayer
+    let yPositions: [CGFloat]
+  }
+  
+  private struct ChartAnnotation {
+    let lineLayer: CAShapeLayer
+    let annotationView: TGCAChartAnnotationView
+    let circleLayers: [CAShapeLayer]
+    private(set) var displayedIndex: Int
+    
+    mutating func updateDiplayedIndex(to toIndex: Int) {
+      displayedIndex = toIndex
+    }
+  }
+  
+  private struct zPositions {
+    enum Annotation: CGFloat {
+      case view = 10.0
+      case lineShape = 5.0
+      case circleShape = 6.0
+    }
+    
+    enum Chart: CGFloat {
+      case axis = -10.0
+      case axisLabel = 7.0
+      case graph = 0
+    }
+  }
+  
+  private struct GuideLabel {
+    let textLayer: CATextLayer
+    let indexInChart: Int
+  }
+  
+}
+
+extension TGCAChartView: ThemeChangeObserving {
+  
+  override func didMoveToWindow() {
+    if window != nil {
+      subscribe()
+    }
+  }
+  
+  override func willMove(toWindow newWindow: UIWindow?) {
+    if newWindow == nil {
+      unsubscribe()
+    }
+  }
+  
+  func handleThemeChangedNotification() {
+    applyCurrentTheme(animated: true)
+  }
+  
+  func applyCurrentTheme(animated: Bool = false) {
+    let theme = UIApplication.myDelegate.currentTheme
+    
+    axisColor = theme.axisColor.cgColor
+    axisLabelColor = theme.axisLabelColor.cgColor
+    circlePointFillColor = theme.foregroundColor.cgColor
+    
+    func applyChanges() {
+      //annotation
+      currentChartAnnotation?.circleLayers.forEach{$0.fillColor = circlePointFillColor}
+      currentChartAnnotation?.lineLayer.strokeColor = axisColor
+      
+      //axis
+      horizontalAxes?.forEach{
+        $0.lineLayer.strokeColor = axisColor
+        $0.labelLayer.foregroundColor = axisLabelColor
+      }
+      zeroAxis?.labelLayer.foregroundColor = axisLabelColor
+      zeroAxis?.lineLayer.strokeColor = axisColor
+      
+      //guide labels
+      activeGuideLabels?.forEach{$0.textLayer.foregroundColor = axisLabelColor}
+      transitioningGuideLabels?.forEach{$0.textLayer.foregroundColor = axisLabelColor}
+    }
+    
+    if animated {
+      CATransaction.begin()
+      CATransaction.setAnimationDuration(0.25)
+      applyChanges()
+      CATransaction.commit()
+    } else {
+      applyChanges()
+    }
+  }
+  
+}
