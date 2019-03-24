@@ -66,10 +66,12 @@ struct LinearChart {
     return (vectors.map{$0.map{(($0 - minimum) / (maximum - minimum))}}, minimum...maximum)
   }
   
+  /// Maps the value in range of 0...1 to an according index in the xVector
   func translatedIndex(for xRangePosition: CGFloat) -> Int {
     return Int(round(CGFloat(xVector.count - 1) * xRangePosition))
   }
   
+  /// Maps the subrange of 0...1 to an according Int range of indexes of the xVector
   func translatedBounds(for xRange: ClosedRange<CGFloat>) -> ClosedRange<Int> {
     return translatedIndex(for: xRange.lowerBound)...translatedIndex(for: xRange.upperBound)
   }
@@ -99,7 +101,6 @@ struct LinearChart {
 struct ChartValueVector {
   
   let metaData: ChartValueVectorMetaData
-  
   let vector: ValueVector
   
   init(vector: ValueVector, metaData: ChartValueVectorMetaData) {
