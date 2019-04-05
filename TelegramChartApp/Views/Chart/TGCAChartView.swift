@@ -604,7 +604,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
     var circleLayers = [CAShapeLayer]()
     
     var coloredValues = [(CGFloat, UIColor)]()
-    let date = Date(timeIntervalSince1970: TimeInterval(chart.xVector[index])/1000)
+    let date = chart.datesVector[index]
     
     for i in 0..<drawings.drawings.count {
       let drawing = drawings.drawings[i]
@@ -650,7 +650,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
     let xPoint = drawings.xPositions[index]
     
     var coloredValues = [(CGFloat, UIColor)]()
-    let date = Date(timeIntervalSince1970: TimeInterval(chart.xVector[index])/1000)
+    let date = chart.datesVector[index]
     
     for i in 0..<drawings.drawings.count {
       let drawing = drawings.drawings[i]
