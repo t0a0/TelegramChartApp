@@ -14,14 +14,11 @@
 		1657643F2234A0FE00173E97 /* TGCATrimmerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657643E2234A0FE00173E97 /* TGCATrimmerView.swift */; };
 		1657644622354E1600173E97 /* chart_data.json in Resources */ = {isa = PBXBuildFile; fileRef = 1657644522354E1600173E97 /* chart_data.json */; };
 		1657644922354F4100173E97 /* UIColor+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657644822354F4100173E97 /* UIColor+Hex.swift */; };
-		16576450223575C800173E97 /* TGCAChartsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657644F223575C800173E97 /* TGCAChartsViewController.swift */; };
 		165764562235C77100173E97 /* TGCAChartDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 165764552235C77100173E97 /* TGCAChartDetailViewController.swift */; };
 		165764582235D70700173E97 /* UIImage+Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 165764572235D70700173E97 /* UIImage+Color.swift */; };
 		1657645A2236F81400173E97 /* TGCAChartStructs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 165764592236F81400173E97 /* TGCAChartStructs.swift */; };
 		1657645C2237019700173E97 /* TGCAJsonToChartService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657645B2237019700173E97 /* TGCAJsonToChartService.swift */; };
 		1657645E2237135000173E97 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657645D2237135000173E97 /* Constants.swift */; };
-		16576469223C4DFD00173E97 /* TGCAChartTrimTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16576467223C4DFD00173E97 /* TGCAChartTrimTableViewCell.swift */; };
-		1657646A223C4DFD00173E97 /* TGCAChartTrimTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 16576468223C4DFD00173E97 /* TGCAChartTrimTableViewCell.xib */; };
 		1657646C223D1DDE00173E97 /* TGCAColorTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657646B223D1DDD00173E97 /* TGCAColorTheme.swift */; };
 		1657646E223D27E600173E97 /* TGCANavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657646D223D27E600173E97 /* TGCANavigationController.swift */; };
 		16576470223D287F00173E97 /* Protocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657646F223D287F00173E97 /* Protocols.swift */; };
@@ -48,14 +45,11 @@
 		1657643E2234A0FE00173E97 /* TGCATrimmerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCATrimmerView.swift; sourceTree = "<group>"; };
 		1657644522354E1600173E97 /* chart_data.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = chart_data.json; sourceTree = "<group>"; };
 		1657644822354F4100173E97 /* UIColor+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+Hex.swift"; sourceTree = "<group>"; };
-		1657644F223575C800173E97 /* TGCAChartsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartsViewController.swift; sourceTree = "<group>"; };
 		165764552235C77100173E97 /* TGCAChartDetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartDetailViewController.swift; sourceTree = "<group>"; };
 		165764572235D70700173E97 /* UIImage+Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+Color.swift"; sourceTree = "<group>"; };
 		165764592236F81400173E97 /* TGCAChartStructs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartStructs.swift; sourceTree = "<group>"; };
 		1657645B2237019700173E97 /* TGCAJsonToChartService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAJsonToChartService.swift; sourceTree = "<group>"; };
 		1657645D2237135000173E97 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
-		16576467223C4DFD00173E97 /* TGCAChartTrimTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartTrimTableViewCell.swift; sourceTree = "<group>"; };
-		16576468223C4DFD00173E97 /* TGCAChartTrimTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TGCAChartTrimTableViewCell.xib; sourceTree = "<group>"; };
 		1657646B223D1DDD00173E97 /* TGCAColorTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAColorTheme.swift; sourceTree = "<group>"; };
 		1657646D223D27E600173E97 /* TGCANavigationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCANavigationController.swift; sourceTree = "<group>"; };
 		1657646F223D287F00173E97 /* Protocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Protocols.swift; sourceTree = "<group>"; };
@@ -136,7 +130,6 @@
 		1657644E2235757F00173E97 /* ViewControllers */ = {
 			isa = PBXGroup;
 			children = (
-				1657644F223575C800173E97 /* TGCAChartsViewController.swift */,
 				165764552235C77100173E97 /* TGCAChartDetailViewController.swift */,
 				1657646D223D27E600173E97 /* TGCANavigationController.swift */,
 			);
@@ -184,8 +177,6 @@
 				167FCB002234379F001CA7E5 /* TGCAButtonTableViewCell.xib */,
 				1657643422343B5B00173E97 /* TGCAChartTableViewCell.swift */,
 				1657643522343B5B00173E97 /* TGCAChartTableViewCell.xib */,
-				16576467223C4DFD00173E97 /* TGCAChartTrimTableViewCell.swift */,
-				16576468223C4DFD00173E97 /* TGCAChartTrimTableViewCell.xib */,
 			);
 			path = TableViewCells;
 			sourceTree = "<group>";
@@ -290,7 +281,6 @@
 				168DDC8B2241ACA300F51300 /* TGCATableViewSupplementView.xib in Resources */,
 				1657644622354E1600173E97 /* chart_data.json in Resources */,
 				167FCAD422343348001CA7E5 /* Main.storyboard in Resources */,
-				1657646A223C4DFD00173E97 /* TGCAChartTrimTableViewCell.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -302,14 +292,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				1657643D22349B0000173E97 /* TGCATrimmerShoulderView.swift in Sources */,
-				16576450223575C800173E97 /* TGCAChartsViewController.swift in Sources */,
 				1657646C223D1DDE00173E97 /* TGCAColorTheme.swift in Sources */,
 				1657645C2237019700173E97 /* TGCAJsonToChartService.swift in Sources */,
 				16576472223E63A100173E97 /* TGCAChartAnnotationView.swift in Sources */,
 				1657643F2234A0FE00173E97 /* TGCATrimmerView.swift in Sources */,
 				1657645A2236F81400173E97 /* TGCAChartStructs.swift in Sources */,
 				1657643622343B5B00173E97 /* TGCAChartTableViewCell.swift in Sources */,
-				16576469223C4DFD00173E97 /* TGCAChartTrimTableViewCell.swift in Sources */,
 				165764562235C77100173E97 /* TGCAChartDetailViewController.swift in Sources */,
 				167FCACF22343348001CA7E5 /* AppDelegate.swift in Sources */,
 				168DDC8D2241ACBA00F51300 /* TGCATableViewSupplementView.swift in Sources */,

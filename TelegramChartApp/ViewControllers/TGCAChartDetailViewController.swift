@@ -67,7 +67,6 @@ class TGCAChartDetailViewController: UIViewController {
   func registerCells() {
     tableView.register(UINib(nibName: "TGCAButtonTableViewCell", bundle: nil), forCellReuseIdentifier: TGCAButtonTableViewCell.defaultReuseId)
     tableView.register(UINib(nibName: "TGCAChartTableViewCell", bundle: nil), forCellReuseIdentifier: TGCAChartTableViewCell.defaultReuseId)
-    tableView.register(UINib(nibName: "TGCAChartTrimTableViewCell", bundle: nil), forCellReuseIdentifier: TGCAChartTrimTableViewCell.defaultReuseId)
     tableView.register(UITableViewCell.self, forCellReuseIdentifier: "chartColumnLabelCell")
   }
   
