@@ -13,4 +13,4 @@ import UIKit
 let THEME_HAS_CHANGED_NOTIFICATION_NAME = Notification.Name(rawValue: "theme_has_changed")
 let ZORange: ClosedRange<CGFloat> = 0.0...1.0
 
-let ANIMATION_DURATION: TimeInterval = 1.1
+let ANIMATION_DURATION: TimeInterval = 0.1

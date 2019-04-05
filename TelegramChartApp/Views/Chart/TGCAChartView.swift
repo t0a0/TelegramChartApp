@@ -129,6 +129,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
     removeChartAnnotation()
     currentYValueRange = 0...0
     hiddenDrawingIndicies = nil
+    currentXIndexRange = nil
   }
   
   /// Configures the view to display the chart.
