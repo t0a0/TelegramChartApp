@@ -29,11 +29,11 @@ class TGCATrimmerView: UIView {
    */
   var onChange: ((_ newRange: ClosedRange<CGFloat>, _ event: DisplayRangeChangeEvent) -> ())?
   
-  func setCurrentRange(_ range: ClosedRange<CGFloat>) {
+  func setCurrentRange(_ range: ClosedRange<CGFloat>, notify: Bool = false) {
     leftConstraint?.constant = (range.lowerBound / (totalRange.upperBound - totalRange.lowerBound)) * frame.width
     rightConstraint?.constant = -1 * (frame.width - (range.upperBound / (totalRange.upperBound - totalRange.lowerBound)) * frame.width)
     layoutIfNeeded()
-    notifyRangeChanged(event: .Reset)
+    if notify { notifyRangeChanged(event: .Reset) }
   }
   
   /// The minimum range allowed for the trimming. Between 0.0 and 1.0.
@@ -335,6 +335,9 @@ extension TGCATrimmerView: ThemeChangeObserving {
       rightShoulderView.backgroundColor = theme.trimmerShoulderColor
       leftMaskView.backgroundColor = theme.backgroundColor
       rightMaskView.backgroundColor = theme.backgroundColor
+    }
+    
+    func applyLayerChanges() {
       trimmedAreaView.layer.borderColor = theme.trimmerShoulderColor.cgColor
     }
     
@@ -342,8 +345,15 @@ extension TGCATrimmerView: ThemeChangeObserving {
       UIView.animate(withDuration: ANIMATION_DURATION) {
         applyChanges()
       }
+      
+      CATransaction.begin()
+      CATransaction.setAnimationDuration(ANIMATION_DURATION)
+      applyLayerChanges()
+      CATransaction.commit()
+      
     } else {
       applyChanges()
+      applyLayerChanges()
     }
   }
   

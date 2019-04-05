@@ -129,17 +129,21 @@ class TGCAChartView: UIView, LinearChartDisplaying {
     removeChartAnnotation()
     currentYValueRange = 0...0
     hiddenDrawingIndicies = nil
-    //do not reset x range
   }
   
   /// Configures the view to display the chart.
-  func configure(with chart: LinearChart, hiddenIndicies: Set<Int>) {
+  func configure(with chart: LinearChart, hiddenIndicies: Set<Int>, displayRange: ClosedRange<CGFloat>? = nil) {
     reset()
     configureChartBounds()
     configureHorizontalAxesDefaultPositions()
     self.chart = chart
     hiddenDrawingIndicies = hiddenIndicies
-    currentXIndexRange = /*currentXIndexRange ?? */0...chart.xVector.count-1
+    
+    var curXRange = currentXIndexRange ?? 0...chart.xVector.count-1
+    if let dR = displayRange {
+      curXRange = chart.translatedBounds(for: dR)
+    }
+    currentXIndexRange = curXRange
     
     let normalizedYVectors = getNormalizedYVectors()
     let yVectors = normalizedYVectors.vectors.map{mapToChartBoundsHeight($0)}

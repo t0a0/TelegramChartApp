@@ -125,6 +125,14 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
     let tcv = cell.thumbnailChartView
     let tv = cell.trimmerView
     
+    
+    
+    if let chart = charts?[section] {
+      cv?.configure(with: chart.chart, hiddenIndicies: chart.hiddenIndicies, displayRange: chart.trimRange)
+      tcv?.configure(with: chart.chart, hiddenIndicies: chart.hiddenIndicies)
+      tv?.setCurrentRange(chart.trimRange)
+    }
+    
     tv?.onChange = { [weak self] (newRange, event) in
       if event == .Started {
         cv?.isUserInteractionEnabled = false
@@ -134,13 +142,6 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
       cv?.trimDisplayRange(to: newRange, with: event)
       self?.charts?[section].updateTrimRange(to: newRange)
     }
-    
-    if let chart = charts?[section] {
-      cv?.configure(with: chart.chart, hiddenIndicies: chart.hiddenIndicies)
-      tcv?.configure(with: chart.chart, hiddenIndicies: chart.hiddenIndicies)
-      tv?.setCurrentRange(chart.trimRange)
-    }
-    
     
     cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: CGFloat.greatestFiniteMagnitude)
     cell.directionalLayoutMargins = .zero
