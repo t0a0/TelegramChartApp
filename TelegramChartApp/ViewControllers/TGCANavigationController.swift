@@ -15,7 +15,7 @@ class TGCANavigationController: UINavigationController, ThemeChangeObserving {
   }
   
   func handleThemeChangedNotification() {
-    applyCurrentTheme()
+    applyCurrentTheme(animated: true)
   }
   
   override func viewDidLoad() {
@@ -30,15 +30,25 @@ class TGCANavigationController: UINavigationController, ThemeChangeObserving {
     unsubscribe()
   }
   
-  func applyCurrentTheme() {
+  func applyCurrentTheme(animated: Bool = false) {
     let theme = UIApplication.myDelegate.currentTheme
-    setNeedsStatusBarAppearanceUpdate()
-    UIView.animate(withDuration: ANIMATION_DURATION) { [weak self] in
-      self?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: theme.mainTextColor]
-      self?.navigationBar.barTintColor = theme.foregroundColor
-      self?.navigationBar.tintColor = theme.accentColor
-      self?.navigationBar.layoutIfNeeded()
+    
+    func applyChanges() {
+      setNeedsStatusBarAppearanceUpdate()
+      navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: theme.mainTextColor]
+      navigationBar.barTintColor = theme.foregroundColor
+      navigationBar.tintColor = theme.accentColor
+      navigationBar.layoutIfNeeded()
     }
+    
+    if animated {
+      UIView.animate(withDuration: ANIMATION_DURATION) {
+        applyChanges()
+      }
+    } else {
+      applyChanges()
+    }
+    
   }
   
 }
