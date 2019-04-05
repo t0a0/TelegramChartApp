@@ -33,8 +33,6 @@
 		167FCB022234379F001CA7E5 /* TGCAButtonTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 167FCB002234379F001CA7E5 /* TGCAButtonTableViewCell.xib */; };
 		168DDC8622415EB300F51300 /* TGCAChartLabelFormatterService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 168DDC8522415EB300F51300 /* TGCAChartLabelFormatterService.swift */; };
 		168DDC88224198D500F51300 /* ClosedRange+Distance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 168DDC87224198D500F51300 /* ClosedRange+Distance.swift */; };
-		168DDC8B2241ACA300F51300 /* TGCATableViewSupplementView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 168DDC8A2241ACA300F51300 /* TGCATableViewSupplementView.xib */; };
-		168DDC8D2241ACBA00F51300 /* TGCATableViewSupplementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 168DDC8C2241ACBA00F51300 /* TGCATableViewSupplementView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -66,8 +64,6 @@
 		167FCB002234379F001CA7E5 /* TGCAButtonTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TGCAButtonTableViewCell.xib; sourceTree = "<group>"; };
 		168DDC8522415EB300F51300 /* TGCAChartLabelFormatterService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartLabelFormatterService.swift; sourceTree = "<group>"; };
 		168DDC87224198D500F51300 /* ClosedRange+Distance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ClosedRange+Distance.swift"; sourceTree = "<group>"; };
-		168DDC8A2241ACA300F51300 /* TGCATableViewSupplementView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TGCATableViewSupplementView.xib; sourceTree = "<group>"; };
-		168DDC8C2241ACBA00F51300 /* TGCATableViewSupplementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCATableViewSupplementView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -184,8 +180,6 @@
 		1682D8092245E27D000E76E4 /* TableViewViews */ = {
 			isa = PBXGroup;
 			children = (
-				168DDC8A2241ACA300F51300 /* TGCATableViewSupplementView.xib */,
-				168DDC8C2241ACBA00F51300 /* TGCATableViewSupplementView.swift */,
 				167FCAFE2234377D001CA7E5 /* TableViewCells */,
 			);
 			path = TableViewViews;
@@ -279,7 +273,6 @@
 				16576474223E640D00173E97 /* TGCAChartAnnotationView.xib in Resources */,
 				1657643722343B5B00173E97 /* TGCAChartTableViewCell.xib in Resources */,
 				1657643322343A5600173E97 /* TGCAChartView.xib in Resources */,
-				168DDC8B2241ACA300F51300 /* TGCATableViewSupplementView.xib in Resources */,
 				1657644622354E1600173E97 /* chart_data.json in Resources */,
 				167FCAD422343348001CA7E5 /* Main.storyboard in Resources */,
 			);
@@ -301,7 +294,6 @@
 				1657643622343B5B00173E97 /* TGCAChartTableViewCell.swift in Sources */,
 				165764562235C77100173E97 /* TGCAChartDetailViewController.swift in Sources */,
 				167FCACF22343348001CA7E5 /* AppDelegate.swift in Sources */,
-				168DDC8D2241ACBA00F51300 /* TGCATableViewSupplementView.swift in Sources */,
 				16576470223D287F00173E97 /* Protocols.swift in Sources */,
 				168DDC8622415EB300F51300 /* TGCAChartLabelFormatterService.swift in Sources */,
 				165764582235D70700173E97 /* UIImage+Color.swift in Sources */,

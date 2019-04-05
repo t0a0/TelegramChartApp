@@ -12,9 +12,7 @@ import UIKit
 class TGCAChartDetailViewController: UIViewController {
   
   @IBOutlet weak var tableView: UITableView!
-  
-//  var sectionheaderViews = NSHashTable<TGCATableViewSupplementView>.weakObjects()
-  
+    
   private class ChartStruct {
     let chart: LinearChart
     private(set) var hiddenIndicies: Set<Int> = []
@@ -61,7 +59,6 @@ class TGCAChartDetailViewController: UIViewController {
     tableView.canCancelContentTouches = false
     tableView.delaysContentTouches = true
     subscribe()
-//    sectionheaderViews[0]
   }
   
   func registerCells() {
@@ -188,17 +185,6 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
 
 extension TGCAChartDetailViewController: UITableViewDelegate {
   
-//  func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-//    if let charts = charts, section < charts.count {
-//      let v = TGCATableViewSupplementView(frame: CGRect.zero)
-//      v.topLabel.isHidden = true
-//      v.bottomLabel.textColor = UIApplication.myDelegate.currentTheme.tableViewFooterHeaderColor
-//      v.bottomLabel.text = (charts[section].title ?? "Untitled chart").uppercased()
-//      sectionheaderViews[section] = v
-//      return v
-//    }
-//    return nil
-//  }
   func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
     if let charts = charts {
       if section < charts.count {
@@ -228,6 +214,17 @@ extension TGCAChartDetailViewController: UITableViewDelegate {
       tableView.cellForRow(at: indexPath)?.accessoryType = (charts?[indexPath.section].hiddenIndicies.contains(yLineIndex) ?? false) ? .none : .checkmark
     }
   }
+
+  
+  func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
+    let theme = UIApplication.myDelegate.currentTheme
+    if let header = view as? UITableViewHeaderFooterView {
+      header.textLabel?.textColor = theme.tableViewFooterHeaderColor
+      let clearView = UIView()
+      clearView.backgroundColor = .clear
+      header.backgroundView = clearView
+    }
+  }
 }
 
 extension TGCAChartDetailViewController: ThemeChangeObserving {
@@ -243,9 +240,11 @@ extension TGCAChartDetailViewController: ThemeChangeObserving {
       tableView.backgroundColor = theme.backgroundColor
       tableView.separatorColor = theme.axisColor
       tableView.tintColor = theme.accentColor
-//      sectionheaderViews.forEach{
-//        $0.value.bottomLabel.textColor = theme.tableViewFooterHeaderColor
-//      }
+      for i in 0..<tableView.numberOfSections {
+        if let header = tableView.headerView(forSection: i) {
+          header.textLabel?.textColor = theme.tableViewFooterHeaderColor
+        }
+      }
       tableView.visibleCells.forEach{
         $0.backgroundColor = theme.foregroundColor
         $0.textLabel?.textColor = theme.mainTextColor
