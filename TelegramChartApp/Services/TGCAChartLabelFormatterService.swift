@@ -15,8 +15,7 @@ struct TGCAChartLabelFormatterService: ChartLabelFormatterProtocol {
 
   init() {
     let df = DateFormatter()
-    df.locale = Locale.current
-    df.timeZone = TimeZone.current
+    df.locale = Locale(identifier: "en_EN")
     df.dateFormat = "MMM dd"    
     self.dateFormatter = df
   }

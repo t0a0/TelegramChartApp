@@ -10,6 +10,10 @@ import UIKit
 
 class TGCANavigationController: UINavigationController, ThemeChangeObserving {
   
+  override var preferredStatusBarStyle: UIStatusBarStyle {
+    return UIApplication.myDelegate.currentTheme.statusBarStyle
+  }
+  
   func handleThemeChangedNotification() {
     applyCurrentTheme()
   }
@@ -18,6 +22,7 @@ class TGCANavigationController: UINavigationController, ThemeChangeObserving {
     super.viewDidLoad()
     applyCurrentTheme()
     navigationBar.isTranslucent = false
+    interactivePopGestureRecognizer?.isEnabled = false
     subscribe()
   }
   
@@ -27,8 +32,13 @@ class TGCANavigationController: UINavigationController, ThemeChangeObserving {
   
   func applyCurrentTheme() {
     let theme = UIApplication.myDelegate.currentTheme
-    navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: theme.mainTextColor]
-    navigationBar.barTintColor = theme.foregroundColor
-    navigationBar.tintColor = theme.accentColor
+    setNeedsStatusBarAppearanceUpdate()
+    UIView.animate(withDuration: ANIMATION_DURATION) { [weak self] in
+      self?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: theme.mainTextColor]
+      self?.navigationBar.barTintColor = theme.foregroundColor
+      self?.navigationBar.tintColor = theme.accentColor
+      self?.navigationBar.layoutIfNeeded()
+    }
   }
+  
 }

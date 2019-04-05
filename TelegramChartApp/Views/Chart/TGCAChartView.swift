@@ -45,7 +45,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
   override var bounds: CGRect {
     didSet {
       if chart != nil {
-        configure(with: chart)
+        configure(with: chart, hiddenIndicies: hiddenDrawingIndicies)
       }
     }
   }
@@ -121,27 +121,25 @@ class TGCAChartView: UIView, LinearChartDisplaying {
   
   // MARK: - Public functions
   
-  func reset(alsoResetHidden: Bool = false) {
+  func reset() {
     chart = nil
     removeDrawings()
     removeAxis()
     removeGuideLabels()
     removeChartAnnotation()
     currentYValueRange = 0...0
-    if alsoResetHidden {
-      hiddenDrawingIndicies = nil
-    }
+    hiddenDrawingIndicies = nil
     //do not reset x range
   }
   
   /// Configures the view to display the chart.
-  func configure(with chart: LinearChart) {
+  func configure(with chart: LinearChart, hiddenIndicies: Set<Int>) {
     reset()
     configureChartBounds()
     configureHorizontalAxesDefaultPositions()
     self.chart = chart
-    hiddenDrawingIndicies = hiddenDrawingIndicies ?? Set()
-    currentXIndexRange = currentXIndexRange ?? 0...chart.xVector.count-1
+    hiddenDrawingIndicies = hiddenIndicies
+    currentXIndexRange = /*currentXIndexRange ?? */0...chart.xVector.count-1
     
     let normalizedYVectors = getNormalizedYVectors()
     let yVectors = normalizedYVectors.vectors.map{mapToChartBoundsHeight($0)}
@@ -209,7 +207,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
         pathAnimation.fromValue = drawing.shapeLayer.presentation()?.value(forKey: "path") ?? drawing.shapeLayer.path
         drawing.shapeLayer.path = newPath.cgPath
         pathAnimation.toValue = drawing.shapeLayer.path
-        pathAnimation.duration = 0.25
+        pathAnimation.duration = ANIMATION_DURATION
         if !didYChange {
           pathAnimation.beginTime = oldAnim.beginTime
         } else {
@@ -222,7 +220,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
           pathAnimation.fromValue = drawing.shapeLayer.path
           drawing.shapeLayer.path = newPath.cgPath
           pathAnimation.toValue = drawing.shapeLayer.path
-          pathAnimation.duration = 0.25
+          pathAnimation.duration = ANIMATION_DURATION
           pathAnimation.beginTime = CACurrentMediaTime()
           drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
         } else {
@@ -276,7 +274,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
         pathAnimation.fromValue = oldPath ?? drawing.shapeLayer.path
         drawing.shapeLayer.path = newPath.cgPath
         pathAnimation.toValue = drawing.shapeLayer.path
-        pathAnimation.duration = 0.25
+        pathAnimation.duration = ANIMATION_DURATION
         drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
       }
       
@@ -302,7 +300,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
         opacityAnimation.fromValue = oldOpacity ?? drawing.shapeLayer.opacity
         drawing.shapeLayer.opacity = originalHidden ? 1 : 0
         opacityAnimation.toValue = drawing.shapeLayer.opacity
-        opacityAnimation.duration = 0.25
+        opacityAnimation.duration = ANIMATION_DURATION
         drawing.shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
       }
       
@@ -582,7 +580,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
     DispatchQueue.main.async {
       CATransaction.flush()
       CATransaction.begin()
-      CATransaction.setAnimationDuration(0.25)
+      CATransaction.setAnimationDuration(ANIMATION_DURATION)
       CATransaction.setCompletionBlock{
         for r in removalBlocks {
           r()
@@ -680,7 +678,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
         opacityAnim.toValue = circleLayer.opacity
         
         let grp = CAAnimationGroup()
-        grp.duration = 0.25
+        grp.duration = ANIMATION_DURATION
         grp.animations = [pathAnim, opacityAnim]
         circleLayer.add(grp, forKey: "circleGrpAnimation")
         
@@ -999,7 +997,7 @@ extension TGCAChartView: ThemeChangeObserving {
     
     if animated {
       CATransaction.begin()
-      CATransaction.setAnimationDuration(0.25)
+      CATransaction.setAnimationDuration(ANIMATION_DURATION)
       applyChanges()
       CATransaction.commit()
     } else {

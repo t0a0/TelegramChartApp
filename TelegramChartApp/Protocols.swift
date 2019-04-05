@@ -47,10 +47,10 @@ protocol ChartLabelFormatterProtocol {
 
 protocol LinearChartDisplaying {
   
-  func configure(with chart: LinearChart)
+  func configure(with chart: LinearChart, hiddenIndicies: Set<Int>)
   func toggleHidden(identifier: String)
   func toggleHidden(at index: Int)
   func trimDisplayRange(to newRange: ClosedRange<CGFloat>, with event: DisplayRangeChangeEvent)
-  func reset(alsoResetHidden: Bool)
+  func reset()
   
 }

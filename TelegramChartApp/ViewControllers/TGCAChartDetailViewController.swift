@@ -13,26 +13,55 @@ class TGCAChartDetailViewController: UIViewController {
   
   @IBOutlet weak var tableView: UITableView!
   
-  weak var sectionheaderView: TGCATableViewSupplementView?
+//  var sectionheaderViews = NSHashTable<TGCATableViewSupplementView>.weakObjects()
   
-  weak var chartCell: TGCAChartTableViewCell?
-  weak var chartTrimCell: TGCAChartTrimTableViewCell?
+  private class ChartStruct {
+    let chart: LinearChart
+    private(set) var hiddenIndicies: Set<Int> = []
+    private(set) var trimRange: ClosedRange<CGFloat>
+    
+    init(chart: LinearChart) {
+      self.chart = chart
+      self.trimRange = 0.25...0.5
+    }
+    
+    func updateTrimRange(to newRange: ClosedRange<CGFloat>) {
+      trimRange = newRange
+    }
+    
+    func toggleHiden(index: Int) {
+      if hiddenIndicies.contains(index) {
+        hiddenIndicies.remove(index)
+      } else {
+        hiddenIndicies.insert(index)
+      }
+    }
+  }
   
-  var chart: LinearChart?
+  private var charts: [ChartStruct]?
   
-  var hiddenGrapsIndicies = [Int]()
+  override func awakeFromNib() {
+    super.awakeFromNib()
+    if let charts = TGCAJsonToChartService().parseJson(named: "chart_data"){
+      self.charts = charts.map{ChartStruct(chart: $0)}
+    } else {
+      let alert = UIAlertController(title: "Could not parse JSON", message: nil, preferredStyle: .alert)
+      alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: nil))
+      present(alert, animated: true, completion: nil)
+    }
+  }
   
   override func viewDidLoad() {
     super.viewDidLoad()
     registerCells()
     applyCurrentTheme()
     title = "Statistics"
-    navigationController?.interactivePopGestureRecognizer?.isEnabled = false
     tableView.showsVerticalScrollIndicator = false
     tableView.showsHorizontalScrollIndicator = false
     tableView.canCancelContentTouches = false
     tableView.delaysContentTouches = true
     subscribe()
+//    sectionheaderViews[0]
   }
   
   func registerCells() {
@@ -45,101 +74,97 @@ class TGCAChartDetailViewController: UIViewController {
   deinit {
     unsubscribe()
   }
-  
 }
 
 extension TGCAChartDetailViewController: UITableViewDataSource {
   
   func numberOfSections(in tableView: UITableView) -> Int {
-    return 2
+    if let charts = charts {
+      return charts.count + 1
+    }
+    return 0
   }
+  
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    switch section {
-    case 0:
-      guard let chart = chart else {
-        return 0
+    if let charts = charts {
+      if section < charts.count {
+        return charts[section].chart.yVectors.count + 1
       }
-      return chart.yVectors.count + 2
-    default:
       return 1
     }
+    return 0
   }
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    if indexPath.section == 0 {
-      if indexPath.row == 0 {
-        let cell = tableView.dequeueReusableCell(withIdentifier: TGCAChartTableViewCell.defaultReuseId) as! TGCAChartTableViewCell
-        configureChartCell(cell)
-        chartCell = cell
-        return cell
-      } else if indexPath.row == 1 {
-        let cell = tableView.dequeueReusableCell(withIdentifier: TGCAChartTrimTableViewCell.defaultReuseId) as! TGCAChartTrimTableViewCell
-        configureChartTrimCell(cell)
-        chartTrimCell = cell
-        return cell
-      } else {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "chartColumnLabelCell")!
-        configureChartColumnCell(cell, columnIndex: indexPath.row - 2)
-        return cell
+    if let charts = charts {
+      if indexPath.section < charts.count {
+        if indexPath.row == 0 {
+          let cell = tableView.dequeueReusableCell(withIdentifier: TGCAChartTableViewCell.defaultReuseId) as! TGCAChartTableViewCell
+          configureChartCell(cell, section: indexPath.section)
+          return cell
+        } else {
+          let cell = tableView.dequeueReusableCell(withIdentifier: "chartColumnLabelCell")!
+          configureChartColumnCell(cell, columnIndex: indexPath.row - 1, section: indexPath.section)
+          return cell
+        }
       }
-    } else {
-      let cell = tableView.dequeueReusableCell(withIdentifier: TGCAButtonTableViewCell.defaultReuseId) as! TGCAButtonTableViewCell
-      configureButtonCell(cell)
-      return cell
     }
+    let cell = tableView.dequeueReusableCell(withIdentifier: TGCAButtonTableViewCell.defaultReuseId) as! TGCAButtonTableViewCell
+    configureButtonCell(cell)
+    return cell
   }
   
   func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-    if indexPath.section == 0 {
-      if indexPath.row == 0 {
-        return 300.0
-      } else if indexPath.row == 1 {
-        return 60.0
+    if let charts = charts {
+      if indexPath.section < charts.count && indexPath.row == 0 {
+        return 360.0
       }
     }
     return 44.0
   }
   
-  func configureChartCell(_ cell: TGCAChartTableViewCell) {
-    cell.chartView.graphLineWidth = 2.0
-    cell.chartView.shouldDisplayAxesAndLabels = true
-    if let chart = chart {
-      cell.chartView.configure(with: chart)
+  
+  func configureChartCell(_ cell: TGCAChartTableViewCell, section: Int) {
+    let cv = cell.chartView
+    let tcv = cell.thumbnailChartView
+    let tv = cell.trimmerView
+    
+    tv?.onChange = { [weak self] (newRange, event) in
+      if event == .Started {
+        cv?.isUserInteractionEnabled = false
+      } else if event == .Ended {
+        cv?.isUserInteractionEnabled = true
+      }
+      cv?.trimDisplayRange(to: newRange, with: event)
+      self?.charts?[section].updateTrimRange(to: newRange)
     }
+    
+    if let chart = charts?[section] {
+      cv?.configure(with: chart.chart, hiddenIndicies: chart.hiddenIndicies)
+      tcv?.configure(with: chart.chart, hiddenIndicies: chart.hiddenIndicies)
+      tv?.setCurrentRange(chart.trimRange)
+    }
+    
+    
     cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: CGFloat.greatestFiniteMagnitude)
     cell.directionalLayoutMargins = .zero
     cell.selectionStyle = .none
     cell.backgroundColor = UIApplication.myDelegate.currentTheme.foregroundColor
   }
   
-  func configureChartTrimCell(_ cell: TGCAChartTrimTableViewCell) {
-    cell.chartView.graphLineWidth = 1.0
-    cell.chartView.animatesPositionOnHide = false
-    cell.chartView.valuesStartFromZero = false
-    cell.chartView.canShowAnnotations = false
-    cell.chartView.isUserInteractionEnabled = false
-    if let chart = chart {
-      cell.chartView.configure(with: chart)
-    }
-    cell.trimmerView.delegate = self
-    cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: CGFloat.greatestFiniteMagnitude)
-    cell.directionalLayoutMargins = .zero
-    cell.selectionStyle = .none
-    cell.backgroundColor = UIApplication.myDelegate.currentTheme.foregroundColor
-  }
-  
-  func configureChartColumnCell(_ cell: UITableViewCell, columnIndex: Int) {
-    cell.selectionStyle = .none
-    if let chart = chart {
-      cell.imageView?.image = UIImage.from(color: chart.yVectors[columnIndex].metaData.color, size: CGSize(width: 12, height: 12))
+  func configureChartColumnCell(_ cell: UITableViewCell, columnIndex: Int, section: Int) {
+    if let chartMetadata = charts?[section].chart.yVectors[columnIndex].metaData {
+      cell.imageView?.image = UIImage.from(color: chartMetadata.color, size: CGSize(width: 12, height: 12))
+      cell.textLabel?.text = chartMetadata.name
     }
     cell.imageView?.layer.cornerRadius = 3.0
     cell.imageView?.clipsToBounds = true
-    cell.textLabel?.text = chart?.yVectors[columnIndex].metaData.name
-    cell.accessoryType = hiddenGrapsIndicies.contains(columnIndex) ? .none : .checkmark
+    cell.accessoryType = (charts?[section].hiddenIndicies.contains(columnIndex) ?? false) ? .none : .checkmark
     cell.backgroundColor = UIApplication.myDelegate.currentTheme.foregroundColor
     cell.textLabel?.textColor = UIApplication.myDelegate.currentTheme.mainTextColor
     cell.textLabel?.font = UIFont.systemFont(ofSize: 18.0)
+    
+    cell.selectionStyle = .none
   }
   
   func configureButtonCell(_ cell: TGCAButtonTableViewCell) {
@@ -164,47 +189,45 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
 
 extension TGCAChartDetailViewController: UITableViewDelegate {
   
-  func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-    if section == 0 {
-      let v = TGCATableViewSupplementView(frame: CGRect.zero)
-      v.topLabel.isHidden = true
-      v.bottomLabel.textColor = UIApplication.myDelegate.currentTheme.tableViewFooterHeaderColor
-      v.bottomLabel.text = (chart?.title ?? "Untitled chart").uppercased()
-      sectionheaderView = v
-      return v
-    } else {
-      return nil
+//  func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+//    if let charts = charts, section < charts.count {
+//      let v = TGCATableViewSupplementView(frame: CGRect.zero)
+//      v.topLabel.isHidden = true
+//      v.bottomLabel.textColor = UIApplication.myDelegate.currentTheme.tableViewFooterHeaderColor
+//      v.bottomLabel.text = (charts[section].title ?? "Untitled chart").uppercased()
+//      sectionheaderViews[section] = v
+//      return v
+//    }
+//    return nil
+//  }
+  func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+    if let charts = charts {
+      if section < charts.count {
+        return (charts[section].chart.title ?? "Untitled chart").uppercased()
+      }
     }
+    return nil
   }
   
   func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-    return section == 0 ? 50.0 : 0.0
+    if let charts = charts {
+      if section < charts.count {
+        return 50.0
+      }
+    }
+    return 0.0
   }
   
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    if indexPath.section == 0, indexPath.row > 1 {
-      let yLineIndex = indexPath.row - 2
-      if let idx = hiddenGrapsIndicies.firstIndex(of: yLineIndex) {
-        hiddenGrapsIndicies.remove(at: idx)
-      } else {
-        hiddenGrapsIndicies.append(yLineIndex)
+    if charts != nil, indexPath.section < charts!.count, indexPath.row != 0 {
+      let yLineIndex = indexPath.row - 1
+      charts?[indexPath.section].toggleHiden(index: yLineIndex)
+      if let c = tableView.cellForRow(at: IndexPath(row: 0, section: indexPath.section)) as? TGCAChartTableViewCell {
+        c.thumbnailChartView.toggleHidden(at: yLineIndex)
+        c.chartView.toggleHidden(at: yLineIndex)
       }
-      chartCell?.chartView.toggleHidden(at: yLineIndex)
-      chartTrimCell?.chartView.toggleHidden(at: yLineIndex)
-      tableView.cellForRow(at: indexPath)?.accessoryType = hiddenGrapsIndicies.contains(yLineIndex) ? .none : .checkmark
+      tableView.cellForRow(at: indexPath)?.accessoryType = (charts?[indexPath.section].hiddenIndicies.contains(yLineIndex) ?? false) ? .none : .checkmark
     }
-  }
-}
-
-extension TGCAChartDetailViewController: TGCATrimmerViewDelegate {
-  
-  func trimmerView(_ trimmerView: TGCATrimmerView, didChangeDisplayRange range: ClosedRange<CGFloat>, event: DisplayRangeChangeEvent) {
-    if event == .Started {
-      chartCell?.chartView.isUserInteractionEnabled = false
-    } else if event == .Ended {
-      chartCell?.chartView.isUserInteractionEnabled = false
-    }
-    chartCell?.chartView.trimDisplayRange(to: range, with: event)
   }
 }
 
@@ -221,7 +244,9 @@ extension TGCAChartDetailViewController: ThemeChangeObserving {
       tableView.backgroundColor = theme.backgroundColor
       tableView.separatorColor = theme.axisColor
       tableView.tintColor = theme.accentColor
-      sectionheaderView?.bottomLabel.textColor = theme.tableViewFooterHeaderColor
+//      sectionheaderViews.forEach{
+//        $0.value.bottomLabel.textColor = theme.tableViewFooterHeaderColor
+//      }
       tableView.visibleCells.forEach{
         $0.backgroundColor = theme.foregroundColor
         $0.textLabel?.textColor = theme.mainTextColor
@@ -229,7 +254,7 @@ extension TGCAChartDetailViewController: ThemeChangeObserving {
     }
     
     if animated {
-      UIView.animate(withDuration: 0.25) {
+      UIView.animate(withDuration: ANIMATION_DURATION) {
         applyChanges()
       }
     } else {

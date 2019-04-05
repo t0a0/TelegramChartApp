@@ -42,6 +42,7 @@
                 <outlet property="chartView" destination="hnY-Vz-E7S" id="bcu-5k-vPH"/>
                 <outlet property="trimmerView" destination="XS0-gR-gw2" id="LtU-4A-O3W"/>
             </connections>
+            <point key="canvasLocation" x="418" y="112"/>
         </tableViewCell>
     </objects>
 </document>

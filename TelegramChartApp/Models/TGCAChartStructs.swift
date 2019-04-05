@@ -15,11 +15,12 @@ typealias NormalizedYVectors = (vectors: [ValueVector], yRange: ClosedRange<CGFl
 
 struct LinearChart {
   
-  var title: String?
+  let title: String?
   
   let yVectors: [ChartValueVector]
   let xVector: ValueVector
-
+  let datesVector: [Date]
+  
   init(yVectors: [ChartValueVector], xVector: ValueVector, title: String? = nil) {
     yVectors.forEach{
       assert($0.vector.count == xVector.count, "Trying to init Chart with unmatching (X,Y) points count.")
@@ -27,6 +28,7 @@ struct LinearChart {
     self.yVectors = yVectors
     self.xVector = xVector
     self.title = title
+    self.datesVector = xVector.map{Date(timeIntervalSince1970: TimeInterval($0 / 1000.0))}
   }
   
   func normalizedYVectorsFromZeroMinimum(in xRange: ClosedRange<Int>, excludedIdxs: Set<Int>) -> NormalizedYVectors {

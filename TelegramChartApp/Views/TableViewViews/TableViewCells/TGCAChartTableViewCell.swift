@@ -14,4 +14,17 @@ class TGCAChartTableViewCell: UITableViewCell {
 
   @IBOutlet weak var chartView: TGCAChartView!
 
+  @IBOutlet weak var thumbnailChartView: TGCAChartView!
+  @IBOutlet weak var trimmerView: TGCATrimmerView!
+  
+  override func awakeFromNib() {
+    super.awakeFromNib()
+    chartView?.graphLineWidth = 2.0
+    chartView?.shouldDisplayAxesAndLabels = true
+    thumbnailChartView?.animatesPositionOnHide = false
+    thumbnailChartView?.valuesStartFromZero = false
+    thumbnailChartView?.canShowAnnotations = false
+    thumbnailChartView?.isUserInteractionEnabled = false
+    thumbnailChartView?.graphLineWidth = 1.0
+  }
 }

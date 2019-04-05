@@ -58,17 +58,24 @@ class TGCAChartsViewController: UIViewController {
 extension TGCAChartsViewController: UITableViewDataSource {
   
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    return charts.count
+    return charts.count + 1
   }
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueReusableCell(withIdentifier: cell_reuseId_chartInfo)!
-    let chart = charts[indexPath.row]
-    cell.textLabel?.attributedText = attributedString(for: chart)
-    cell.detailTextLabel?.text = "X values count: \(chart.xVector.count)"
+    
+    let theme = UIApplication.myDelegate.currentTheme
+
+    if indexPath.row == tableView.numberOfRows(inSection: indexPath.section) - 1 {
+      cell.textLabel?.attributedText = NSAttributedString(string: "See all charts", attributes: [NSAttributedString.Key.foregroundColor : theme.mainTextColor])
+      cell.detailTextLabel?.text = nil
+    } else {
+      let chart = charts[indexPath.row]
+      cell.textLabel?.attributedText = attributedString(for: chart)
+      cell.detailTextLabel?.text = "X values count: \(chart.xVector.count)"
+    }
     cell.accessoryType = .disclosureIndicator
     cell.selectionStyle = .none
-    let theme = UIApplication.myDelegate.currentTheme
     cell.detailTextLabel?.textColor = theme.mainTextColor
     cell.backgroundColor = theme.foregroundColor
     return cell
@@ -82,7 +89,7 @@ extension TGCAChartsViewController: UITableViewDelegate {
     guard let vc = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "TGCAChartDetailViewController") as? TGCAChartDetailViewController else {
       return
     }
-    vc.chart = charts[indexPath.row]
+//    vc.charts = indexPath.row == tableView.numberOfRows(inSection: indexPath.section) - 1 ? charts : [charts[indexPath.row]]
     navigationController?.pushViewController(vc, animated: true)
   }
   
@@ -107,7 +114,7 @@ extension TGCAChartsViewController: ThemeChangeObserving {
     }
     
     if animated {
-      UIView.animate(withDuration: 0.25) {
+      UIView.animate(withDuration: ANIMATION_DURATION) {
         applyChanges()
       }
     } else {

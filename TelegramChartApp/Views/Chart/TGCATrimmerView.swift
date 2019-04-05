@@ -17,29 +17,27 @@ enum DisplayRangeChangeEvent {
   case Reset
 }
 
-protocol TGCATrimmerViewDelegate: class {
-  
-  
-  
-  /**
-   Calls the delegate to notify that the trimmed area on trimmer view has changed.
-   
-   - Parameters:
-      - trimmerView: TrimmerView
-      - range: Min is 0...minimumRangeLength, max is (1 - minimumRangeLength)...1
-      - event: An event that triggered the change in display range
-   
-   */
-  func trimmerView(_ trimmerView: TGCATrimmerView, didChangeDisplayRange range: ClosedRange<CGFloat>, event: DisplayRangeChangeEvent)
-  
-}
-
 class TGCATrimmerView: UIView {
   
-  weak var delegate: TGCATrimmerViewDelegate?
+  /**
+   Calls to notify that the trimmed area on trimmer view has changed.
+   
+   - Parameters:
+   - newRange: Min is 0...minimumRangeLength, max is (1 - minimumRangeLength)...1
+   - event: An event that triggered the change in display range
+   
+   */
+  var onChange: ((_ newRange: ClosedRange<CGFloat>, _ event: DisplayRangeChangeEvent) -> ())?
+  
+  func setCurrentRange(_ range: ClosedRange<CGFloat>) {
+    leftConstraint?.constant = (range.lowerBound / (totalRange.upperBound - totalRange.lowerBound)) * frame.width
+    rightConstraint?.constant = -1 * (frame.width - (range.upperBound / (totalRange.upperBound - totalRange.lowerBound)) * frame.width)
+    layoutIfNeeded()
+    notifyRangeChanged(event: .Reset)
+  }
   
   /// The minimum range allowed for the trimming. Between 0.0 and 1.0.
-  private let minimumRangeLength: CGFloat = 0.25
+  private let minimumRangeLength: CGFloat = 0.2
   private let shoulderWidth: CGFloat = 12.0
   private let totalRange = ZORange
   
@@ -61,7 +59,7 @@ class TGCATrimmerView: UIView {
   // MARK: - Range change handling
   
   private func notifyRangeChanged(event: DisplayRangeChangeEvent) {
-    delegate?.trimmerView(self, didChangeDisplayRange: currentRange, event: event)
+    onChange?(currentRange, event)
   }
   
   /// The current trimmed range. The left boundary is at which percentage the trim starts. The right boundary is at which percentage the trim ends. Possible values are subranges of 0.0...1.0.
@@ -341,7 +339,7 @@ extension TGCATrimmerView: ThemeChangeObserving {
     }
     
     if animated {
-      UIView.animate(withDuration: 0.25) {
+      UIView.animate(withDuration: ANIMATION_DURATION) {
         applyChanges()
       }
     } else {

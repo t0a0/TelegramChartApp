@@ -11,14 +11,12 @@ import UIKit
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
-  
   func toggleTheme() {
     currentTheme = currentTheme.identifier == ThemeIdentifier.normal ? TGCAColorTheme.dark : TGCAColorTheme.normal
   }
   
   var currentTheme = TGCAColorTheme.dark {
     didSet {
-      UIApplication.shared.statusBarStyle = currentTheme.statusBarStyle
       NotificationCenter.default.post(Notification(name: THEME_HAS_CHANGED_NOTIFICATION_NAME))
     }
   }
@@ -26,7 +24,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
   var window: UIWindow?
 
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-    UIApplication.shared.statusBarStyle = currentTheme.statusBarStyle
     return true
   }
 

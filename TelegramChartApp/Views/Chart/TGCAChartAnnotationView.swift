@@ -35,13 +35,12 @@ class TGCAChartAnnotationView: UIView {
     numberFormatter.numberStyle = .decimal
     numberFormatter.minimumFractionDigits = 0
     numberFormatter.maximumFractionDigits = 2
-    numberFormatter.locale = Locale.current
     numberFormatter.usesGroupingSeparator = true
     numberFormatter.groupingSeparator = ","
   }
   
   private func configureDateFormatter() {
-    dateFormatter.locale = Locale.current
+    dateFormatter.locale = Locale(identifier: "en_EN")
   }
   
   // MARK: - Init
@@ -163,7 +162,7 @@ extension TGCAChartAnnotationView: ThemeChangeObserving {
     }
     
     if animated {
-      UIView.animate(withDuration: 0.25) {
+      UIView.animate(withDuration: ANIMATION_DURATION) {
         applyChanges()
       }
     } else {
