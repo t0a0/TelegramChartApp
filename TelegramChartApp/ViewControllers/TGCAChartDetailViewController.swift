@@ -73,7 +73,6 @@ class TGCAChartDetailViewController: UIViewController {
   
   @objc func toggleTheme(_ sender: Any?) {
     UIApplication.myDelegate.toggleTheme()
-    let theme = UIApplication.myDelegate.currentTheme
   }
 }
 
@@ -116,7 +115,7 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
   func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
     if let charts = charts {
       if indexPath.section < charts.count && indexPath.row == 0 {
-        return 360.0
+        return 380.0
       }
     }
     return 44.0
@@ -128,7 +127,7 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
     let tcv = cell.thumbnailChartView
     let tv = cell.trimmerView
     
-    
+    cell.headerView.label.text = "LMAO IM HEADER"
     
     if let chart = charts?[section] {
       cv?.configure(with: chart.chart, hiddenIndicies: chart.hiddenIndicies, displayRange: chart.trimRange)

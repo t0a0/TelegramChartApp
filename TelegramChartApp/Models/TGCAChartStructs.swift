@@ -20,6 +20,7 @@ struct LinearChart {
   let yVectors: [ChartValueVector]
   let xVector: ValueVector
   let datesVector: [Date]
+  let showsAxisLabelsOnBothSides = true
   
   init(yVectors: [ChartValueVector], xVector: ValueVector, title: String? = nil) {
     yVectors.forEach{

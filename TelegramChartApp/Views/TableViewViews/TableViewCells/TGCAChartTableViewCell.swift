@@ -14,6 +14,7 @@ class TGCAChartTableViewCell: UITableViewCell {
 
   @IBOutlet weak var chartView: TGCAChartView!
 
+  @IBOutlet weak var headerView: TGCAChartHeaderView!
   @IBOutlet weak var thumbnailChartView: TGCAChartView!
   @IBOutlet weak var trimmerView: TGCATrimmerView!
   

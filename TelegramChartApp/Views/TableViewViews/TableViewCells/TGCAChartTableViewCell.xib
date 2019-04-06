@@ -22,8 +22,14 @@
                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="SFj-Ql-WLy">
                         <rect key="frame" x="14" y="10" width="290" height="334.5"/>
                         <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="mxJ-0T-KrO" customClass="TGCAChartHeaderView" customModule="TelegramChartApp" customModuleProvider="target">
+                                <rect key="frame" x="0.0" y="0.0" width="290" height="20"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="20" id="I6E-lo-DKx"/>
+                                </constraints>
+                            </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="w3S-ey-A4O" customClass="TGCAChartView" customModule="TelegramChartApp" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="0.0" width="290" height="274.5"/>
+                                <rect key="frame" x="0.0" y="30" width="290" height="244.5"/>
                             </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hq7-6g-Yxo" customClass="TGCATrimmerView" customModule="TelegramChartApp" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="284.5" width="290" height="50"/>
@@ -53,6 +59,7 @@
             <viewLayoutGuide key="safeArea" id="njF-e1-oar"/>
             <connections>
                 <outlet property="chartView" destination="w3S-ey-A4O" id="UBp-z0-KaU"/>
+                <outlet property="headerView" destination="mxJ-0T-KrO" id="Mfl-iP-zal"/>
                 <outlet property="thumbnailChartView" destination="tH2-ne-gyz" id="C0J-Un-epO"/>
                 <outlet property="trimmerView" destination="hq7-6g-Yxo" id="kiU-Wa-U5P"/>
             </connections>
