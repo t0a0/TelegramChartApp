@@ -207,12 +207,17 @@ extension TGCAChartDetailViewController: UITableViewDelegate {
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     if charts != nil, indexPath.section < charts!.count, indexPath.row != 0 {
       let yLineIndex = indexPath.row - 1
-      charts?[indexPath.section].toggleHiden(index: yLineIndex)
-      if let c = tableView.cellForRow(at: IndexPath(row: 0, section: indexPath.section)) as? TGCAChartTableViewCell {
-        c.thumbnailChartView.toggleHidden(at: yLineIndex)
-        c.chartView.toggleHidden(at: yLineIndex)
+      if let ch = charts?[indexPath.section] {
+        if ch.hiddenIndicies.count >= ch.chart.yVectors.count - 1 && !ch.hiddenIndicies.contains(yLineIndex) {
+          return
+        }
+        ch.toggleHiden(index: yLineIndex)
+        if let c = tableView.cellForRow(at: IndexPath(row: 0, section: indexPath.section)) as? TGCAChartTableViewCell {
+          c.thumbnailChartView.toggleHidden(at: yLineIndex)
+          c.chartView.toggleHidden(at: yLineIndex)
+        }
+        tableView.cellForRow(at: indexPath)?.accessoryType = (ch.hiddenIndicies.contains(yLineIndex)) ? .none : .checkmark
       }
-      tableView.cellForRow(at: indexPath)?.accessoryType = (charts?[indexPath.section].hiddenIndicies.contains(yLineIndex) ?? false) ? .none : .checkmark
     }
   }
 
