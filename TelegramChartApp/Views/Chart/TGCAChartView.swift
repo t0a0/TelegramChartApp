@@ -44,6 +44,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
   /// Need to redraw the chart when the bounds did change.
   override var bounds: CGRect {
     didSet {
+      numOfGuideLabels = Int(bounds.width / 60.0)
       if chart != nil {
         configure(with: chart, hiddenIndicies: hiddenDrawingIndicies)
       }
@@ -75,7 +76,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
   private let heightForGuideLabels: CGFloat = 20.0
   
   /// Maximum number of guide labels that should be visible on the screen
-  private let numOfGuideLabels = 6
+  private var numOfGuideLabels = 6
   
   /// The rect in which the chart drawing is happening
   private var chartBounds: CGRect = CGRect.zero

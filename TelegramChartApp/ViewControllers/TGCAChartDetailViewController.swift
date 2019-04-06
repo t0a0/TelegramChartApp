@@ -52,6 +52,7 @@ class TGCAChartDetailViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     registerCells()
+    navigationItem.rightBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: self, action: #selector(toggleTheme(_:)))
     applyCurrentTheme()
     title = "Statistics"
     tableView.showsVerticalScrollIndicator = false
@@ -62,7 +63,6 @@ class TGCAChartDetailViewController: UIViewController {
   }
   
   func registerCells() {
-    tableView.register(UINib(nibName: "TGCAButtonTableViewCell", bundle: nil), forCellReuseIdentifier: TGCAButtonTableViewCell.defaultReuseId)
     tableView.register(UINib(nibName: "TGCAChartTableViewCell", bundle: nil), forCellReuseIdentifier: TGCAChartTableViewCell.defaultReuseId)
     tableView.register(UITableViewCell.self, forCellReuseIdentifier: "chartColumnLabelCell")
   }
@@ -70,13 +70,18 @@ class TGCAChartDetailViewController: UIViewController {
   deinit {
     unsubscribe()
   }
+  
+  @objc func toggleTheme(_ sender: Any?) {
+    UIApplication.myDelegate.toggleTheme()
+    let theme = UIApplication.myDelegate.currentTheme
+  }
 }
 
 extension TGCAChartDetailViewController: UITableViewDataSource {
   
   func numberOfSections(in tableView: UITableView) -> Int {
     if let charts = charts {
-      return charts.count + 1
+      return charts.count
     }
     return 0
   }
@@ -105,9 +110,7 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
         }
       }
     }
-    let cell = tableView.dequeueReusableCell(withIdentifier: TGCAButtonTableViewCell.defaultReuseId) as! TGCAButtonTableViewCell
-    configureButtonCell(cell)
-    return cell
+    return UITableViewCell()
   }
   
   func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -162,24 +165,6 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
     cell.textLabel?.font = UIFont.systemFont(ofSize: 18.0)
     
     cell.selectionStyle = .none
-  }
-  
-  func configureButtonCell(_ cell: TGCAButtonTableViewCell) {
-    cell.selectionStyle = .none
-    cell.backgroundColor = UIApplication.myDelegate.currentTheme.foregroundColor
-
-    let applyThemeBlock = {
-      UIView.performWithoutAnimation {
-        let currentThemeId = UIApplication.myDelegate.currentTheme.identifier
-        cell.button.setTitle(currentThemeId == ThemeIdentifier.dark ? "Switch to Day Mode" : "Switch to Night Mode", for: .normal)
-        cell.button.layoutIfNeeded()
-      }
-    }
-    applyThemeBlock()
-    cell.onClickHandler = {
-      UIApplication.myDelegate.toggleTheme()
-      applyThemeBlock()
-    }
   }
   
 }
@@ -241,7 +226,8 @@ extension TGCAChartDetailViewController: ThemeChangeObserving {
   
   func applyCurrentTheme(animated: Bool = false) {
     let theme = UIApplication.myDelegate.currentTheme
-    
+    navigationItem.rightBarButtonItem?.title = theme.identifier == .dark ? "Day Mode" : "Night mode"
+
     func applyChanges() {
       tableView.backgroundColor = theme.backgroundColor
       tableView.separatorColor = theme.axisColor

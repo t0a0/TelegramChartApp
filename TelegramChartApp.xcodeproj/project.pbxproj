@@ -29,8 +29,6 @@
 		167FCAD62234334A001CA7E5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 167FCAD52234334A001CA7E5 /* Assets.xcassets */; };
 		167FCAD92234334A001CA7E5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 167FCAD72234334A001CA7E5 /* LaunchScreen.storyboard */; };
 		167FCAFD22343523001CA7E5 /* TGCAChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167FCAFC22343523001CA7E5 /* TGCAChartView.swift */; };
-		167FCB012234379F001CA7E5 /* TGCAButtonTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167FCAFF2234379F001CA7E5 /* TGCAButtonTableViewCell.swift */; };
-		167FCB022234379F001CA7E5 /* TGCAButtonTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 167FCB002234379F001CA7E5 /* TGCAButtonTableViewCell.xib */; };
 		168DDC8622415EB300F51300 /* TGCAChartLabelFormatterService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 168DDC8522415EB300F51300 /* TGCAChartLabelFormatterService.swift */; };
 		168DDC88224198D500F51300 /* ClosedRange+Distance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 168DDC87224198D500F51300 /* ClosedRange+Distance.swift */; };
 /* End PBXBuildFile section */
@@ -60,8 +58,6 @@
 		167FCAD82234334A001CA7E5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		167FCADA2234334A001CA7E5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		167FCAFC22343523001CA7E5 /* TGCAChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartView.swift; sourceTree = "<group>"; };
-		167FCAFF2234379F001CA7E5 /* TGCAButtonTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAButtonTableViewCell.swift; sourceTree = "<group>"; };
-		167FCB002234379F001CA7E5 /* TGCAButtonTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TGCAButtonTableViewCell.xib; sourceTree = "<group>"; };
 		168DDC8522415EB300F51300 /* TGCAChartLabelFormatterService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartLabelFormatterService.swift; sourceTree = "<group>"; };
 		168DDC87224198D500F51300 /* ClosedRange+Distance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ClosedRange+Distance.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -169,8 +165,6 @@
 		167FCAFE2234377D001CA7E5 /* TableViewCells */ = {
 			isa = PBXGroup;
 			children = (
-				167FCAFF2234379F001CA7E5 /* TGCAButtonTableViewCell.swift */,
-				167FCB002234379F001CA7E5 /* TGCAButtonTableViewCell.xib */,
 				1657643422343B5B00173E97 /* TGCAChartTableViewCell.swift */,
 				1657643522343B5B00173E97 /* TGCAChartTableViewCell.xib */,
 			);
@@ -269,7 +263,6 @@
 			files = (
 				167FCAD92234334A001CA7E5 /* LaunchScreen.storyboard in Resources */,
 				167FCAD62234334A001CA7E5 /* Assets.xcassets in Resources */,
-				167FCB022234379F001CA7E5 /* TGCAButtonTableViewCell.xib in Resources */,
 				16576474223E640D00173E97 /* TGCAChartAnnotationView.xib in Resources */,
 				1657643722343B5B00173E97 /* TGCAChartTableViewCell.xib in Resources */,
 				1657643322343A5600173E97 /* TGCAChartView.xib in Resources */,
@@ -298,7 +291,6 @@
 				168DDC8622415EB300F51300 /* TGCAChartLabelFormatterService.swift in Sources */,
 				165764582235D70700173E97 /* UIImage+Color.swift in Sources */,
 				168DDC88224198D500F51300 /* ClosedRange+Distance.swift in Sources */,
-				167FCB012234379F001CA7E5 /* TGCAButtonTableViewCell.swift in Sources */,
 				1657645E2237135000173E97 /* Constants.swift in Sources */,
 				167FCAFD22343523001CA7E5 /* TGCAChartView.swift in Sources */,
 				1657646E223D27E600173E97 /* TGCANavigationController.swift in Sources */,
