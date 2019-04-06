@@ -20,7 +20,7 @@ class TGCAChartDetailViewController: UIViewController {
     
     init(chart: LinearChart) {
       self.chart = chart
-      self.trimRange = 0.25...0.5
+      self.trimRange = 0.0...1.0
     }
     
     func updateTrimRange(to newRange: ClosedRange<CGFloat>) {
