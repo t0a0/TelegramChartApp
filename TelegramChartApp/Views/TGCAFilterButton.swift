@@ -20,19 +20,47 @@ class TGCAFilterButton: UIButton {
   private var titleText: String?
   private var color: UIColor?
   
+  var onLongTap: (()->())?
+  var onTap: (()->())?
+  
   override init(frame: CGRect) {
     super.init(frame: frame)
+    commonInit()
   }
   
   required init?(coder aDecoder: NSCoder) {
     super.init(coder: aDecoder)
+    commonInit()
   }
   
-  func setup() {
+  func commonInit() {
+    setup()
+    addLongPressGesture()
+    addTarget(self, action: #selector(TGCAFilterButton.handleTap(_:)), for: .touchUpInside)
+  }
+  
+  private func setup() {
     clipsToBounds = true
     layer.masksToBounds = true
     layer.cornerRadius = TGCAFilterButton.cornerRadius
-    layer.borderColor = color?.cgColor
+  }
+  
+  private func addLongPressGesture() {
+    let longTapGR = UILongPressGestureRecognizer(target: self, action: #selector(TGCAFilterButton.handleLongTap(_:)))
+    longTapGR.minimumPressDuration = 0.75
+    addGestureRecognizer(longTapGR)
+  }
+  
+  @objc private func handleLongTap(_ gr: UILongPressGestureRecognizer) {
+    if gr.state == .began {
+      cancelTracking(with: nil)
+      onLongTap?()
+    }
+  }
+  
+  @objc private func handleTap(_ sender: Any) {
+    cancelTracking(with: nil)
+    onTap?()
   }
   
   func configure(checked: Bool, titleText: String, color: UIColor) -> CGFloat {
@@ -66,7 +94,7 @@ class TGCAFilterButton: UIButton {
       backgroundColor = checked ? color : .clear
       
     }
-    
+    layer.borderColor = color?.cgColor
     layer.borderWidth = checked ? 0 : TGCAFilterButton.borderWidth
 
     UIView.performWithoutAnimation {
