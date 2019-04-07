@@ -33,7 +33,7 @@ extension ThemeChangeObserving {
 
 protocol JsonParserServiceProtocol {
   
-  func parseJson(named resourceName: String) -> [LinearChart]?
+  func parseJson(named resourceName: String) -> [DataChart]?
   
 }
 
@@ -47,7 +47,7 @@ protocol ChartLabelFormatterProtocol {
 
 protocol LinearChartDisplaying {
   
-  func configure(with chart: LinearChart, hiddenIndicies: Set<Int>, displayRange: ClosedRange<CGFloat>?)
+  func configure(with chart: DataChart, hiddenIndicies: Set<Int>, displayRange: ClosedRange<CGFloat>?)
   func toggleHidden(identifier: String)
   func toggleHidden(at index: Int)
   func trimDisplayRange(to newRange: ClosedRange<CGFloat>, with event: DisplayRangeChangeEvent)

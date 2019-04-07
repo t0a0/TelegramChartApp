@@ -1,5 +1,5 @@
 //
-//  TGCAAreaChartView.swift
+//  TGCAPercentageChartView.swift
 //  TelegramChartApp
 //
 //  Created by Igor on 07/04/2019.
@@ -7,3 +7,7 @@
 //
 
 import Foundation
+
+class TGCAPercentageChartView: TGCAChartView {
+  
+}

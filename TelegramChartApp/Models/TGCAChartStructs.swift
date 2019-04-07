@@ -14,22 +14,31 @@ typealias ChartValueVectorMetaData = (identifier: String, name: String, color: U
 typealias NormalizedYVectors = (vectors: [ValueVector], yRange: ClosedRange<CGFloat>)
 typealias SeparatlyNormalizedYVectors = [(vector: ValueVector, yRange: ClosedRange<CGFloat>)]
 
-struct LinearChart {
+enum DataChartType: String {
+  case linear
+  case linearWith2Axes
+  case singleBar
+  case stackedBar
+  case percentage
+}
+
+struct DataChart {
   
   let title: String?
-  
+  let type: DataChartType
   let yVectors: [ChartValueVector]
   let xVector: ValueVector
   let datesVector: [Date]
   let showsAxisLabelsOnBothSides = true
   
-  init(yVectors: [ChartValueVector], xVector: ValueVector, title: String? = nil) {
+  init(yVectors: [ChartValueVector], xVector: ValueVector, type: DataChartType, title: String? = nil) {
     yVectors.forEach{
       assert($0.vector.count == xVector.count, "Trying to init Chart with unmatching (X,Y) points count.")
     }
     self.yVectors = yVectors
     self.xVector = xVector
     self.title = title
+    self.type = type
     self.datesVector = xVector.map{Date(timeIntervalSince1970: TimeInterval($0 / 1000.0))}
   }
   

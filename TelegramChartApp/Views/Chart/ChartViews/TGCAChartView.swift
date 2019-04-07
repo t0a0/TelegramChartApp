@@ -104,7 +104,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   var chartBoundsBottom: CGFloat = 0
   var chartBoundsRight: CGFloat = 0
   
-  var chart: LinearChart!
+  var chart: DataChart!
   var drawings: ChartDrawings!
   
   /// Contains indicies of the hidden charts
@@ -160,7 +160,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   }
 
   /// Configures the view to display the chart.
-  func configure(with chart: LinearChart, hiddenIndicies: Set<Int>, displayRange: ClosedRange<CGFloat>? = nil) {
+  func configure(with chart: DataChart, hiddenIndicies: Set<Int>, displayRange: ClosedRange<CGFloat>? = nil) {
     reset()
     configureChartBounds()
     configureHorizontalAxesDefaultPositions()

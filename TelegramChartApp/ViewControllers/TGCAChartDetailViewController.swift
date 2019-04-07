@@ -16,11 +16,11 @@ class TGCAChartDetailViewController: UIViewController {
   @IBOutlet weak var tableView: UITableView!
     
   private class ChartStruct {
-    let chart: LinearChart
+    let chart: DataChart
     private(set) var hiddenIndicies: Set<Int> = []
     private(set) var trimRange: ClosedRange<CGFloat>
     
-    init(chart: LinearChart) {
+    init(chart: DataChart) {
       self.chart = chart
       self.trimRange = 0.0...1.0
     }
@@ -50,13 +50,22 @@ class TGCAChartDetailViewController: UIViewController {
   
   override func awakeFromNib() {
     super.awakeFromNib()
-    if let charts = TGCAJsonToChartService().parseJson(named: "chart_data"){
-      self.charts = charts.map{ChartStruct(chart: $0)}
-    } else {
-      let alert = UIAlertController(title: "Could not parse JSON", message: nil, preferredStyle: .alert)
-      alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: nil))
-      present(alert, animated: true, completion: nil)
+    
+    var charts = [DataChart]()
+    
+    for i in 1...5 {
+      if let chart = TGCAJsonToChartService().parseJson(named: "overview", subDir: "contest/\(i)") {
+        charts.append(chart)
+      }
     }
+    self.charts = charts.map{ChartStruct(chart: $0)}
+
+//    if let charts = TGCAJsonToChartService().parseJson(named: "overview", subDir: "contest/4"){
+//    } else {
+//      let alert = UIAlertController(title: "Could not parse JSON", message: nil, preferredStyle: .alert)
+//      alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: nil))
+//      present(alert, animated: true, completion: nil)
+//    }
   }
   
   override func viewDidLoad() {
@@ -83,7 +92,12 @@ class TGCAChartDetailViewController: UIViewController {
   }
   
   func registerCells() {
-    tableView.register(UINib(nibName: "TGCAChartTableViewCell", bundle: nil), forCellReuseIdentifier: TGCAChartTableViewCell.defaultReuseId)
+    tableView.register(UINib(nibName: "TGCALinearChartTableViewCell", bundle: nil), forCellReuseIdentifier: TGCALinearChartTableViewCell.defaultReuseId)
+    tableView.register(UINib(nibName: "TGCASingleBarChartTableViewCell", bundle: nil), forCellReuseIdentifier: TGCASingleBarChartTableViewCell.defaultReuseId)
+    tableView.register(UINib(nibName: "TGCAStackedBarChartTableViewCell", bundle: nil), forCellReuseIdentifier: TGCAStackedBarChartTableViewCell.defaultReuseId)
+    tableView.register(UINib(nibName: "TGCAPercentageChartTableViewCell", bundle: nil), forCellReuseIdentifier: TGCAPercentageChartTableViewCell.defaultReuseId)
+    tableView.register(UINib(nibName: "TGCALinearChartWith2AxesTableViewCell", bundle: nil), forCellReuseIdentifier: TGCALinearChartWith2AxesTableViewCell.defaultReuseId)
+
   }
   
   deinit {
@@ -106,7 +120,20 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
   }
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    let cell = tableView.dequeueReusableCell(withIdentifier: TGCAChartTableViewCell.defaultReuseId) as! TGCAChartTableViewCell
+    var cell: TGCAChartTableViewCell!
+    let chartType = charts![indexPath.section].chart.type
+    switch chartType {
+    case .linear:
+      cell = tableView.dequeueReusableCell(withIdentifier: TGCALinearChartTableViewCell.defaultReuseId) as! TGCALinearChartTableViewCell
+    case .linearWith2Axes:
+      cell = tableView.dequeueReusableCell(withIdentifier: TGCALinearChartWith2AxesTableViewCell.defaultReuseId) as! TGCALinearChartWith2AxesTableViewCell
+    case .percentage:
+      cell = tableView.dequeueReusableCell(withIdentifier: TGCAPercentageChartTableViewCell.defaultReuseId) as! TGCAPercentageChartTableViewCell
+    case .singleBar:
+      cell = tableView.dequeueReusableCell(withIdentifier: TGCASingleBarChartTableViewCell.defaultReuseId) as! TGCASingleBarChartTableViewCell
+    case .stackedBar:
+      cell = tableView.dequeueReusableCell(withIdentifier: TGCAStackedBarChartTableViewCell.defaultReuseId) as! TGCAStackedBarChartTableViewCell
+    }
     configureChartCell(cell, section: indexPath.section)
     return cell
   }

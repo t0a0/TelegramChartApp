@@ -10,12 +10,11 @@ import UIKit
 
 class TGCAChartTableViewCell: UITableViewCell {
 
-  static let defaultReuseId = "chartViewCell"
-
-  @IBOutlet weak var chartView: TGCAChartView!
-
+//  @IBOutlet weak var chartView: TGCAChartView!
+  weak var chartView: TGCAChartView!
+  weak var thumbnailChartView: TGCAChartView!
+  
   @IBOutlet weak var headerView: TGCAChartHeaderView!
-  @IBOutlet weak var thumbnailChartView: TGCAChartView!
   @IBOutlet weak var trimmerView: TGCATrimmerView!
   @IBOutlet weak var chartFiltersView: TGCAChartFiltersView!
   
@@ -35,3 +34,13 @@ class TGCAChartTableViewCell: UITableViewCell {
     selectionStyle = .none
   }
 }
+
+
+
+
+
+
+
+
+
+

@@ -28,7 +28,7 @@
                                     <constraint firstAttribute="height" constant="20" id="I6E-lo-DKx"/>
                                 </constraints>
                             </view>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="w3S-ey-A4O" customClass="TGCASingleBarChartView" customModule="TelegramChartApp" customModuleProvider="target">
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="w3S-ey-A4O" customClass="TGCAChartView" customModule="TelegramChartApp" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="30" width="290" height="200.5"/>
                             </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hq7-6g-Yxo" customClass="TGCATrimmerView" customModule="TelegramChartApp" customModuleProvider="target">
@@ -66,12 +66,10 @@
             <connections>
                 <outlet property="chartFiltersHeightConstraint" destination="YuX-WM-Bs5" id="wAV-Fi-cXr"/>
                 <outlet property="chartFiltersView" destination="kgU-u0-6KS" id="EVW-aX-fXd"/>
-                <outlet property="chartView" destination="w3S-ey-A4O" id="UBp-z0-KaU"/>
                 <outlet property="headerView" destination="mxJ-0T-KrO" id="Mfl-iP-zal"/>
-                <outlet property="thumbnailChartView" destination="tH2-ne-gyz" id="C0J-Un-epO"/>
                 <outlet property="trimmerView" destination="hq7-6g-Yxo" id="kiU-Wa-U5P"/>
             </connections>
-            <point key="canvasLocation" x="-236.80000000000001" y="285.60719640179911"/>
+            <point key="canvasLocation" x="-752" y="-196"/>
         </tableViewCell>
     </objects>
 </document>

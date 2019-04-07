@@ -1,5 +1,5 @@
 //
-//  TGCAMultipleBarChartView.swift
+//  TGCALinearChartView.swift
 //  TelegramChartApp
 //
 //  Created by Igor on 07/04/2019.
@@ -7,3 +7,7 @@
 //
 
 import Foundation
+
+class TGCALinearChartView: TGCAChartView {
+  
+}

@@ -9,27 +9,45 @@
 import Foundation
 import UIKit
 
-struct TGCAJsonToChartService: JsonParserServiceProtocol {
+struct TGCAJsonToChartService/*: JsonParserServiceProtocol*/ {
   
-  func parseJson(named resourceName: String) -> [LinearChart]? {
+  func parseJson(named resourceName: String, subDir: String) -> DataChart? {
     guard
-      let url = Bundle.main.url(forResource: resourceName, withExtension: "json"),
+      let url = Bundle.main.url(forResource: resourceName, withExtension: "json", subdirectory: subDir),
       let data = try? Data(contentsOf: url),
-      let charts = try? JSONDecoder().decode(JsonCharts.self, from: data).charts else {
+      let charts = try? JSONDecoder().decode(JsonCharts.JsonChart.self, from: data) else {
         return nil
     }
     
-    return charts.map{jsonChartToLinearChart($0)}
+    return jsonChartToLinearChart(charts)
   }
   
-  private func jsonChartToLinearChart(_ jsonChart: JsonCharts.JsonChart) -> LinearChart {
+  private func jsonChartToLinearChart(_ jsonChart: JsonCharts.JsonChart) -> DataChart {
     //TODO: Sorting might be required
     let yVectors: [ChartValueVector] = jsonChart.yColumns.map{
       let identifier = $0.identifier
       return ChartValueVector(vector: $0.values, metaData: ChartValueVectorMetaData(identifier, jsonChart.name(forIdentifier: identifier), jsonChart.color(forIdentifier: identifier)))
     }
-    return LinearChart(yVectors: yVectors,
+    
+    var type: DataChartType = .linear
+    let jsonChartType = jsonChart.types["y0"]!
+    if jsonChartType == "line" {
+      if jsonChart.y_scaled ?? false {
+        type = .linearWith2Axes
+      }
+    } else if jsonChartType == "bar" {
+      if jsonChart.stacked ?? false {
+        type = .stackedBar
+      } else {
+        type = .singleBar
+      }
+    } else {
+      type = .percentage
+    }
+    print(type)
+    return DataChart(yVectors: yVectors,
                       xVector: jsonChart.xColumn.values,
+                      type: type,
                       title: nil)
   }
   
@@ -57,6 +75,9 @@ struct TGCAJsonToChartService: JsonParserServiceProtocol {
       let types: [String:String]
       let colors: [String:String]
       let names: [String:String]
+      let percentage: Bool?
+      let stacked: Bool?
+      let y_scaled: Bool?
       
       var xColumn: JsonColumn {
         let filter = columns.filter{$0.identifier.elementsEqual("x")}
@@ -88,6 +109,9 @@ struct TGCAJsonToChartService: JsonParserServiceProtocol {
         case types
         case colors
         case names
+        case percentage
+        case stacked
+        case y_scaled
       }
       
       struct JsonColumn: Codable {
