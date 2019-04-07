@@ -128,6 +128,66 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
     self.drawings = ChartDrawings(drawings: newDrawings, xPositions: xVector)
   }
   
+  override func updateChartByHiding(at index: Int, originalHidden: Bool) {
+    let normalizedYVectors = getSeparatelyNormalizedYVectors()
+    let xVector = mapToChartBoundsWidth(getNormalizedXVector())
+    let yVectors = normalizedYVectors.map{mapToChartBoundsHeight($0.vector)}
+
+    updateCurrentYValueRanges(left: normalizedYVectors.first!.yRange, right: normalizedYVectors.last!.yRange)
+    
+    var newDrawings = [Drawing]()
+    for i in 0..<drawings.drawings.count {
+      let yVector = yVectors[i]
+      let drawing = drawings.drawings[i]
+      let points = convertToPoints(xVector: xVector, yVector: yVector)
+      let newPath = bezierLine(withPoints: points)
+      
+      var oldPath: Any?
+      if let _ = drawing.shapeLayer.animation(forKey: "pathAnimation") {
+        oldPath = drawing.shapeLayer.presentation()?.value(forKey: "path")
+        drawing.shapeLayer.removeAnimation(forKey: "pathAnimation")
+      }
+      
+      let positionChangeBlock = {
+        let pathAnimation = CABasicAnimation(keyPath: "path")
+        pathAnimation.fromValue = oldPath ?? drawing.shapeLayer.path
+        drawing.shapeLayer.path = newPath.cgPath
+        pathAnimation.toValue = drawing.shapeLayer.path
+        pathAnimation.duration = CHART_PATH_ANIMATION_DURATION
+        drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
+      }
+      
+      if animatesPositionOnHide {
+        positionChangeBlock()
+      } else {
+        if !hiddenDrawingIndicies.contains(i) && !(originalHidden && i == index) {
+          positionChangeBlock()
+        }
+        if (originalHidden && i == index) {
+          drawing.shapeLayer.path = newPath.cgPath
+        }
+      }
+      
+      
+      if i == index {
+        var oldOpacity: Any?
+        if let _ = drawing.shapeLayer.animation(forKey: "opacityAnimation") {
+          oldOpacity = drawing.shapeLayer.presentation()?.value(forKey: "opacity")
+          drawing.shapeLayer.removeAnimation(forKey: "opacityAnimation")
+        }
+        let opacityAnimation = CABasicAnimation(keyPath: "opacity")
+        opacityAnimation.fromValue = oldOpacity ?? drawing.shapeLayer.opacity
+        drawing.shapeLayer.opacity = originalHidden ? 1 : 0
+        opacityAnimation.toValue = drawing.shapeLayer.opacity
+        opacityAnimation.duration = CHART_FADE_ANIMATION_DURATION
+        drawing.shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
+      }
+      
+      newDrawings.append(Drawing(shapeLayer: drawing.shapeLayer, yPositions: yVector))
+    }
+    drawings = ChartDrawings(drawings: newDrawings, xPositions: xVector)
+  }
+  
   //MARK: - Axes
   
   private var leftAxisLabelColor: CGColor! = UIColor.black.cgColor

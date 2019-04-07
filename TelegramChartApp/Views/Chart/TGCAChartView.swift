@@ -325,6 +325,14 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
       hiddenDrawingIndicies.insert(index)
     }
     
+    updateChartByHiding(at: index, originalHidden: originalHidden)
+    
+    if let annotation = currentChartAnnotation {
+      moveChartAnnotation(to: annotation.displayedIndex, animated: true)
+    }
+  }
+  
+  func updateChartByHiding(at index: Int, originalHidden: Bool) {
     let normalizedYVectors = getNormalizedYVectors()
     let xVector = mapToChartBoundsWidth(getNormalizedXVector())
     
@@ -382,10 +390,6 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
       newDrawings.append(Drawing(shapeLayer: drawing.shapeLayer, yPositions: yVector))
     }
     drawings = ChartDrawings(drawings: newDrawings, xPositions: xVector)
-    
-    if let annotation = currentChartAnnotation {
-      moveChartAnnotation(to: annotation.displayedIndex, animated: true)
-    }
   }
   
   // MARK: - Configuration
