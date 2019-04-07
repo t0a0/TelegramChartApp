@@ -639,7 +639,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     DispatchQueue.main.async {
       CATransaction.flush()
       CATransaction.begin()
-      CATransaction.setAnimationDuration(ANIMATION_DURATION)
+      CATransaction.setAnimationDuration(AXIS_ANIMATION_DURATION)
       CATransaction.setCompletionBlock{
         for r in removalBlocks {
           r()

@@ -15,6 +15,43 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
   private var leftYValueRange: ClosedRange<CGFloat> = 0...0
   private var rightYValueRange: ClosedRange<CGFloat> = 0...0
   
+  func updateCurrentYValueRanges(left: ClosedRange<CGFloat>, right: ClosedRange<CGFloat>) {
+    let leftChanged = leftYValueRange != left
+    let rightChanged = rightYValueRange != right
+    leftYValueRange = left
+    rightYValueRange = right
+    if horizontalAxes != nil {
+      var animBlocks = [()->()]()
+      var removalBlocks = [()->()]()
+      if leftChanged {
+        let blocks = updateLeftHorizontalAxes()
+        animBlocks.append(contentsOf: blocks.animationBlocks)
+        removalBlocks.append(contentsOf: blocks.removalBlocks)
+      }
+      if rightChanged {
+        let blocks = updateRightHorizontalAxes()
+        animBlocks.append(contentsOf: blocks.animationBlocks)
+        removalBlocks.append(contentsOf: blocks.removalBlocks)
+      }
+      if !animBlocks.isEmpty || !removalBlocks.isEmpty {
+        DispatchQueue.main.async {
+          CATransaction.flush()
+          CATransaction.begin()
+          CATransaction.setAnimationDuration(AXIS_ANIMATION_DURATION)
+          CATransaction.setCompletionBlock{
+            for r in removalBlocks {
+              r()
+            }
+          }
+          for ab in animBlocks {
+            ab()
+          }
+          CATransaction.commit()
+        }
+      }
+    }
+  }
+  
   override func configure(with chart: LinearChart, hiddenIndicies: Set<Int>, displayRange: ClosedRange<CGFloat>? = nil) {
     super.configure(with: chart, hiddenIndicies: hiddenIndicies, displayRange: displayRange)
     leftAxisLabelColor = chart.yVectors.first?.metaData.color.cgColor
@@ -30,8 +67,7 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
     let yVectors = normalizedYVectors.map{mapToChartBoundsHeight($0.vector)}
     let xVector = mapToChartBoundsWidth(getNormalizedXVector())
     
-    leftYValueRange = normalizedYVectors.first!.yRange
-    rightYValueRange = normalizedYVectors.last!.yRange
+    updateCurrentYValueRanges(left: normalizedYVectors.first!.yRange, right: normalizedYVectors.last!.yRange)
     
     var draws = [Drawing]()
     for i in 0..<yVectors.count {
@@ -46,6 +82,12 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
       draws.append(Drawing(shapeLayer: shape, yPositions: yVector))
     }
     drawings = ChartDrawings(drawings: draws, xPositions: xVector)
+  }
+  
+  override func trimDisplayRange(to newRange: ClosedRange<CGFloat>, with event: DisplayRangeChangeEvent) {
+    currentXIndexRange = chart.translatedBounds(for: newRange)
+    let normalizedYVectors = getSeparatelyNormalizedYVectors()
+    updateCurrentYValueRanges(left: normalizedYVectors.first!.yRange, right: normalizedYVectors.last!.yRange)
   }
   
   //MARK: - Axes
@@ -99,13 +141,102 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
       axisLayer.addSublayer(lineLayer)
       axisLayer.addSublayer(leftTextLayer)
       axisLayer.addSublayer(rightTextLayer)
-      newAxis.append(HorizontalAxis(lineLayer: lineLayer, leftTextLayer: leftTextLayer, rightTextLayer: rightTextLayer))
+      newAxis.append(HorizontalAxis(lineLayer: lineLayer, leftTextLayer: leftTextLayer, rightTextLayer: rightTextLayer, leftValue: leftValues[i], rightValue: rightValues[i]))
     }
     horizontalAxes = newAxis
   }
   
-  override func animateHorizontalAxesChange(fromPreviousRange previousRange: ClosedRange<CGFloat>, toNewRange newRange: ClosedRange<CGFloat>) {
+  typealias AxisAnimationBlocks = (animationBlocks: [()->()], removalBlocks: [()->()])
+  
+  func updateLeftHorizontalAxes() -> AxisAnimationBlocks {
     
+    let leftValues = valuesForLeftAxis()
+    let leftTexts = leftValues.map{chartLabelFormatterService.prettyValueString(from: $0)}
+    
+    let coefficients = (0..<leftValues.count).map{
+      leftValues[$0] / horizontalAxes[$0].leftValue
+    }
+    var blocks = [()->()]()
+    var removalBlocks = [()->()]()
+    var newAxes = [HorizontalAxis]()
+
+    for i in 0..<horizontalAxes.count {
+      let ax = horizontalAxes[i]
+      let coefficient = coefficients[i]
+      let coefIsZero = coefficient == 0
+      let coefIsInf = coefficient == CGFloat.infinity
+      let position = horizontalAxesDefaultYPositions[i]
+      
+      let oldTextLayerTargetPosition = CGPoint(x: ax.leftTextLayer.position.x, y: coefIsZero ? chartBoundsBottom : (coefficient > 1 ? ax.leftTextLayer.position.y * coefficient : ax.leftTextLayer.position.y - ax.leftTextLayer.position.y * coefficient))
+      
+      let newTextLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: leftTexts[i], color: leftAxisLabelColor)
+      newTextLayer.opacity = 0
+      axisLayer.addSublayer(newTextLayer)
+      let newTextLayerTargetPosition = newTextLayer.position
+      newTextLayer.position = CGPoint(x: newTextLayer.position.x, y: coefIsInf ? chartBounds.origin.y :  (coefficient > 1 ? newTextLayer.position.y / coefficient : newTextLayer.position.y * coefficient))
+      newAxes.append(HorizontalAxis(lineLayer: ax.lineLayer, leftTextLayer: newTextLayer, rightTextLayer: ax.rightTextLayer, leftValue: leftValues[i], rightValue: ax.rightValue))
+      
+      blocks.append {
+        ax.leftTextLayer.position = oldTextLayerTargetPosition
+        ax.leftTextLayer.opacity = 0
+        
+        newTextLayer.position = newTextLayerTargetPosition
+        newTextLayer.opacity = 1.0
+      }
+      removalBlocks.append {
+        ax.leftTextLayer.removeFromSuperlayer()
+      }
+    }
+    
+    self.horizontalAxes = newAxes
+    return (blocks, removalBlocks)
+  }
+  
+  func updateRightHorizontalAxes() -> AxisAnimationBlocks {
+    let boundsRight = bounds.origin.x + bounds.width
+
+    let rightValues = valuesForRightAxis()
+    let rightTexts = rightValues.map{chartLabelFormatterService.prettyValueString(from: $0)}
+    
+    let coefficients = (0..<rightValues.count).map{
+      rightValues[$0] / horizontalAxes[$0].rightValue
+    }
+    var blocks = [()->()]()
+    var removalBlocks = [()->()]()
+    var newAxes = [HorizontalAxis]()
+    
+    for i in 0..<horizontalAxes.count {
+      let ax = horizontalAxes[i]
+      let coefficient = coefficients[i]
+      let coefIsZero = coefficient == 0
+      let coefIsInf = coefficient == CGFloat.infinity
+      let position = horizontalAxesDefaultYPositions[i]
+      
+      let oldTextLayerTargetPosition = CGPoint(x: ax.rightTextLayer.position.x, y: coefIsZero ? chartBoundsBottom : (coefficient > 1 ? ax.rightTextLayer.position.y * coefficient : ax.rightTextLayer.position.y - ax.rightTextLayer.position.y * coefficient))
+      
+      let newTextLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: rightTexts[i], color: rightAxisLabelColor)
+      newTextLayer.frame.origin.x = boundsRight - newTextLayer.frame.width
+      newTextLayer.alignmentMode = .right
+      newTextLayer.opacity = 0
+      axisLayer.addSublayer(newTextLayer)
+      let newTextLayerTargetPosition = newTextLayer.position
+      newTextLayer.position = CGPoint(x: newTextLayer.position.x, y: coefIsInf ? chartBounds.origin.y :  (coefficient > 1 ? newTextLayer.position.y / coefficient : newTextLayer.position.y * coefficient))
+      newAxes.append(HorizontalAxis(lineLayer: ax.lineLayer, leftTextLayer: ax.leftTextLayer, rightTextLayer: newTextLayer, leftValue: ax.leftValue, rightValue: rightValues[i]))
+      
+      blocks.append {
+        ax.rightTextLayer.position = oldTextLayerTargetPosition
+        ax.rightTextLayer.opacity = 0
+        
+        newTextLayer.position = newTextLayerTargetPosition
+        newTextLayer.opacity = 1.0
+      }
+      removalBlocks.append {
+        ax.rightTextLayer.removeFromSuperlayer()
+      }
+    }
+    
+    self.horizontalAxes = newAxes
+    return (blocks, removalBlocks)
   }
   
   override func removeAxes() {
@@ -119,6 +250,8 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
     let lineLayer: CAShapeLayer
     let leftTextLayer: CATextLayer
     let rightTextLayer: CATextLayer
+    let leftValue: CGFloat
+    let rightValue: CGFloat
   }
   
 }
