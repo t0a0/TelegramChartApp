@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		161CA5F42259543100FFC1DF /* TGCAChartHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 161CA5F32259543100FFC1DF /* TGCAChartHeaderView.swift */; };
 		161CA5F62259544000FFC1DF /* TGCAChartHeaderView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 161CA5F52259544000FFC1DF /* TGCAChartHeaderView.xib */; };
+		161CA5F822595E4400FFC1DF /* TGCAFilterButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 161CA5F722595E4400FFC1DF /* TGCAFilterButton.swift */; };
+		161CA5FA2259736200FFC1DF /* TGCAChartFiltersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 161CA5F92259736200FFC1DF /* TGCAChartFiltersView.swift */; };
 		1657643322343A5600173E97 /* TGCAChartView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1657643222343A5600173E97 /* TGCAChartView.xib */; };
 		1657643622343B5B00173E97 /* TGCAChartTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657643422343B5B00173E97 /* TGCAChartTableViewCell.swift */; };
 		1657643722343B5B00173E97 /* TGCAChartTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1657643522343B5B00173E97 /* TGCAChartTableViewCell.xib */; };
@@ -38,6 +40,8 @@
 /* Begin PBXFileReference section */
 		161CA5F32259543100FFC1DF /* TGCAChartHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartHeaderView.swift; sourceTree = "<group>"; };
 		161CA5F52259544000FFC1DF /* TGCAChartHeaderView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TGCAChartHeaderView.xib; sourceTree = "<group>"; };
+		161CA5F722595E4400FFC1DF /* TGCAFilterButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAFilterButton.swift; sourceTree = "<group>"; };
+		161CA5F92259736200FFC1DF /* TGCAChartFiltersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartFiltersView.swift; sourceTree = "<group>"; };
 		1657643222343A5600173E97 /* TGCAChartView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TGCAChartView.xib; sourceTree = "<group>"; };
 		1657643422343B5B00173E97 /* TGCAChartTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartTableViewCell.swift; sourceTree = "<group>"; };
 		1657643522343B5B00173E97 /* TGCAChartTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TGCAChartTableViewCell.xib; sourceTree = "<group>"; };
@@ -84,6 +88,8 @@
 				161CA5F52259544000FFC1DF /* TGCAChartHeaderView.xib */,
 				168DDC892241AC8200F51300 /* Chart */,
 				1682D8092245E27D000E76E4 /* TableViewViews */,
+				161CA5F722595E4400FFC1DF /* TGCAFilterButton.swift */,
+				161CA5F92259736200FFC1DF /* TGCAChartFiltersView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -291,9 +297,11 @@
 				16576472223E63A100173E97 /* TGCAChartAnnotationView.swift in Sources */,
 				1657643F2234A0FE00173E97 /* TGCATrimmerView.swift in Sources */,
 				1657645A2236F81400173E97 /* TGCAChartStructs.swift in Sources */,
+				161CA5FA2259736200FFC1DF /* TGCAChartFiltersView.swift in Sources */,
 				1657643622343B5B00173E97 /* TGCAChartTableViewCell.swift in Sources */,
 				165764562235C77100173E97 /* TGCAChartDetailViewController.swift in Sources */,
 				167FCACF22343348001CA7E5 /* AppDelegate.swift in Sources */,
+				161CA5F822595E4400FFC1DF /* TGCAFilterButton.swift in Sources */,
 				16576470223D287F00173E97 /* Protocols.swift in Sources */,
 				168DDC8622415EB300F51300 /* TGCAChartLabelFormatterService.swift in Sources */,
 				165764582235D70700173E97 /* UIImage+Color.swift in Sources */,
