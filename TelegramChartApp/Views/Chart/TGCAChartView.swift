@@ -89,7 +89,14 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   private var numOfGuideLabels = 6
   
   /// The rect in which the chart drawing is happening
-  private var chartBounds: CGRect = CGRect.zero
+  private var chartBounds: CGRect = CGRect.zero {
+    didSet {
+      chartBoundsRight = chartBounds.origin.x + chartBounds.width
+      chartBoundsBottom = chartBounds.origin.y + chartBounds.height
+    }
+  }
+  private var chartBoundsBottom: CGFloat = 0
+  private var chartBoundsRight: CGFloat = 0
   
   private var chart: LinearChart!
   private var drawings: ChartDrawings!
@@ -177,12 +184,12 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
         shape.opacity = 0
       }
       
-      let a = UIBezierPath()
-      a.move(to: CGPoint(x: points[0].x, y: chartBounds.origin.y + chartBounds.height))
-      a.addLine(to: points[0])
-      a.append(line)
-      a.addLine(to: CGPoint(x: points[points.count - 1].x, y: chartBounds.origin.y + chartBounds.height))
-      a.addLine(to: CGPoint(x: points[0].x, y: chartBounds.origin.y + chartBounds.height))
+//      let a = UIBezierPath()
+//      a.move(to: CGPoint(x: points[0].x, y: chartBoundsBottom))
+//      a.addLine(to: points[0])
+//      a.append(line)
+//      a.addLine(to: CGPoint(x: points[points.count - 1].x, y: chartBoundsBottom))
+//      a.addLine(to: CGPoint(x: points[0].x, y: chartBoundsBottom))
       lineLayer.addSublayer(shape)
 
 //      let fillLayer = CAShapeLayer()
@@ -379,7 +386,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     let space = chartBounds.height * capHeightMultiplierForHorizontalAxes / CGFloat(numOfHorizontalAxes)
     var retVal = [CGFloat]()
     for i in 0..<numOfHorizontalAxes {
-      retVal.append(chartBounds.origin.y + chartBounds.height - (CGFloat(i) * space + space))
+      retVal.append(chartBoundsBottom - (CGFloat(i) * space + space))
     }
     horizontalAxesDefaultYPositions = retVal
   }
@@ -522,7 +529,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     
     var labels = [GuideLabel]()
     for i in 0..<xIndexes.count {
-      let textL = textLayer(origin: CGPoint(x: drawings.xPositions[xIndexes[i]], y: chartBounds.origin.y + chartBounds.height + 5/* + heightForGuideLabels / 2*/), text: strings[i], color: axisLabelColor)
+      let textL = textLayer(origin: CGPoint(x: drawings.xPositions[xIndexes[i]], y: chartBoundsBottom + 5/* + heightForGuideLabels / 2*/), text: strings[i], color: axisLabelColor)
       labels.append(GuideLabel(textLayer: textL, indexInChart: xIndexes[i]))
     }
     return labels
@@ -531,7 +538,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   // MARK: - Horizontal axes
   
   private func addZeroAxis() {
-    let zposition = chartBounds.origin.y + chartBounds.height
+    let zposition = chartBoundsBottom
     let zline = bezierLine(from: CGPoint(x: bounds.origin.x, y: zposition), to: CGPoint(x: bounds.origin.x + bounds.width, y: zposition))
     let zshapeL = shapeLayer(withPath: zline.cgPath, color: axisColor, lineWidth: 0.5)
     zshapeL.opacity = 1
@@ -580,15 +587,14 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     var blocks = [()->()]()
     var removalBlocks = [()->()]()
     var newAxes = [HorizontalAxis]()
-    
     for i in 0..<horizontalAxis.count {
       let ax = horizontalAxis[i]
-      
-      let newLinePosition = CGPoint(x: ax.lineLayer.position.x, y: coefIsZero ? chartBounds.origin.y + chartBounds.origin.y : chartBounds.origin.y + chartBounds.height - (chartBounds.origin.y + chartBounds.height - ax.lineLayer.position.y) / coefficient)
-      let newTextPosition = CGPoint(x: ax.labelLayer.position.x, y: coefIsZero ? chartBounds.origin.y + chartBounds.origin.y : chartBounds.origin.y + chartBounds.height - (chartBounds.origin.y + chartBounds.height - ax.labelLayer.position.y) / coefficient)
-      
-      
       let position = horizontalAxesDefaultYPositions[i]
+      //TODO: FIX ANIMATION POSITION!!!
+      let newLinePosition = CGPoint(x: ax.lineLayer.position.x, y: coefIsZero ? chartBoundsBottom : (coefficient > 1 ? position * coefficient : position - position * coefficient))
+      let newTextPosition = CGPoint(x: ax.labelLayer.position.x, y: coefIsZero ? chartBoundsBottom : (coefficient > 1 ? ax.labelLayer.position.y * coefficient : ax.labelLayer.position.y - ax.labelLayer.position.y * coefficient))
+      
+      
       let line = bezierLine(from: CGPoint(x: bounds.origin.x, y: position), to: CGPoint(x: bounds.origin.x + bounds.width, y: position))
       let shapeL = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: 0.5)
       let textL = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: labelTextsForCurrentYRange[i], color: axisLabelColor)
@@ -598,8 +604,8 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
       axisLayer.addSublayer(textL)
       let oldShapePos = shapeL.position
       let oldTextPos = textL.position
-      shapeL.position = CGPoint(x: shapeL.position.x, y: coefIsInf ? chartBounds.origin.y :  chartBounds.origin.y + chartBounds.height - (chartBounds.origin.y + chartBounds.height - shapeL.position.y) * coefficient)
-      textL.position = CGPoint(x: textL.position.x, y: coefIsInf ? chartBounds.origin.y :   chartBounds.origin.y + chartBounds.height - (chartBounds.origin.y + chartBounds.height - textL.position.y) * coefficient)
+      shapeL.position = CGPoint(x: shapeL.position.x, y: coefIsInf ? chartBounds.origin.y :  (coefficient > 1 ? -position / coefficient : position + position / coefficient))
+      textL.position = CGPoint(x: textL.position.x, y: coefIsInf ? chartBounds.origin.y :  (coefficient > 1 ? textL.position.y / coefficient : textL.position.y * coefficient))
       newAxes.append(HorizontalAxis(lineLayer: shapeL, labelLayer: textL))
       
       
@@ -675,7 +681,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     let xPos = min(bounds.origin.x + bounds.width - annotationSize.width / 2, max(bounds.origin.x + annotationSize.width / 2, xPoint))
     annotationView.center = CGPoint(x: xPos, y: bounds.origin.y + annotationSize.height / 2)
     
-    let line = bezierLine(from: CGPoint(x: xPoint, y: annotationView.frame.origin.y + annotationView.frame.height), to: CGPoint(x: xPoint, y: chartBounds.origin.y + chartBounds.height))
+    let line = bezierLine(from: CGPoint(x: xPoint, y: annotationView.frame.origin.y + annotationView.frame.height), to: CGPoint(x: xPoint, y: chartBoundsBottom))
     let lineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: 1.0)
     lineLayer.zPosition = zPositions.Annotation.lineShape.rawValue
     layer.addSublayer(lineLayer)
@@ -743,7 +749,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     let xPos = min(bounds.origin.x + bounds.width - annotationSize.width / 2, max(bounds.origin.x + annotationSize.width / 2, xPoint))
     annotation.annotationView.center = CGPoint(x: xPos, y: bounds.origin.y + annotationSize.height / 2)
     
-    let line = bezierLine(from: CGPoint(x: xPoint, y: annotation.annotationView.frame.origin.y + annotation.annotationView.frame.height), to: CGPoint(x: xPoint, y: chartBounds.origin.y + chartBounds.height))
+    let line = bezierLine(from: CGPoint(x: xPoint, y: annotation.annotationView.frame.origin.y + annotation.annotationView.frame.height), to: CGPoint(x: xPoint, y: chartBoundsBottom))
     currentChartAnnotation?.lineLayer.path = line.cgPath
     currentChartAnnotation?.updateDiplayedIndex(to: index)
   }
@@ -756,6 +762,18 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     line.move(to: firstPoint)
     for i in 1..<points.count {
       line.addLine(to: points[i])
+    }
+    return line
+  }
+  
+  private func squareBezierLine(with points: [CGPoint]) -> UIBezierPath {
+    let line = UIBezierPath()
+    let firstPoint = points[0]
+    line.move(to: firstPoint)
+    for i in 1..<points.count {
+      let nextPoint = points[i]
+      line.addLine(to: CGPoint(x: nextPoint.x, y: line.currentPoint.y))
+      line.addLine(to: CGPoint(x: line.currentPoint.x, y: nextPoint.y))
     }
     return line
   }
@@ -933,11 +951,11 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   }
   
   private func mapToChartBoundsWidth(_ vector: ValueVector) -> ValueVector {
-    return vector.map{$0 * chartBounds.size.width + chartBounds.origin.x}
+    return vector.map{$0 * chartBoundsRight}
   }
   
   private func mapToChartBoundsHeight(_ vector: ValueVector) -> ValueVector {
-    return vector.map{chartBounds.size.height - ($0 * chartBounds.size.height) + chartBounds.origin.y}
+    return vector.map{chartBoundsBottom - ($0 * chartBounds.size.height)}
   }
   
   /// Calculates what is the best "power of two" for the provided count, depending on the max number of labels that fit the screen. Leftover is how far am I to the point, where the best index would change. < 0.5 is changing towards smaller spacing. >0.5 changing towards higher spacing.
