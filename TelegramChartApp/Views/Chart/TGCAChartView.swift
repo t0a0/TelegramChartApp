@@ -18,7 +18,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   var circlePointFillColor = UIColor.white.cgColor
   
   struct ChartViewConstants {
-    static let axisLineOpacity: Float = 0.75
+    static let axisLineOpacity: Float = 0.5
   }
   
   let axisLayer = CALayer()
@@ -1043,7 +1043,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     }
     
     enum Chart: CGFloat {
-      case axis = -7.0
+      case axis = 7.0
       case graph = 0
       case axisLabels = 2
       case dates = 8.0
