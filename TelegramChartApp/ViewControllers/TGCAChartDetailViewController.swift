@@ -72,7 +72,12 @@ class TGCAChartDetailViewController: UIViewController {
     subscribe()
     
   }
-
+  override func didRotate(from fromInterfaceOrientation: UIInterfaceOrientation) {
+    if let indexPaths = tableView.indexPathsForVisibleRows {
+      tableView.reloadRows(at: indexPaths, with: .none)
+    }
+  }
+  
   override func willRotate(to toInterfaceOrientation: UIInterfaceOrientation, duration: TimeInterval) {
     navigationController?.setNavigationBarHidden(toInterfaceOrientation == .landscapeLeft || toInterfaceOrientation == .landscapeRight, animated: true)
   }
