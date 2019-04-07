@@ -78,7 +78,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   var animatesPositionOnHide = true
   
   /// If true than the minimum Y value would always be zero
-  var valuesStartFromZero = false
+  var valuesStartFromZero = true
   
   var canShowAnnotations = true
   
@@ -158,7 +158,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     hiddenDrawingIndicies = nil
     currentXIndexRange = nil
   }
-//  var fillLayers: [CAShapeLayer]!
+
   /// Configures the view to display the chart.
   func configure(with chart: LinearChart, hiddenIndicies: Set<Int>, displayRange: ClosedRange<CGFloat>? = nil) {
     reset()
@@ -174,22 +174,6 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     currentXIndexRange = curXRange
     
     drawChart()
-    /*var fl = [CAShapeLayer]()
-    
-    
-    let a = UIBezierPath()
-    a.move(to: CGPoint(x: points[0].x, y: chartBoundsBottom))
-    a.addLine(to: points[0])
-    a.append(line)
-    a.addLine(to: CGPoint(x: points[points.count - 1].x, y: chartBoundsBottom))
-    a.addLine(to: CGPoint(x: points[0].x, y: chartBoundsBottom))
-    
-    let fillLayer = CAShapeLayer()
-    fillLayer.path = a.cgPath
-    fillLayer.fillRule = .evenOdd
-    fillLayer.fillColor = chart.yVectors[i].metaData.color.cgColor
-    layer.addSublayer(fillLayer)
-    fl.append(fillLayer)*/
     
     if shouldDisplayAxesAndLabels  {
       drawAxes()
@@ -789,7 +773,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     return line
   }
   
-  func squareBezierLine(with points: [CGPoint]) -> UIBezierPath {
+  func squareBezierLine(withPoints points: [CGPoint]) -> UIBezierPath {
     let line = UIBezierPath()
     let firstPoint = points[0]
     line.move(to: firstPoint)
@@ -848,9 +832,39 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     return textLayer
   }
   
-//  func fillLayer() -> CALayer {
-//
-//  }
+  func bezierArea(topPoints: [CGPoint], bottomPoints: [CGPoint]) -> UIBezierPath {
+    let a = UIBezierPath()
+    a.move(to: CGPoint(x: bottomPoints[0].x, y: bottomPoints[0].y))
+    for tp in topPoints {
+      a.addLine(to: tp)
+    }
+    for bp in bottomPoints.reversed() {
+      a.addLine(to: bp)
+    }
+    return a
+  }
+  
+  func bezierArea(topPath: UIBezierPath, bottomPath: UIBezierPath) -> UIBezierPath {
+    let path = UIBezierPath()
+    path.append(topPath)
+    path.addLine(to: bottomPath.currentPoint)
+    path.append(bottomPath.reversing())
+    path.addLine(to: topPath.reversing().currentPoint)
+    return path
+  }
+  
+  func filledShapeLayer(withPath path: CGPath, color: CGColor, lineWidth: CGFloat) -> CAShapeLayer {
+    let fillLayer = CAShapeLayer()
+    fillLayer.path = path
+    fillLayer.fillColor = color
+    fillLayer.strokeColor = color
+    fillLayer.lineWidth = lineWidth
+    fillLayer.lineJoin = .round
+    fillLayer.lineCap = .round
+    fillLayer.fillRule = .evenOdd
+    fillLayer.contentsScale = UIScreen.main.scale
+    return fillLayer
+  }
   
   // MARK: - Touches
   
