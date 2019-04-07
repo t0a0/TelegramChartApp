@@ -12,6 +12,7 @@ import UIKit
 typealias ValueVector = [CGFloat]
 typealias ChartValueVectorMetaData = (identifier: String, name: String, color: UIColor)
 typealias NormalizedYVectors = (vectors: [ValueVector], yRange: ClosedRange<CGFloat>)
+typealias SeparatlyNormalizedYVectors = [(vector: ValueVector, yRange: ClosedRange<CGFloat>)]
 
 struct LinearChart {
   
@@ -64,9 +65,22 @@ struct LinearChart {
     let maximum = notExcludedVectors.map{$0[xRange].max() ?? 0}.max() ?? 0
     
     guard minimum != maximum else {
-      return (vectors.map{$0.map{_ in 0}}, 0...0)
+      return (vectors.map{Array(repeating: 0, count: $0.count)}, 0...0)
     }
     return (vectors.map{$0.map{(($0 - minimum) / (maximum - minimum))}}, minimum...maximum)
+  }
+  
+  func separatlyNormalizedYVectorsFromLocalMinimum(in xRange: ClosedRange<Int>) -> SeparatlyNormalizedYVectors {
+    let vectors = yVectors.map{$0.vector}
+    
+    return vectors.map{
+      let min = $0[xRange].min() ?? 0
+      let max = $0[xRange].max() ?? 0
+      guard min != max else {
+        return (Array(repeating: 0, count: $0.count), 0...0)
+      }
+      return ($0.map{(($0 - min) / (max - min))}, min...max)
+    }
   }
   
   /// Maps the value in range of 0...1 to an according index in the xVector

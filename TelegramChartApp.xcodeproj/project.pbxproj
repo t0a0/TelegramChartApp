@@ -11,6 +11,11 @@
 		161CA5F62259544000FFC1DF /* TGCAChartHeaderView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 161CA5F52259544000FFC1DF /* TGCAChartHeaderView.xib */; };
 		161CA5F822595E4400FFC1DF /* TGCAFilterButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 161CA5F722595E4400FFC1DF /* TGCAFilterButton.swift */; };
 		161CA5FA2259736200FFC1DF /* TGCAChartFiltersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 161CA5F92259736200FFC1DF /* TGCAChartFiltersView.swift */; };
+		161CA5FC225A417100FFC1DF /* TGCALinearChartWithTwoYAxisView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 161CA5FB225A417000FFC1DF /* TGCALinearChartWithTwoYAxisView.swift */; };
+		161CA5FE225A439300FFC1DF /* TGCASingleBarChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 161CA5FD225A439300FFC1DF /* TGCASingleBarChartView.swift */; };
+		161CA600225A43A000FFC1DF /* TGCAMultipleBarChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 161CA5FF225A43A000FFC1DF /* TGCAMultipleBarChartView.swift */; };
+		161CA602225A43B700FFC1DF /* TGCAAreaChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 161CA601225A43B700FFC1DF /* TGCAAreaChartView.swift */; };
+		161CA604225A465000FFC1DF /* TGCALinearChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 161CA603225A465000FFC1DF /* TGCALinearChartView.swift */; };
 		1657643322343A5600173E97 /* TGCAChartView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1657643222343A5600173E97 /* TGCAChartView.xib */; };
 		1657643622343B5B00173E97 /* TGCAChartTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1657643422343B5B00173E97 /* TGCAChartTableViewCell.swift */; };
 		1657643722343B5B00173E97 /* TGCAChartTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1657643522343B5B00173E97 /* TGCAChartTableViewCell.xib */; };
@@ -42,6 +47,11 @@
 		161CA5F52259544000FFC1DF /* TGCAChartHeaderView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TGCAChartHeaderView.xib; sourceTree = "<group>"; };
 		161CA5F722595E4400FFC1DF /* TGCAFilterButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAFilterButton.swift; sourceTree = "<group>"; };
 		161CA5F92259736200FFC1DF /* TGCAChartFiltersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartFiltersView.swift; sourceTree = "<group>"; };
+		161CA5FB225A417000FFC1DF /* TGCALinearChartWithTwoYAxisView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCALinearChartWithTwoYAxisView.swift; sourceTree = "<group>"; };
+		161CA5FD225A439300FFC1DF /* TGCASingleBarChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCASingleBarChartView.swift; sourceTree = "<group>"; };
+		161CA5FF225A43A000FFC1DF /* TGCAMultipleBarChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAMultipleBarChartView.swift; sourceTree = "<group>"; };
+		161CA601225A43B700FFC1DF /* TGCAAreaChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAAreaChartView.swift; sourceTree = "<group>"; };
+		161CA603225A465000FFC1DF /* TGCALinearChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCALinearChartView.swift; sourceTree = "<group>"; };
 		1657643222343A5600173E97 /* TGCAChartView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TGCAChartView.xib; sourceTree = "<group>"; };
 		1657643422343B5B00173E97 /* TGCAChartTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartTableViewCell.swift; sourceTree = "<group>"; };
 		1657643522343B5B00173E97 /* TGCAChartTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TGCAChartTableViewCell.xib; sourceTree = "<group>"; };
@@ -203,8 +213,13 @@
 		168DDC892241AC8200F51300 /* Chart */ = {
 			isa = PBXGroup;
 			children = (
+				161CA5FD225A439300FFC1DF /* TGCASingleBarChartView.swift */,
+				161CA5FF225A43A000FFC1DF /* TGCAMultipleBarChartView.swift */,
+				161CA601225A43B700FFC1DF /* TGCAAreaChartView.swift */,
+				161CA5FB225A417000FFC1DF /* TGCALinearChartWithTwoYAxisView.swift */,
 				167FCAFC22343523001CA7E5 /* TGCAChartView.swift */,
 				1657643222343A5600173E97 /* TGCAChartView.xib */,
+				161CA603225A465000FFC1DF /* TGCALinearChartView.swift */,
 				16576471223E63A100173E97 /* TGCAChartAnnotationView.swift */,
 				16576473223E640D00173E97 /* TGCAChartAnnotationView.xib */,
 				1657643C22349B0000173E97 /* TGCATrimmerShoulderView.swift */,
@@ -302,15 +317,20 @@
 				165764562235C77100173E97 /* TGCAChartDetailViewController.swift in Sources */,
 				167FCACF22343348001CA7E5 /* AppDelegate.swift in Sources */,
 				161CA5F822595E4400FFC1DF /* TGCAFilterButton.swift in Sources */,
+				161CA600225A43A000FFC1DF /* TGCAMultipleBarChartView.swift in Sources */,
+				161CA604225A465000FFC1DF /* TGCALinearChartView.swift in Sources */,
 				16576470223D287F00173E97 /* Protocols.swift in Sources */,
+				161CA5FE225A439300FFC1DF /* TGCASingleBarChartView.swift in Sources */,
 				168DDC8622415EB300F51300 /* TGCAChartLabelFormatterService.swift in Sources */,
 				165764582235D70700173E97 /* UIImage+Color.swift in Sources */,
 				168DDC88224198D500F51300 /* ClosedRange+Distance.swift in Sources */,
 				1657645E2237135000173E97 /* Constants.swift in Sources */,
 				167FCAFD22343523001CA7E5 /* TGCAChartView.swift in Sources */,
+				161CA5FC225A417100FFC1DF /* TGCALinearChartWithTwoYAxisView.swift in Sources */,
 				161CA5F42259543100FFC1DF /* TGCAChartHeaderView.swift in Sources */,
 				1657646E223D27E600173E97 /* TGCANavigationController.swift in Sources */,
 				1657644922354F4100173E97 /* UIColor+Hex.swift in Sources */,
+				161CA602225A43B700FFC1DF /* TGCAAreaChartView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

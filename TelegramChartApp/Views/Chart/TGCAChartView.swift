@@ -13,9 +13,9 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   
   @IBOutlet var contentView: UIView!
   
-  private var axisColor = UIColor.gray.cgColor
-  private var axisLabelColor = UIColor.black.cgColor
-  private var circlePointFillColor = UIColor.white.cgColor
+  var axisColor = UIColor.gray.cgColor
+  var axisLabelColor = UIColor.black.cgColor
+  var circlePointFillColor = UIColor.white.cgColor
   
   let axisLayer = CALayer()
   let lineLayer = CALayer()
@@ -33,7 +33,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     commonInit()
   }
   
-  private func commonInit () {
+  func commonInit () {
     Bundle.main.loadNibNamed("TGCAChartView", owner: self, options: nil)
     addSubview(contentView)
     contentView.frame = self.bounds
@@ -62,7 +62,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   }
   
   /// Service that knows how to format values for Y axes and dates for X axis.
-  private let chartLabelFormatterService: ChartLabelFormatterProtocol = TGCAChartLabelFormatterService()
+  let chartLabelFormatterService: ChartLabelFormatterProtocol = TGCAChartLabelFormatterService()
   
   var graphLineWidth: CGFloat = 2.0
   
@@ -72,52 +72,55 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   var animatesPositionOnHide = true
   
   /// If true than the minimum Y value would always be zero
-  var valuesStartFromZero = true
+  var valuesStartFromZero = false
   
   var canShowAnnotations = true
   
   /// Radius of the circle, layed over the chart when the annotation is shown
-  private let circlePointRadius: CGFloat = 4.0
+  let circlePointRadius: CGFloat = 4.0
   
   /// Number of horizontal axes that should be shown on screen. Doesnt include zero axis
-  private let numOfHorizontalAxes = 5
+  let numOfHorizontalAxes = 5
   
   /// Used to provide additional bottom offset for chart bounds
-  private let heightForGuideLabels: CGFloat = 20.0
+  let heightForGuideLabels: CGFloat = 20.0
   
   /// Maximum number of guide labels that should be visible on the screen
-  private var numOfGuideLabels = 6
+  var numOfGuideLabels = 6
   
   /// The rect in which the chart drawing is happening
-  private var chartBounds: CGRect = CGRect.zero {
+  var chartBounds: CGRect = CGRect.zero {
     didSet {
       chartBoundsRight = chartBounds.origin.x + chartBounds.width
       chartBoundsBottom = chartBounds.origin.y + chartBounds.height
     }
   }
-  private var chartBoundsBottom: CGFloat = 0
-  private var chartBoundsRight: CGFloat = 0
+  var chartBoundsBottom: CGFloat = 0
+  var chartBoundsRight: CGFloat = 0
   
-  private var chart: LinearChart!
-  private var drawings: ChartDrawings!
+  var chart: LinearChart!
+  var drawings: ChartDrawings!
   
   /// Contains indicies of the hidden charts
-  private var hiddenDrawingIndicies: Set<Int>!
+  var hiddenDrawingIndicies: Set<Int>!
+  
   private var horizontalAxes: [HorizontalAxis]!
   private var zeroAxis: HorizontalAxis!
-  private var currentChartAnnotation: ChartAnnotation?
+  
+  
+  var currentChartAnnotation: ChartAnnotation?
   
   /// Guide labels that are currently shown
-  private var activeGuideLabels: [GuideLabel]!
+  var activeGuideLabels: [GuideLabel]!
   
   /// Guide labels that are currently in fading animation
-  private var transitioningGuideLabels: [GuideLabel]!
+  var transitioningGuideLabels: [GuideLabel]!
   
   /// Range of X values that is curently diplayed
-  private var currentXIndexRange: ClosedRange<Int>!
+  var currentXIndexRange: ClosedRange<Int>!
   
   /// Range between total min and max Y of currently visible charts
-  private var currentYValueRange: ClosedRange<CGFloat> = 0...0 {
+  var currentYValueRange: ClosedRange<CGFloat> = 0...0 {
     didSet {
       guard oldValue != currentYValueRange else {
         return
@@ -133,16 +136,16 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   }
   
   /// The axes are drawn from the bottom of the bounds to the top of the bounds, capped by this value.
-  private let capHeightMultiplierForHorizontalAxes: CGFloat = 0.85
-  private var horizontalAxesDefaultYPositions: [CGFloat]!
-  private var labelTextsForCurrentYRange: [String]!
+  let capHeightMultiplierForHorizontalAxes: CGFloat = 0.85
+  var horizontalAxesDefaultYPositions: [CGFloat]!
+  var labelTextsForCurrentYRange: [String]!
   
   // MARK: - Public functions
   
   func reset() {
     chart = nil
     removeDrawings()
-    removeAxis()
+    removeAxes()
     removeGuideLabels()
     removeChartAnnotation()
     currentYValueRange = 0...0
@@ -153,9 +156,6 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   /// Configures the view to display the chart.
   func configure(with chart: LinearChart, hiddenIndicies: Set<Int>, displayRange: ClosedRange<CGFloat>? = nil) {
     reset()
-//    fillLayers?.forEach{
-//      $0.removeFromSuperlayer()
-//    }
     configureChartBounds()
     configureHorizontalAxesDefaultPositions()
     self.chart = chart
@@ -167,6 +167,31 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     }
     currentXIndexRange = curXRange
     
+    drawChart()
+    /*var fl = [CAShapeLayer]()
+    
+    
+    let a = UIBezierPath()
+    a.move(to: CGPoint(x: points[0].x, y: chartBoundsBottom))
+    a.addLine(to: points[0])
+    a.append(line)
+    a.addLine(to: CGPoint(x: points[points.count - 1].x, y: chartBoundsBottom))
+    a.addLine(to: CGPoint(x: points[0].x, y: chartBoundsBottom))
+    
+    let fillLayer = CAShapeLayer()
+    fillLayer.path = a.cgPath
+    fillLayer.fillRule = .evenOdd
+    fillLayer.fillColor = chart.yVectors[i].metaData.color.cgColor
+    layer.addSublayer(fillLayer)
+    fl.append(fillLayer)*/
+    
+    if shouldDisplayAxesAndLabels  {
+      drawAxes()
+      addGuideLabels()
+    }
+  }
+  
+  func drawChart() {
     let normalizedYVectors = getNormalizedYVectors()
     let yVectors = normalizedYVectors.vectors.map{mapToChartBoundsHeight($0)}
     let xVector = mapToChartBoundsWidth(getNormalizedXVector())
@@ -174,7 +199,6 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     currentYValueRange = normalizedYVectors.yRange
     
     var draws = [Drawing]()
-//    var fl = [CAShapeLayer]()
     for i in 0..<yVectors.count {
       let yVector = yVectors[i]
       let points = convertToPoints(xVector: xVector, yVector: yVector)
@@ -183,31 +207,15 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
       if hiddenDrawingIndicies.contains(i) {
         shape.opacity = 0
       }
-      
-//      let a = UIBezierPath()
-//      a.move(to: CGPoint(x: points[0].x, y: chartBoundsBottom))
-//      a.addLine(to: points[0])
-//      a.append(line)
-//      a.addLine(to: CGPoint(x: points[points.count - 1].x, y: chartBoundsBottom))
-//      a.addLine(to: CGPoint(x: points[0].x, y: chartBoundsBottom))
       lineLayer.addSublayer(shape)
-
-//      let fillLayer = CAShapeLayer()
-//      fillLayer.path = a.cgPath
-//      fillLayer.fillRule = .evenOdd
-//      fillLayer.fillColor = chart.yVectors[i].metaData.color.cgColor
-//      layer.addSublayer(fillLayer)
-//      fl.append(fillLayer)
-      
       draws.append(Drawing(shapeLayer: shape, yPositions: yVector))
     }
     drawings = ChartDrawings(drawings: draws, xPositions: xVector)
-//    fillLayers = fl
-    if shouldDisplayAxesAndLabels  {
-      addZeroAxis()
-      addHorizontalAxes()
-      addGuideLabels()
-    }
+  }
+  
+  func drawAxes() {
+    addZeroAxis()
+    addHorizontalAxes()
   }
   
   /// Updates the diplayed X range. Accepted are subranges of 0...1.
@@ -372,7 +380,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   
   // MARK: - Configuration
   
-  private func configureChartBounds() {
+  func configureChartBounds() {
     // We need to inset drawing so that if the edge points are selected, the circular point on the graph is fully visible in the view
     let inset = graphLineWidth + (canShowAnnotations ? circlePointRadius : 0)
     chartBounds = CGRect(x: bounds.origin.x + inset,
@@ -382,7 +390,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
                           - (shouldDisplayAxesAndLabels ? heightForGuideLabels : 0))
   }
   
-  private func configureHorizontalAxesDefaultPositions() {
+  func configureHorizontalAxesDefaultPositions() {
     let space = chartBounds.height * capHeightMultiplierForHorizontalAxes / CGFloat(numOfHorizontalAxes)
     var retVal = [CGFloat]()
     for i in 0..<numOfHorizontalAxes {
@@ -391,7 +399,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     horizontalAxesDefaultYPositions = retVal
   }
   
-  private func configureStringsForHorizontalAxesLabels() {
+  func configureStringsForHorizontalAxesLabels() {
     var textsForAxesLabels = [String]()
     for i in 0..<numOfHorizontalAxes {
       let value = (((currentYValueRange.upperBound - currentYValueRange.lowerBound) * capHeightMultiplierForHorizontalAxes / CGFloat(numOfHorizontalAxes)) * CGFloat(i+1)) + currentYValueRange.lowerBound
@@ -402,7 +410,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   
   // MARK: - Guide Labels
   
-  private func addGuideLabels() {
+  func addGuideLabels() {
     
     let (spacing, leftover) = bestIndexSpacing(for: currentXIndexRange.distance + 1)
     lastLeftover = leftover
@@ -422,9 +430,9 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     activeGuideLabels = newActiveGuideLabels
   }
   
-  private var lastSpacing: Int!
-  private var lastActualIndexes: [Int]!
-  private var lastLeftover: CGFloat! {
+  var lastSpacing: Int!
+  var lastActualIndexes: [Int]!
+  var lastLeftover: CGFloat! {
     didSet {
       guard oldValue != nil else {
         return
@@ -436,7 +444,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     }
   }
   
-  private func animateGuideLabelsChange(from fromRange: ClosedRange<Int>, to toRange: ClosedRange<Int>, event: DisplayRangeChangeEvent) {
+  func animateGuideLabelsChange(from fromRange: ClosedRange<Int>, to toRange: ClosedRange<Int>, event: DisplayRangeChangeEvent) {
   
     if event != .Scrolled {
       let (spacing, leftover) = bestIndexSpacing(for: toRange.distance + 1)
@@ -522,7 +530,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     
   }
   
-  private func generateGuideLabels(for xIndexes: [Int]) -> [GuideLabel] {
+  func generateGuideLabels(for xIndexes: [Int]) -> [GuideLabel] {
     
     let timeStamps = xIndexes.map{chart.xVector[$0]}
     let strings = timeStamps.map{chartLabelFormatterService.prettyDateString(from: $0)}
@@ -537,7 +545,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   
   // MARK: - Horizontal axes
   
-  private func addZeroAxis() {
+  func addZeroAxis() {
     let zposition = chartBoundsBottom
     let zline = bezierLine(from: CGPoint(x: bounds.origin.x, y: zposition), to: CGPoint(x: bounds.origin.x + bounds.width, y: zposition))
     let zshapeL = shapeLayer(withPath: zline.cgPath, color: axisColor, lineWidth: 0.5)
@@ -550,7 +558,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     zeroAxis = HorizontalAxis(lineLayer: zshapeL, labelLayer: ztextL)
   }
   
-  private func updateZeroAxis() {
+  func updateZeroAxis() {
     guard let zeroAxis = zeroAxis else {
       return
     }
@@ -558,7 +566,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     zeroAxis.labelLayer.string = text
   }
   
-  private func addHorizontalAxes() {
+  func addHorizontalAxes() {
     var newAxis = [HorizontalAxis]()
     
     for i in 0..<horizontalAxesDefaultYPositions.count {
@@ -575,7 +583,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     horizontalAxes = newAxis
   }
   
-  private func animateHorizontalAxesChange(fromPreviousRange previousRange: ClosedRange<CGFloat>, toNewRange newRange: ClosedRange<CGFloat>) {
+  func animateHorizontalAxesChange(fromPreviousRange previousRange: ClosedRange<CGFloat>, toNewRange newRange: ClosedRange<CGFloat>) {
     guard let horizontalAxis = horizontalAxes else {
       return
     }
@@ -647,7 +655,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   
   // MARK: - Annotation
   
-  private func addChartAnnotation(for index: Int) {
+  func addChartAnnotation(for index: Int) {
     guard drawings != nil else {
       return
     }
@@ -694,7 +702,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     currentChartAnnotation = ChartAnnotation(lineLayer: lineLayer, annotationView: annotationView, circleLayers: circleLayers, displayedIndex: index)
   }
   
-  private func moveChartAnnotation(to index: Int, animated: Bool = false) {
+  func moveChartAnnotation(to index: Int, animated: Bool = false) {
     guard let annotation = currentChartAnnotation else {
       return
     }
@@ -756,7 +764,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   
   // MARK: - Drawing
   
-  private func bezierLine(withPoints points: [CGPoint]) -> UIBezierPath {
+  func bezierLine(withPoints points: [CGPoint]) -> UIBezierPath {
     let line = UIBezierPath()
     let firstPoint = points[0]
     line.move(to: firstPoint)
@@ -766,7 +774,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     return line
   }
   
-  private func squareBezierLine(with points: [CGPoint]) -> UIBezierPath {
+  func squareBezierLine(with points: [CGPoint]) -> UIBezierPath {
     let line = UIBezierPath()
     let firstPoint = points[0]
     line.move(to: firstPoint)
@@ -778,19 +786,19 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     return line
   }
   
-  private func bezierLine(from fromPoint: CGPoint, to toPoint: CGPoint) -> UIBezierPath {
+  func bezierLine(from fromPoint: CGPoint, to toPoint: CGPoint) -> UIBezierPath {
     let line = UIBezierPath()
     line.move(to: fromPoint)
     line.addLine(to: toPoint)
     return line
   }
   
-  private func bezierCircle(at point: CGPoint, radius: CGFloat = 4.0) -> UIBezierPath {
+  func bezierCircle(at point: CGPoint, radius: CGFloat = 4.0) -> UIBezierPath {
     let rect = CGRect(x: point.x - radius, y: point.y - radius, width: radius * 2, height: radius * 2)
     return UIBezierPath(ovalIn: rect)
   }
   
-  private func shapeLayer(withPath path: CGPath, color: CGColor, lineWidth: CGFloat = 2, fillColor: CGColor? = nil) -> CAShapeLayer{
+  func shapeLayer(withPath path: CGPath, color: CGColor, lineWidth: CGFloat = 2, fillColor: CGColor? = nil) -> CAShapeLayer{
     let shapeLayer = CAShapeLayer()
     shapeLayer.path = path
     shapeLayer.strokeColor = color
@@ -802,7 +810,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     return shapeLayer
   }
   
-  private func textLayer(origin: CGPoint, text: String, color: CGColor) -> CATextLayer {
+  func textLayer(origin: CGPoint, text: String, color: CGColor) -> CATextLayer {
     let textLayer = CATextLayer()
     textLayer.font = "Helvetica" as CFTypeRef
     textLayer.fontSize = 13.5
@@ -813,7 +821,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     return textLayer
   }
   
-  private func textLayer(position: CGPoint, text: String, color: CGColor) -> CATextLayer {
+  func textLayer(position: CGPoint, text: String, color: CGColor) -> CATextLayer {
     let textLayer = CATextLayer()
     textLayer.font = "Helvetica" as CFTypeRef
     textLayer.fontSize = 13.5
@@ -825,7 +833,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     return textLayer
   }
   
-//  private func fillLayer() -> CALayer {
+//  func fillLayer() -> CALayer {
 //
 //  }
   
@@ -872,7 +880,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     }
   }
   
-  private func closestIndex(for touchLocation: CGPoint) -> Int {
+  func closestIndex(for touchLocation: CGPoint) -> Int {
     let xPositionInChartBounds = touchLocation.x - chartBounds.origin.x
     let translatedToDisplayRange = (CGFloat(currentXIndexRange.upperBound) - CGFloat(currentXIndexRange.lowerBound)) * (xPositionInChartBounds / chartBounds.width) + CGFloat(currentXIndexRange.lowerBound)
     return Int(round(translatedToDisplayRange))
@@ -880,23 +888,23 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   
   // MARK: - Reset
   
-  private func removeDrawings() {
+  func removeDrawings() {
     drawings?.drawings.forEach{$0.shapeLayer.removeFromSuperlayer()}
     drawings = nil
   }
   
-  private func removeAxis() {
+  func removeAxes() {
     removeZeroAxis()
     removeHorizontalAxes()
   }
   
-  private func removeZeroAxis() {
+  func removeZeroAxis() {
     zeroAxis?.labelLayer.removeFromSuperlayer()
     zeroAxis?.lineLayer.removeFromSuperlayer()
     zeroAxis = nil
   }
   
-  private func removeHorizontalAxes() {
+  func removeHorizontalAxes() {
     horizontalAxes?.forEach{
       $0.labelLayer.removeFromSuperlayer()
       $0.lineLayer.removeFromSuperlayer()
@@ -904,22 +912,22 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     horizontalAxes = nil
   }
   
-  private func removeGuideLabels() {
+  func removeGuideLabels() {
     removeActiveGuideLabels()
     removeTransitioningGuideLabels()
   }
   
-  private func removeActiveGuideLabels() {
+  func removeActiveGuideLabels() {
     activeGuideLabels?.forEach{$0.textLayer.removeFromSuperlayer()}
     activeGuideLabels = nil
   }
   
-  private func removeTransitioningGuideLabels() {
+  func removeTransitioningGuideLabels() {
     transitioningGuideLabels?.forEach{$0.textLayer.removeFromSuperlayer()}
     transitioningGuideLabels = nil
   }
   
-  private func removeChartAnnotation() {
+  func removeChartAnnotation() {
     if let annotation = currentChartAnnotation {
       annotation.lineLayer.removeFromSuperlayer()
       annotation.annotationView.removeFromSuperview()
@@ -932,7 +940,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   
   // MARK: - Helping functions
   
-  private func convertToPoints(xVector: [CGFloat], yVector: [CGFloat]) -> [CGPoint] {
+  func convertToPoints(xVector: [CGFloat], yVector: [CGFloat]) -> [CGPoint] {
     var points = [CGPoint]()
     for i in 0..<xVector.count {
       points.append(CGPoint(x: xVector[i], y: yVector[i]))
@@ -940,26 +948,26 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     return points
   }
   
-  private func getNormalizedYVectors() -> NormalizedYVectors{
+  func getNormalizedYVectors() -> NormalizedYVectors{
     return valuesStartFromZero
       ? chart.normalizedYVectorsFromZeroMinimum(in: currentXIndexRange, excludedIdxs: hiddenDrawingIndicies)
       : chart.normalizedYVectorsFromLocalMinimum(in: currentXIndexRange, excludedIdxs: hiddenDrawingIndicies)
   }
   
-  private func getNormalizedXVector() -> ValueVector {
+  func getNormalizedXVector() -> ValueVector {
     return chart.normalizedXVector(in: currentXIndexRange)
   }
   
-  private func mapToChartBoundsWidth(_ vector: ValueVector) -> ValueVector {
+  func mapToChartBoundsWidth(_ vector: ValueVector) -> ValueVector {
     return vector.map{$0 * chartBoundsRight}
   }
   
-  private func mapToChartBoundsHeight(_ vector: ValueVector) -> ValueVector {
+  func mapToChartBoundsHeight(_ vector: ValueVector) -> ValueVector {
     return vector.map{chartBoundsBottom - ($0 * chartBounds.size.height)}
   }
   
   /// Calculates what is the best "power of two" for the provided count, depending on the max number of labels that fit the screen. Leftover is how far am I to the point, where the best index would change. < 0.5 is changing towards smaller spacing. >0.5 changing towards higher spacing.
-  private func bestIndexSpacing(for indexCount: Int) -> (spacing: Int, leftover: CGFloat) {
+  func bestIndexSpacing(for indexCount: Int) -> (spacing: Int, leftover: CGFloat) {
     var i = 1
     while i * numOfGuideLabels < indexCount {
       i *= 2
@@ -977,17 +985,17 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     let labelLayer: CATextLayer
   }
   
-  private struct ChartDrawings {
+  struct ChartDrawings {
     let drawings: [Drawing]
     let xPositions: [CGFloat]
   }
   
-  private struct Drawing {
+  struct Drawing {
     let shapeLayer: CAShapeLayer
     let yPositions: [CGFloat]
   }
   
-  private struct ChartAnnotation {
+  struct ChartAnnotation {
     let lineLayer: CAShapeLayer
     let annotationView: TGCAChartAnnotationView
     let circleLayers: [CAShapeLayer]
@@ -998,7 +1006,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     }
   }
   
-  private struct zPositions {
+  struct zPositions {
     enum Annotation: CGFloat {
       case view = 10.0
       case lineShape = 5.0
@@ -1012,7 +1020,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     }
   }
   
-  private struct GuideLabel {
+  struct GuideLabel {
     let textLayer: CATextLayer
     let indexInChart: Int
   }
