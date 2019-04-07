@@ -44,9 +44,11 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     axisLayer.zPosition = zPositions.Chart.axis.rawValue
     lineLayer.zPosition = zPositions.Chart.graph.rawValue
     datesLayer.zPosition = zPositions.Chart.dates.rawValue
-    layer.addSublayer(axisLayer)
-    layer.addSublayer(lineLayer)
-    layer.addSublayer(datesLayer)
+    for l in [axisLayer, lineLayer, datesLayer] {
+      layer.addSublayer(l)
+    }
+//    lineLayer.masksToBounds = true
+
   }
   
   // MARK: - Variables
@@ -213,27 +215,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     drawings = ChartDrawings(drawings: draws, xPositions: xVector)
   }
   
-  func drawAxes() {
-    addZeroAxis()
-    addHorizontalAxes()
-  }
-  
-  /// Updates the diplayed X range. Accepted are subranges of 0...1.
-  func trimDisplayRange(to newRange: ClosedRange<CGFloat>, with event: DisplayRangeChangeEvent) {
-    
-    removeChartAnnotation()
-    
-    let newBounds = chart.translatedBounds(for: newRange)
-    
-    if currentXIndexRange == newBounds {
-      if event == .Ended {
-        removeTransitioningGuideLabels()
-      }
-      return
-    }
-    
-    currentXIndexRange = newBounds
-    
+  func updateChart() {
     let xVector = mapToChartBoundsWidth(getNormalizedXVector())
     let normalizedYVectors = getNormalizedYVectors()
     
@@ -256,7 +238,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
         pathAnimation.fromValue = drawing.shapeLayer.presentation()?.value(forKey: "path") ?? drawing.shapeLayer.path
         drawing.shapeLayer.path = newPath.cgPath
         pathAnimation.toValue = drawing.shapeLayer.path
-        pathAnimation.duration = ANIMATION_DURATION
+        pathAnimation.duration = CHART_PATH_ANIMATION_DURATION
         if !didYChange {
           pathAnimation.beginTime = oldAnim.beginTime
         } else {
@@ -269,7 +251,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
           pathAnimation.fromValue = drawing.shapeLayer.path
           drawing.shapeLayer.path = newPath.cgPath
           pathAnimation.toValue = drawing.shapeLayer.path
-          pathAnimation.duration = ANIMATION_DURATION
+          pathAnimation.duration = CHART_PATH_ANIMATION_DURATION
           pathAnimation.beginTime = CACurrentMediaTime()
           drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
         } else {
@@ -278,6 +260,30 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
       }
     }
     self.drawings = ChartDrawings(drawings: newDrawings, xPositions: xVector)
+  }
+  
+  func drawAxes() {
+    addZeroAxis()
+    addHorizontalAxes()
+  }
+  
+  /// Updates the diplayed X range. Accepted are subranges of 0...1.
+  func trimDisplayRange(to newRange: ClosedRange<CGFloat>, with event: DisplayRangeChangeEvent) {
+    
+    removeChartAnnotation()
+    
+    let newBounds = chart.translatedBounds(for: newRange)
+    
+    if currentXIndexRange == newBounds {
+      if event == .Ended {
+        removeTransitioningGuideLabels()
+      }
+      return
+    }
+    
+    currentXIndexRange = newBounds
+  
+    updateChart()
     
     animateGuideLabelsChange(from: currentXIndexRange, to: newBounds, event: event)
   }
@@ -339,7 +345,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
         pathAnimation.fromValue = oldPath ?? drawing.shapeLayer.path
         drawing.shapeLayer.path = newPath.cgPath
         pathAnimation.toValue = drawing.shapeLayer.path
-        pathAnimation.duration = ANIMATION_DURATION
+        pathAnimation.duration = CHART_PATH_ANIMATION_DURATION
         drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
       }
       
@@ -365,7 +371,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
         opacityAnimation.fromValue = oldOpacity ?? drawing.shapeLayer.opacity
         drawing.shapeLayer.opacity = originalHidden ? 1 : 0
         opacityAnimation.toValue = drawing.shapeLayer.opacity
-        opacityAnimation.duration = ANIMATION_DURATION
+        opacityAnimation.duration = CHART_FADE_ANIMATION_DURATION
         drawing.shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
       }
       
@@ -388,6 +394,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
                          width: bounds.width - inset * 2,
                          height: bounds.height - inset * 2
                           - (shouldDisplayAxesAndLabels ? heightForGuideLabels : 0))
+    lineLayer.frame = chartBounds
   }
   
   func configureHorizontalAxesDefaultPositions() {
@@ -963,7 +970,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   }
   
   func mapToChartBoundsHeight(_ vector: ValueVector) -> ValueVector {
-    return vector.map{chartBoundsBottom - ($0 * chartBounds.size.height)}
+    return vector.map{chartBoundsBottom - ($0 * chartBounds.height)}
   }
   
   /// Calculates what is the best "power of two" for the provided count, depending on the max number of labels that fit the screen. Leftover is how far am I to the point, where the best index would change. < 0.5 is changing towards smaller spacing. >0.5 changing towards higher spacing.

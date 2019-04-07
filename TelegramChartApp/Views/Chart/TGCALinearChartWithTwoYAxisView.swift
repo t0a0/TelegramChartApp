@@ -58,9 +58,7 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
     rightAxisLabelColor = chart.yVectors.last?.metaData.color.cgColor
   }
   
-  private func getSeparatelyNormalizedYVectors() -> SeparatlyNormalizedYVectors{
-    return chart.separatlyNormalizedYVectorsFromLocalMinimum(in: currentXIndexRange)
-  }
+ 
   
   override func drawChart() {
     let normalizedYVectors = getSeparatelyNormalizedYVectors()
@@ -84,10 +82,52 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
     drawings = ChartDrawings(drawings: draws, xPositions: xVector)
   }
   
-  override func trimDisplayRange(to newRange: ClosedRange<CGFloat>, with event: DisplayRangeChangeEvent) {
-    currentXIndexRange = chart.translatedBounds(for: newRange)
+  override func updateChart() {
+    let xVector = mapToChartBoundsWidth(getNormalizedXVector())
     let normalizedYVectors = getSeparatelyNormalizedYVectors()
+    let yVectors = normalizedYVectors.map{mapToChartBoundsHeight($0.vector)}
+
+    let leftChanged = leftYValueRange != normalizedYVectors.first!.yRange
+    let rightChanged = rightYValueRange != normalizedYVectors.last!.yRange
     updateCurrentYValueRanges(left: normalizedYVectors.first!.yRange, right: normalizedYVectors.last!.yRange)
+    
+    var newDrawings = [Drawing]()
+    for i in 0..<drawings.drawings.count {
+      
+      let drawing = drawings.drawings[i]
+      let yVector = yVectors[i]
+      let points = convertToPoints(xVector: xVector, yVector: yVector)
+      newDrawings.append(Drawing(shapeLayer: drawing.shapeLayer, yPositions: yVector))
+      let newPath = bezierLine(withPoints: points)
+      
+      if let oldAnim = drawing.shapeLayer.animation(forKey: "pathAnimation") {
+        drawing.shapeLayer.removeAnimation(forKey: "pathAnimation")
+        let pathAnimation = CABasicAnimation(keyPath: "path")
+        pathAnimation.fromValue = drawing.shapeLayer.presentation()?.value(forKey: "path") ?? drawing.shapeLayer.path
+        drawing.shapeLayer.path = newPath.cgPath
+        pathAnimation.toValue = drawing.shapeLayer.path
+        pathAnimation.duration = CHART_PATH_ANIMATION_DURATION
+        if (i == 0 && !leftChanged) || (i == 1 && !rightChanged){
+          pathAnimation.beginTime = oldAnim.beginTime
+        } else {
+          pathAnimation.beginTime = CACurrentMediaTime()
+        }
+        drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
+      } else {
+        if (i == 0 && leftChanged) || (i == 1 && rightChanged) {
+          let pathAnimation = CABasicAnimation(keyPath: "path")
+          pathAnimation.fromValue = drawing.shapeLayer.path
+          drawing.shapeLayer.path = newPath.cgPath
+          pathAnimation.toValue = drawing.shapeLayer.path
+          pathAnimation.duration = CHART_PATH_ANIMATION_DURATION
+          pathAnimation.beginTime = CACurrentMediaTime()
+          drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
+        } else {
+          drawing.shapeLayer.path = newPath.cgPath
+        }
+      }
+    }
+    self.drawings = ChartDrawings(drawings: newDrawings, xPositions: xVector)
   }
   
   //MARK: - Axes
@@ -148,7 +188,7 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
   
   typealias AxisAnimationBlocks = (animationBlocks: [()->()], removalBlocks: [()->()])
   
-  func updateLeftHorizontalAxes() -> AxisAnimationBlocks {
+  private func updateLeftHorizontalAxes() -> AxisAnimationBlocks {
     
     let leftValues = valuesForLeftAxis()
     let leftTexts = leftValues.map{chartLabelFormatterService.prettyValueString(from: $0)}
@@ -192,7 +232,7 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
     return (blocks, removalBlocks)
   }
   
-  func updateRightHorizontalAxes() -> AxisAnimationBlocks {
+  private func updateRightHorizontalAxes() -> AxisAnimationBlocks {
     let boundsRight = bounds.origin.x + bounds.width
 
     let rightValues = valuesForRightAxis()
@@ -252,6 +292,12 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
     let rightTextLayer: CATextLayer
     let leftValue: CGFloat
     let rightValue: CGFloat
+  }
+  
+  //MARK: - Helper Methods
+  
+  private func getSeparatelyNormalizedYVectors() -> SeparatlyNormalizedYVectors{
+    return chart.separatlyNormalizedYVectorsFromLocalMinimum(in: currentXIndexRange)
   }
   
 }
