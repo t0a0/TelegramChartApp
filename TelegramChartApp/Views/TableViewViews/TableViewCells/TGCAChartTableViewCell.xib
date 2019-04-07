@@ -29,21 +29,27 @@
                                 </constraints>
                             </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="w3S-ey-A4O" customClass="TGCAChartView" customModule="TelegramChartApp" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="30" width="290" height="251.5"/>
+                                <rect key="frame" x="0.0" y="30" width="290" height="200.5"/>
                             </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hq7-6g-Yxo" customClass="TGCATrimmerView" customModule="TelegramChartApp" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="291.5" width="290" height="43"/>
+                                <rect key="frame" x="0.0" y="240.5" width="290" height="42"/>
                                 <subviews>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="tH2-ne-gyz" customClass="TGCAChartView" customModule="TelegramChartApp" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="2" width="290" height="39"/>
+                                        <rect key="frame" x="0.0" y="2" width="290" height="38"/>
                                     </view>
                                 </subviews>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="43" id="32k-P5-VaZ"/>
+                                    <constraint firstAttribute="height" constant="42" id="32k-P5-VaZ"/>
                                     <constraint firstAttribute="trailing" secondItem="tH2-ne-gyz" secondAttribute="trailing" id="A8G-gF-69H"/>
                                     <constraint firstAttribute="bottom" secondItem="tH2-ne-gyz" secondAttribute="bottom" constant="2" id="Cdn-Je-wbz"/>
                                     <constraint firstItem="tH2-ne-gyz" firstAttribute="top" secondItem="hq7-6g-Yxo" secondAttribute="top" constant="2" id="GcR-lg-Vjv"/>
                                     <constraint firstItem="tH2-ne-gyz" firstAttribute="leading" secondItem="hq7-6g-Yxo" secondAttribute="leading" id="RMk-3P-s0B"/>
+                                </constraints>
+                            </view>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="kgU-u0-6KS" customClass="TGCAChartFiltersView" customModule="TelegramChartApp" customModuleProvider="target">
+                                <rect key="frame" x="0.0" y="292.5" width="290" height="42"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="42" id="YuX-WM-Bs5"/>
                                 </constraints>
                             </view>
                         </subviews>
@@ -58,6 +64,8 @@
             </tableViewCellContentView>
             <viewLayoutGuide key="safeArea" id="njF-e1-oar"/>
             <connections>
+                <outlet property="chartFiltersHeightConstraint" destination="YuX-WM-Bs5" id="wAV-Fi-cXr"/>
+                <outlet property="chartFiltersView" destination="kgU-u0-6KS" id="EVW-aX-fXd"/>
                 <outlet property="chartView" destination="w3S-ey-A4O" id="UBp-z0-KaU"/>
                 <outlet property="headerView" destination="mxJ-0T-KrO" id="Mfl-iP-zal"/>
                 <outlet property="thumbnailChartView" destination="tH2-ne-gyz" id="C0J-Un-epO"/>

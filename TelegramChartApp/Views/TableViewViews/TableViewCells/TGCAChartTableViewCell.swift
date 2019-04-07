@@ -17,7 +17,9 @@ class TGCAChartTableViewCell: UITableViewCell {
   @IBOutlet weak var headerView: TGCAChartHeaderView!
   @IBOutlet weak var thumbnailChartView: TGCAChartView!
   @IBOutlet weak var trimmerView: TGCATrimmerView!
+  @IBOutlet weak var chartFiltersView: TGCAChartFiltersView!
   
+  @IBOutlet weak var chartFiltersHeightConstraint: NSLayoutConstraint!
   override func awakeFromNib() {
     super.awakeFromNib()
     chartView?.graphLineWidth = 2.0
@@ -27,5 +29,9 @@ class TGCAChartTableViewCell: UITableViewCell {
     thumbnailChartView?.canShowAnnotations = false
     thumbnailChartView?.isUserInteractionEnabled = false
     thumbnailChartView?.graphLineWidth = 1.0
+    
+    separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: CGFloat.greatestFiniteMagnitude)
+    directionalLayoutMargins = .zero
+    selectionStyle = .none
   }
 }

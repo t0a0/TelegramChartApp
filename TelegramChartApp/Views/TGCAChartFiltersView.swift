@@ -27,7 +27,17 @@ class TGCAChartFiltersView: UIView {
     backgroundColor = .clear
   }
   
+  func reset() {
+    buttons?.forEach{
+      $0.removeFromSuperview()
+    }
+    buttons = nil
+  }
+  
+  var buttons: [TGCAFilterButton]?
+  
   func setupButtons(_ buttons: [TGCAFilterButton]) {
+    reset()
     var i = 0
     var curX: CGFloat = 0
     var curY: CGFloat = 0
@@ -42,5 +52,29 @@ class TGCAChartFiltersView: UIView {
       curX += b.frame.width + TGCAChartFiltersView.spacing
       i += 1
     }
+    self.buttons = buttons
   }
+  
+  func uncheckAll() {
+    buttons?.forEach{
+      $0.uncheck()
+    }
+  }
+  
+  func checkAll() {
+    buttons?.forEach{
+      $0.check()
+    }
+  }
+  
+  var isAnyButtonChecked: Bool {
+    if let buttons = buttons {
+      for b in buttons {
+        if b.isChecked { return true }
+      }
+    }
+    
+    return false
+  }
+  
 }

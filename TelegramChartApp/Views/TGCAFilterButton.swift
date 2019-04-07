@@ -71,9 +71,25 @@ class TGCAFilterButton: UIButton {
     return sizeThatFits(CGSize(width: .greatestFiniteMagnitude, height: TGCAFilterButton.buttonHeight)).width + TGCAFilterButton.marginsWidth
   }
   
+  var isChecked: Bool {
+    return checked
+  }
+  
   func toggleChecked() {
     checked.toggle()
     update()
+  }
+  
+  func check() {
+    if !checked {
+      toggleChecked()
+    }
+  }
+  
+  func uncheck() {
+    if checked {
+      toggleChecked()
+    }
   }
   
   override var isHighlighted: Bool {

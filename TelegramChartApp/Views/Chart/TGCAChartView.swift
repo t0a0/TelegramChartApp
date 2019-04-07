@@ -267,6 +267,22 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     animateGuideLabelsChange(from: currentXIndexRange, to: newBounds, event: event)
   }
   
+  func hideAll() {
+    //TODO: optimize and hide labels and axis
+    for i in 0..<chart.yVectors.count {
+      if !hiddenDrawingIndicies.contains(i) {
+        toggleHidden(at: i)
+      }
+    }
+  }
+  
+  func showAll() {
+    //TODO: optimize and hide labels and axis
+    for i in hiddenDrawingIndicies {
+      toggleHidden(at: i)
+    }
+  }
+  
   /// Hides or shows the graph with identifier.
   func toggleHidden(identifier: String) {
     if let index = chart.indexOfChartValueVector(withId: identifier) {
