@@ -18,7 +18,9 @@ enum DisplayRangeChangeEvent {
 }
 
 class TGCATrimmerView: UIView {
-  
+  static let borderWidth: CGFloat = 1.0
+  static let shoulderWidth: CGFloat = 12.0
+
   /**
    Calls to notify that the trimmed area on trimmer view has changed.
    
@@ -38,7 +40,6 @@ class TGCATrimmerView: UIView {
   
   /// The minimum range allowed for the trimming. Between 0.0 and 1.0.
   private let minimumRangeLength: CGFloat = 0.2
-  private let shoulderWidth: CGFloat = 12.0
   private let totalRange = ZORange
   
   // MARK: - Subviews
@@ -104,8 +105,8 @@ class TGCATrimmerView: UIView {
   }
   
   private func setupTrimmedAreaView() {
-    trimmedAreaView.layer.borderWidth = 2.0
-    trimmedAreaView.layer.cornerRadius = 2.0
+    trimmedAreaView.layer.borderWidth = TGCATrimmerView.borderWidth
+    trimmedAreaView.layer.cornerRadius = TGCATrimmerView.shoulderWidth
     trimmedAreaView.layer.masksToBounds = true
 
     trimmedAreaView.translatesAutoresizingMaskIntoConstraints = false
@@ -121,27 +122,24 @@ class TGCATrimmerView: UIView {
   
   private func setupShoulderViews() {
     leftShoulderView.isUserInteractionEnabled = true
-    leftShoulderView.layer.cornerRadius = 2.0
     leftShoulderView.layer.masksToBounds = true
     leftShoulderView.translatesAutoresizingMaskIntoConstraints = false
     addSubview(leftShoulderView)
     leftShoulderView.heightAnchor.constraint(equalTo: heightAnchor).isActive = true
-    leftShoulderView.widthAnchor.constraint(equalToConstant: shoulderWidth).isActive = true
+    leftShoulderView.widthAnchor.constraint(equalToConstant: TGCATrimmerView.shoulderWidth).isActive = true
     leftShoulderView.leftAnchor.constraint(equalTo: trimmedAreaView.leftAnchor).isActive = true
     leftShoulderView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
     leftShoulderView.backgroundColor = UIColor.lightGray
 
     rightShoulderView.isUserInteractionEnabled = true
-    rightShoulderView.layer.cornerRadius = 2.0
     rightShoulderView.layer.masksToBounds = true
     rightShoulderView.translatesAutoresizingMaskIntoConstraints = false
     addSubview(rightShoulderView)
     rightShoulderView.heightAnchor.constraint(equalTo: heightAnchor).isActive = true
-    rightShoulderView.widthAnchor.constraint(equalToConstant: shoulderWidth).isActive = true
+    rightShoulderView.widthAnchor.constraint(equalToConstant: TGCATrimmerView.shoulderWidth).isActive = true
     rightShoulderView.rightAnchor.constraint(equalTo: trimmedAreaView.rightAnchor).isActive = true
     rightShoulderView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
     rightShoulderView.backgroundColor = UIColor.lightGray
-
   }
   
   private func setupMaskViews() {

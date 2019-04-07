@@ -10,7 +10,7 @@ import UIKit
 import Foundation
 
 class TGCATrimmerShoulderView: UIView {
-  
+
   /// Increases the hit detection rect.
   var boundsInsetIncreaseValue: CGFloat = 10.0
   
@@ -40,6 +40,11 @@ class TGCATrimmerLeftShoulderView: TGCATrimmerShoulderView {
     line.stroke()
   }
   
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    roundCorners([.topLeft, .bottomLeft], radius: TGCATrimmerView.shoulderWidth)
+  }
+  
 }
 
 class TGCATrimmerRightShoulderView: TGCATrimmerShoulderView {
@@ -53,6 +58,22 @@ class TGCATrimmerRightShoulderView: TGCATrimmerShoulderView {
     line.addLine(to: CGPoint(x: rect.origin.x + rect.width * 0.6, y: rect.origin.y + rect.height * 0.5))
     line.addLine(to: CGPoint(x: rect.origin.x + rect.width * 0.4, y: rect.origin.y + rect.height * 0.65))
     line.stroke()
+  }
+  
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    roundCorners([.topRight, .bottomRight], radius: TGCATrimmerView.shoulderWidth)
+  }
+  
+}
+
+extension UIView {
+  
+  func roundCorners(_ corners: UIRectCorner, radius: CGFloat) {
+    let path = UIBezierPath(roundedRect: self.bounds, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
+    let mask = CAShapeLayer()
+    mask.path = path.cgPath
+    self.layer.mask = mask
   }
   
 }
