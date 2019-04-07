@@ -9,13 +9,17 @@
 import UIKit
 import QuartzCore
 
-class TGCAChartView: UIView, LinearChartDisplaying {
+class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   
   @IBOutlet var contentView: UIView!
   
   private var axisColor = UIColor.gray.cgColor
   private var axisLabelColor = UIColor.black.cgColor
   private var circlePointFillColor = UIColor.white.cgColor
+  
+  let axisLayer = CALayer()
+  let lineLayer = CALayer()
+  let datesLayer = CALayer()
   
   // MARK: - Init
   
@@ -37,6 +41,12 @@ class TGCAChartView: UIView, LinearChartDisplaying {
     layer.masksToBounds = true
     isMultipleTouchEnabled = false
     applyCurrentTheme()
+    axisLayer.zPosition = zPositions.Chart.axis.rawValue
+    lineLayer.zPosition = zPositions.Chart.graph.rawValue
+    datesLayer.zPosition = zPositions.Chart.dates.rawValue
+    layer.addSublayer(axisLayer)
+    layer.addSublayer(lineLayer)
+    layer.addSublayer(datesLayer)
   }
   
   // MARK: - Variables
@@ -132,10 +142,13 @@ class TGCAChartView: UIView, LinearChartDisplaying {
     hiddenDrawingIndicies = nil
     currentXIndexRange = nil
   }
-  
+//  var fillLayers: [CAShapeLayer]!
   /// Configures the view to display the chart.
   func configure(with chart: LinearChart, hiddenIndicies: Set<Int>, displayRange: ClosedRange<CGFloat>? = nil) {
     reset()
+//    fillLayers?.forEach{
+//      $0.removeFromSuperlayer()
+//    }
     configureChartBounds()
     configureHorizontalAxesDefaultPositions()
     self.chart = chart
@@ -154,20 +167,35 @@ class TGCAChartView: UIView, LinearChartDisplaying {
     currentYValueRange = normalizedYVectors.yRange
     
     var draws = [Drawing]()
-    
+//    var fl = [CAShapeLayer]()
     for i in 0..<yVectors.count {
       let yVector = yVectors[i]
       let points = convertToPoints(xVector: xVector, yVector: yVector)
-      let shape = shapeLayer(withPath: bezierLine(withPoints: points).cgPath, color: chart.yVectors[i].metaData.color.cgColor, lineWidth: graphLineWidth)
-      shape.zPosition = zPositions.Chart.graph.rawValue
+      let line = bezierLine(withPoints: points)
+      let shape = shapeLayer(withPath: line.cgPath, color: chart.yVectors[i].metaData.color.cgColor, lineWidth: graphLineWidth)
       if hiddenDrawingIndicies.contains(i) {
         shape.opacity = 0
       }
-      layer.addSublayer(shape)
+      
+      let a = UIBezierPath()
+      a.move(to: CGPoint(x: points[0].x, y: chartBounds.origin.y + chartBounds.height))
+      a.addLine(to: points[0])
+      a.append(line)
+      a.addLine(to: CGPoint(x: points[points.count - 1].x, y: chartBounds.origin.y + chartBounds.height))
+      a.addLine(to: CGPoint(x: points[0].x, y: chartBounds.origin.y + chartBounds.height))
+      lineLayer.addSublayer(shape)
+
+//      let fillLayer = CAShapeLayer()
+//      fillLayer.path = a.cgPath
+//      fillLayer.fillRule = .evenOdd
+//      fillLayer.fillColor = chart.yVectors[i].metaData.color.cgColor
+//      layer.addSublayer(fillLayer)
+//      fl.append(fillLayer)
+      
       draws.append(Drawing(shapeLayer: shape, yPositions: yVector))
     }
     drawings = ChartDrawings(drawings: draws, xPositions: xVector)
-    
+//    fillLayers = fl
     if shouldDisplayAxesAndLabels  {
       addZeroAxis()
       addHorizontalAxes()
@@ -366,7 +394,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
     
     let newActiveGuideLabels = generateGuideLabels(for: lastActualIndexes)
     newActiveGuideLabels.forEach{
-      layer.addSublayer($0.textLayer)
+      datesLayer.addSublayer($0.textLayer)
     }
     activeGuideLabels = newActiveGuideLabels
   }
@@ -421,7 +449,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
         
         let newActiveGuideLabels = generateGuideLabels(for: lastActualIndexes)
         newActiveGuideLabels.forEach{
-          layer.addSublayer($0.textLayer)
+          datesLayer.addSublayer($0.textLayer)
         }
         activeGuideLabels = newActiveGuideLabels
         
@@ -443,7 +471,7 @@ class TGCAChartView: UIView, LinearChartDisplaying {
           let newTransitioningLabels = generateGuideLabels(for: actualIndexes)
           newTransitioningLabels.forEach{
             $0.textLayer.opacity = Float(1.0 - leftover)/2.0
-            layer.addSublayer($0.textLayer)
+            datesLayer.addSublayer($0.textLayer)
           }
           transitioningGuideLabels = newTransitioningLabels
         }
@@ -493,10 +521,8 @@ class TGCAChartView: UIView, LinearChartDisplaying {
     zshapeL.opacity = 1
     let text = chartLabelFormatterService.prettyValueString(from: currentYValueRange.lowerBound)
     let ztextL = textLayer(origin: CGPoint(x: bounds.origin.x, y: zposition - 20), text: text, color: axisLabelColor)
-    zshapeL.zPosition = zPositions.Chart.axis.rawValue
-    ztextL.zPosition = zPositions.Chart.axisLabel.rawValue
-    layer.addSublayer(zshapeL)
-    layer.addSublayer(ztextL)
+    axisLayer.addSublayer(zshapeL)
+    axisLayer.addSublayer(ztextL)
     
     zeroAxis = HorizontalAxis(lineLayer: zshapeL, labelLayer: ztextL)
   }
@@ -519,9 +545,8 @@ class TGCAChartView: UIView, LinearChartDisplaying {
       shapeL.opacity = 0.75
       shapeL.zPosition = zPositions.Chart.axis.rawValue
       let textL = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: labelTextsForCurrentYRange[i], color: axisLabelColor)
-      textL.zPosition = zPositions.Chart.axisLabel.rawValue
-      layer.addSublayer(shapeL)
-      layer.addSublayer(textL)
+      axisLayer.addSublayer(shapeL)
+      axisLayer.addSublayer(textL)
       newAxis.append(HorizontalAxis(lineLayer: shapeL, labelLayer: textL))
     }
     horizontalAxes = newAxis
@@ -553,10 +578,8 @@ class TGCAChartView: UIView, LinearChartDisplaying {
       let textL = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: labelTextsForCurrentYRange[i], color: axisLabelColor)
       textL.opacity = 0
       shapeL.opacity = 0
-      shapeL.zPosition = zPositions.Chart.axis.rawValue
-      textL.zPosition = zPositions.Chart.axisLabel.rawValue
-      layer.addSublayer(shapeL)
-      layer.addSublayer(textL)
+      axisLayer.addSublayer(shapeL)
+      axisLayer.addSublayer(textL)
       let oldShapePos = shapeL.position
       let oldTextPos = textL.position
       shapeL.position = CGPoint(x: shapeL.position.x, y: coefIsInf ? chartBounds.origin.y :  chartBounds.origin.y + chartBounds.height - (chartBounds.origin.y + chartBounds.height - shapeL.position.y) * coefficient)
@@ -768,6 +791,10 @@ class TGCAChartView: UIView, LinearChartDisplaying {
     return textLayer
   }
   
+//  private func fillLayer() -> CALayer {
+//
+//  }
+  
   // MARK: - Touches
   
   override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
@@ -945,9 +972,9 @@ class TGCAChartView: UIView, LinearChartDisplaying {
     }
     
     enum Chart: CGFloat {
-      case axis = -10.0
-      case axisLabel = 7.0
+      case axis = 7.0
       case graph = 0
+      case dates = 8.0
     }
   }
   
