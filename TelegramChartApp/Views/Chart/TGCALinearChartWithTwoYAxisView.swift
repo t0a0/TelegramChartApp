@@ -58,8 +58,6 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
     rightAxisLabelColor = chart.yVectors.last?.metaData.color.cgColor
   }
   
- 
-  
   override func drawChart() {
     let normalizedYVectors = getSeparatelyNormalizedYVectors()
     let yVectors = normalizedYVectors.map{mapToChartBoundsHeight($0.vector)}
@@ -172,7 +170,7 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
       let position = horizontalAxesDefaultYPositions[i]
       let line = bezierLine(from: CGPoint(x: bounds.origin.x, y: position), to: CGPoint(x: boundsRight, y: position))
       let lineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: 0.5)
-      lineLayer.opacity = 0.75
+      lineLayer.opacity = ChartViewConstants.axisLineOpacity
       
       let leftTextLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: leftTexts[i], color: leftAxisLabelColor)
       let rightTextLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: rightTexts[i], color: rightAxisLabelColor)
@@ -277,6 +275,57 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
     
     self.horizontalAxes = newAxes
     return (blocks, removalBlocks)
+  }
+  
+  private func hideLeftAxisLabels() {
+    
+  }
+  
+  private func hideRightAxisLabels() {
+    
+  }
+  
+  private func showLeftAxisLabels() {
+    
+  }
+  
+  private func showRightAxisLabels() {
+    DispatchQueue.main.async { [weak self] in
+      CATransaction.flush()
+      CATransaction.begin()
+      CATransaction.setAnimationDuration(AXIS_ANIMATION_DURATION)
+      self?.horizontalAxes?.forEach{
+        $0.lineLayer.opacity = ChartViewConstants.axisLineOpacity
+        $0.leftTextLayer.opacity = 1
+        $0.rightTextLayer.opacity = 1
+      }
+      CATransaction.commit()
+    }
+  }
+  
+  private func hideHorizontalAxis() {
+    DispatchQueue.main.async { [weak self] in
+      CATransaction.flush()
+      CATransaction.begin()
+      CATransaction.setAnimationDuration(AXIS_ANIMATION_DURATION)
+//      CATransaction.setCompletionBlock{
+//        horizontalAxes?.forEach{
+//          $0.lineLayer.removeFromSuperlayer()
+//          $0.leftTextLayer.removeFromSuperlayer()
+//          $0.rightTextLayer.removeFromSuperlayer()
+//        }
+//      }
+      self?.horizontalAxes?.forEach{
+        $0.lineLayer.opacity = 0
+        $0.leftTextLayer.opacity = 0
+        $0.rightTextLayer.opacity = 0
+      }
+      CATransaction.commit()
+    }
+  }
+  
+  private func showHorizontalAxis() {
+    
   }
   
   override func removeAxes() {

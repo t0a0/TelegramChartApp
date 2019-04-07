@@ -17,6 +17,10 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   var axisLabelColor = UIColor.black.cgColor
   var circlePointFillColor = UIColor.white.cgColor
   
+  struct ChartViewConstants {
+    static let axisLineOpacity: Float = 0.75
+  }
+  
   let axisLayer = CALayer()
   let lineLayer = CALayer()
   let datesLayer = CALayer()
@@ -394,7 +398,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
                          width: bounds.width - inset * 2,
                          height: bounds.height - inset * 2
                           - (shouldDisplayAxesAndLabels ? heightForGuideLabels : 0))
-    lineLayer.frame = chartBounds
+//    lineLayer.frame = chartBounds
   }
   
   func configureHorizontalAxesDefaultPositions() {
@@ -556,7 +560,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     let zposition = chartBoundsBottom
     let zline = bezierLine(from: CGPoint(x: bounds.origin.x, y: zposition), to: CGPoint(x: bounds.origin.x + bounds.width, y: zposition))
     let zshapeL = shapeLayer(withPath: zline.cgPath, color: axisColor, lineWidth: 0.5)
-    zshapeL.opacity = 1
+    zshapeL.opacity = ChartViewConstants.axisLineOpacity
     let text = chartLabelFormatterService.prettyValueString(from: currentYValueRange.lowerBound)
     let ztextL = textLayer(origin: CGPoint(x: bounds.origin.x, y: zposition - 20), text: text, color: axisLabelColor)
     axisLayer.addSublayer(zshapeL)
@@ -580,7 +584,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
       let position = horizontalAxesDefaultYPositions[i]
       let line = bezierLine(from: CGPoint(x: bounds.origin.x, y: position), to: CGPoint(x: bounds.origin.x + bounds.width, y: position))
       let shapeL = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: 0.5)
-      shapeL.opacity = 0.75
+      shapeL.opacity = ChartViewConstants.axisLineOpacity
       shapeL.zPosition = zPositions.Chart.axis.rawValue
       let textL = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: labelTextsForCurrentYRange[i], color: axisLabelColor)
       axisLayer.addSublayer(shapeL)
@@ -630,7 +634,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
         ax.lineLayer.opacity = 0
         ax.lineLayer.position = newLinePosition
         
-        shapeL.opacity = 0.75
+        shapeL.opacity = ChartViewConstants.axisLineOpacity
         shapeL.position = oldShapePos
         textL.position = oldTextPos
         textL.opacity = 1.0
@@ -1021,8 +1025,9 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     }
     
     enum Chart: CGFloat {
-      case axis = 7.0
+      case axis = -7.0
       case graph = 0
+      case axisLabels = 2
       case dates = 8.0
     }
   }
