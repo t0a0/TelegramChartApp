@@ -13,6 +13,7 @@ typealias ValueVector = [CGFloat]
 typealias ChartValueVectorMetaData = (identifier: String, name: String, color: UIColor)
 typealias NormalizedYVectors = (vectors: [ValueVector], yRange: ClosedRange<CGFloat>)
 typealias SeparatlyNormalizedYVectors = [(vector: ValueVector, yRange: ClosedRange<CGFloat>)]
+typealias PercentageYVectors = [ValueVector]
 
 enum DataChartType: String {
   case linear
@@ -30,6 +31,7 @@ struct DataChart {
   let xVector: ValueVector
   let datesVector: [Date]
   let showsAxisLabelsOnBothSides = true
+  let percentageYVectors: [ValueVector]
   
   init(yVectors: [ChartValueVector], xVector: ValueVector, type: DataChartType, title: String? = nil) {
     yVectors.forEach{
@@ -40,6 +42,23 @@ struct DataChart {
     self.title = title
     self.type = type
     self.datesVector = xVector.map{Date(timeIntervalSince1970: TimeInterval($0 / 1000.0))}
+    if type == .percentage {
+      var percentVectors = [ValueVector]()
+      var sums = [CGFloat]()
+      let yVs = yVectors.map{$0.vector}
+
+      yVs[0].forEach{sums.append($0)}
+      for i in 1..<yVs.count {
+        for j in 0..<yVs[i].count {
+          sums[j] = sums[j] + yVs[i][j]
+        }
+      }
+      yVs.forEach{percentVectors.append(zip($0, sums).map{$0 / $1})}
+      
+      self.percentageYVectors = percentVectors
+    } else {
+      self.percentageYVectors = []
+    }
   }
   
   func normalizedYVectorsFromZeroMinimum(in xRange: ClosedRange<Int>, excludedIdxs: Set<Int>) -> NormalizedYVectors {
