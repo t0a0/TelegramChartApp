@@ -12,7 +12,8 @@ import UIKit
 class TGCAPercentageChartView: TGCAChartView {
   
   override func drawChart() {
-//    let normalizedYVectors = getNormalizedYVectors()
+    updateChartPercentageYVectors()
+    
     let yVectors = getPercentageYVectors().map{mapToChartBoundsHeight($0)}
     let xVector = mapToChartBoundsWidth(getNormalizedXVector())
     
@@ -87,6 +88,7 @@ class TGCAPercentageChartView: TGCAChartView {
   }
   
   override func updateChartByHiding(at index: Int, originalHidden: Bool) {
+    updateChartPercentageYVectors()
     let yVectors = getPercentageYVectors().map{mapToChartBoundsHeight($0)}
     let xVector = mapToChartBoundsWidth(getNormalizedXVector())
     
@@ -147,8 +149,14 @@ class TGCAPercentageChartView: TGCAChartView {
     drawings = ChartDrawings(drawings: newDrawings, xPositions: xVector)
   }
   
+  //MARKL - Get Y vectors
+  
+  private var chartPercentageYVectors: [ValueVector]!
+  private func updateChartPercentageYVectors() {
+    chartPercentageYVectors = chart.percentageYVectors(excludedIndicies: hiddenDrawingIndicies)
+  }
   private func getPercentageYVectors() -> [ValueVector] {
-    return chart.percentageYVectors(excludedIndicies: hiddenDrawingIndicies)
+    return chartPercentageYVectors
   }
   
 }
