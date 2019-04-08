@@ -47,7 +47,7 @@ struct TGCAJsonToChartService/*: JsonParserServiceProtocol*/ {
     return DataChart(yVectors: yVectors,
                       xVector: jsonChart.xColumn.values,
                       type: type,
-                      title: nil)
+                      title: jsonChart.title)
   }
   
   private struct JsonCharts: Codable {
@@ -77,6 +77,7 @@ struct TGCAJsonToChartService/*: JsonParserServiceProtocol*/ {
       let percentage: Bool?
       let stacked: Bool?
       let y_scaled: Bool?
+      let title: String?
       
       var xColumn: JsonColumn {
         let filter = columns.filter{$0.identifier.elementsEqual("x")}
@@ -111,6 +112,7 @@ struct TGCAJsonToChartService/*: JsonParserServiceProtocol*/ {
         case percentage
         case stacked
         case y_scaled
+        case title
       }
       
       struct JsonColumn: Codable {
