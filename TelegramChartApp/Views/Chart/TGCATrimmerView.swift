@@ -155,7 +155,7 @@ class TGCATrimmerView: UIView {
     let leftMaskViewTopConstraint = leftMaskView.topAnchor.constraint(equalTo: topAnchor)
     leftMaskViewTopConstraint.isActive = true
     leftMaskViewTopConstraint.constant = 2.0
-    leftMaskView.rightAnchor.constraint(equalTo: leftShoulderView.leftAnchor).isActive = true
+    leftMaskView.rightAnchor.constraint(equalTo: leftShoulderView.rightAnchor).isActive = true
     
     rightMaskView.isUserInteractionEnabled = false
     rightMaskView.backgroundColor = .lightGray
@@ -169,7 +169,7 @@ class TGCATrimmerView: UIView {
     let rightMaskViewTopConstraint = rightMaskView.topAnchor.constraint(equalTo: topAnchor)
     rightMaskViewTopConstraint.isActive = true
     rightMaskViewTopConstraint.constant = 2.0
-    rightMaskView.leftAnchor.constraint(equalTo: rightShoulderView.rightAnchor).isActive = true
+    rightMaskView.leftAnchor.constraint(equalTo: rightShoulderView.leftAnchor).isActive = true
   }
   
   // MARK: - Gestures

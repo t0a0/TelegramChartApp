@@ -194,7 +194,7 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
         b.append(button)
       }
       
-      cell.chartFiltersView?.setupButtons(b)
+      cell.chartFiltersHeightConstraint.constant = cell.chartFiltersView?.setupButtons(b) ?? 0
     }
 
     cell.backgroundColor = UIApplication.myDelegate.currentTheme.foregroundColor

@@ -44,7 +44,6 @@ struct TGCAJsonToChartService/*: JsonParserServiceProtocol*/ {
     } else {
       type = .percentage
     }
-    print(type)
     return DataChart(yVectors: yVectors,
                       xVector: jsonChart.xColumn.values,
                       type: type,

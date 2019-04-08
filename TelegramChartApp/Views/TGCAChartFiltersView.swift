@@ -36,11 +36,11 @@ class TGCAChartFiltersView: UIView {
   
   var buttons: [TGCAFilterButton]?
   
-  func setupButtons(_ buttons: [TGCAFilterButton]) {
+  func setupButtons(_ buttons: [TGCAFilterButton]) -> CGFloat {
     reset()
     var i = 0
     var curX: CGFloat = 0
-    var curY: CGFloat = 0
+    var curY: CGFloat = TGCAChartFiltersView.spacing
     while i < buttons.count {
       let b = buttons[i]
       if curX + b.frame.width > bounds.width {
@@ -53,6 +53,7 @@ class TGCAChartFiltersView: UIView {
       i += 1
     }
     self.buttons = buttons
+    return curY + TGCAFilterButton.buttonHeight
   }
   
   func uncheckAll() {
