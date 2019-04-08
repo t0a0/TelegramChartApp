@@ -24,9 +24,9 @@ class TGCAPercentageChartView: TGCAChartView {
     for i in 0..<yVectors.count {
       let yVector = yVectors[i]
       let points = convertToPoints(xVector: xVector, yVector: yVector)
-      let squareLine = bezierLine(withPoints: points)
-      let line = bezierArea(topPath: squareLine, bottomPath: bezierLine(from: CGPoint(x: points[0].x, y: chartBoundsBottom), to: CGPoint(x: points.last!.x, y: chartBoundsBottom)))
-      let shape = filledShapeLayer(withPath: line.cgPath, color: chart.yVectors[i].metaData.color.cgColor, lineWidth: graphLineWidth)
+      let line = bezierLine(withPoints: points)
+      let area = bezierArea(topPath: line, bottomPath: bezierLine(from: CGPoint(x: points[0].x, y: chartBoundsBottom), to: CGPoint(x: points.last!.x, y: chartBoundsBottom)))
+      let shape = filledShapeLayer(withPath: area.cgPath, color: chart.yVectors[i].metaData.color.cgColor, lineWidth: graphLineWidth)
       if hiddenDrawingIndicies.contains(i) {
         shape.opacity = 0
       }
@@ -42,8 +42,6 @@ class TGCAPercentageChartView: TGCAChartView {
   override func updateChart() {
     let xVector = mapToChartBoundsWidth(getNormalizedXVector())
     let yVectors = getPercentageYVectors().map{mapToChartBoundsHeight($0)}
-
-    let didYChange = false //currentYValueRange != normalizedYVectors.yRange
     
     currentYValueRange = 0...100
 
@@ -54,35 +52,9 @@ class TGCAPercentageChartView: TGCAChartView {
       let yVector = yVectors[i]
       let points = convertToPoints(xVector: xVector, yVector: yVector)
       newDrawings.append(Drawing(shapeLayer: drawing.shapeLayer, yPositions: yVector))
-      let squareLine = bezierLine(withPoints: points)
-      let newPath = bezierArea(topPath: squareLine, bottomPath: bezierLine(from: CGPoint(x: points[0].x, y: chartBoundsBottom), to: CGPoint(x: points.last!.x, y: chartBoundsBottom)))
-      
-      if let oldAnim = drawing.shapeLayer.animation(forKey: "pathAnimation") {
-        drawing.shapeLayer.removeAnimation(forKey: "pathAnimation")
-        let pathAnimation = CABasicAnimation(keyPath: "path")
-        pathAnimation.fromValue = drawing.shapeLayer.presentation()?.value(forKey: "path") ?? drawing.shapeLayer.path
-        drawing.shapeLayer.path = newPath.cgPath
-        pathAnimation.toValue = drawing.shapeLayer.path
-        pathAnimation.duration = CHART_PATH_ANIMATION_DURATION
-        if !didYChange {
-          pathAnimation.beginTime = oldAnim.beginTime
-        } else {
-          pathAnimation.beginTime = CACurrentMediaTime()
-        }
-        drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
-      } else {
-        if didYChange  {
-          let pathAnimation = CABasicAnimation(keyPath: "path")
-          pathAnimation.fromValue = drawing.shapeLayer.path
-          drawing.shapeLayer.path = newPath.cgPath
-          pathAnimation.toValue = drawing.shapeLayer.path
-          pathAnimation.duration = CHART_PATH_ANIMATION_DURATION
-          pathAnimation.beginTime = CACurrentMediaTime()
-          drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
-        } else {
-          drawing.shapeLayer.path = newPath.cgPath
-        }
-      }
+      let line = bezierLine(withPoints: points)
+      let newPath = bezierArea(topPath: line, bottomPath: bezierLine(from: CGPoint(x: points[0].x, y: chartBoundsBottom), to: CGPoint(x: points.last!.x, y: chartBoundsBottom)))
+      drawing.shapeLayer.path = newPath.cgPath
     }
     self.drawings = ChartDrawings(drawings: newDrawings, xPositions: xVector)
   }
@@ -100,8 +72,8 @@ class TGCAPercentageChartView: TGCAChartView {
       let drawing = drawings.drawings[i]
       let yVector = yVectors[i]
       let points = convertToPoints(xVector: xVector, yVector: yVector)
-      let squareLine = bezierLine(withPoints: points)
-      let newPath = bezierArea(topPath: squareLine, bottomPath: bezierLine(from: CGPoint(x: points[0].x, y: chartBoundsBottom), to: CGPoint(x: points.last!.x, y: chartBoundsBottom)))
+      let line = bezierLine(withPoints: points)
+      let newPath = bezierArea(topPath: line, bottomPath: bezierLine(from: CGPoint(x: points[0].x, y: chartBoundsBottom), to: CGPoint(x: points.last!.x, y: chartBoundsBottom)))
       
       var oldPath: Any?
       if let _ = drawing.shapeLayer.animation(forKey: "pathAnimation") {
@@ -134,12 +106,15 @@ class TGCAPercentageChartView: TGCAChartView {
         var oldOpacity: Any?
         if let _ = drawing.shapeLayer.animation(forKey: "opacityAnimation") {
           oldOpacity = drawing.shapeLayer.presentation()?.value(forKey: "opacity")
+          drawing.shapeLayer.opacity = (oldOpacity as? Float) ?? drawing.shapeLayer.opacity
           drawing.shapeLayer.removeAnimation(forKey: "opacityAnimation")
         }
-        let opacityAnimation = CABasicAnimation(keyPath: "opacity")
-        opacityAnimation.fromValue = oldOpacity ?? drawing.shapeLayer.opacity
-        drawing.shapeLayer.opacity = originalHidden ? 1 : 0
-        opacityAnimation.toValue = drawing.shapeLayer.opacity
+        let opacityAnimation = CAKeyframeAnimation(keyPath: "opacity")
+        let targetOpacity: Float = originalHidden ? 1 : 0
+        
+        opacityAnimation.values = [oldOpacity ?? drawing.shapeLayer.opacity, targetOpacity]
+        drawing.shapeLayer.opacity = targetOpacity
+        opacityAnimation.keyTimes = (hiddenDrawingIndicies.count == chart.yVectors.count || (hiddenDrawingIndicies.count == chart.yVectors.count - 1 && originalHidden)) ? [0.0, 1.0] : (originalHidden ? [0.0, 0.25] : [0.75, 1.0])
         opacityAnimation.duration = CHART_FADE_ANIMATION_DURATION
         drawing.shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
       }
