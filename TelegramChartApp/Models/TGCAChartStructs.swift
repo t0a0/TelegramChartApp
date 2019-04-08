@@ -92,15 +92,14 @@ struct DataChart {
     }
   }
   
-  /// Pass minimum 2 vectors
-  private func stackedVectors(_ vectors: [ValueVector]) -> [ValueVector] {
-    var stacked = [vectors[0]]
-    for i in 1..<vectors.count {
-      stacked.append(zip(vectors[i], stacked[i-1]).map{$0 + $1})
-    }
-    return stacked
+  /// For stacked bar chart
+  func normalizedStackedYVectorsFromZeroMinimum(in xRange: ClosedRange<Int>, excludedIndicies: Set<Int>) -> NormalizedYVectors {
+    let stacked = stackedVectors(yVectors.map{$0.vector})
+    let max = stacked.last![xRange].max()!
+    return (stacked.map{$0.map{$0/max}}, 0...max)
   }
   
+  /// For percentage chart
   func percentageYVectors(excludedIndicies: Set<Int>) -> [ValueVector] {
     let includedIdxs = (0..<yVectors.count).filter{!excludedIndicies.contains($0)}.sorted()
     guard let firstIncludedIdx = includedIdxs.first else {
@@ -167,6 +166,15 @@ struct DataChart {
       }
     }
     return nil
+  }
+  
+  /// Pass minimum 2 vectors
+  private func stackedVectors(_ vectors: [ValueVector]) -> [ValueVector] {
+    var stacked = [vectors[0]]
+    for i in 1..<vectors.count {
+      stacked.append(zip(vectors[i], stacked[i-1]).map{$0 + $1})
+    }
+    return stacked
   }
   
 }
