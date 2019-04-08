@@ -13,7 +13,6 @@ typealias ValueVector = [CGFloat]
 typealias ChartValueVectorMetaData = (identifier: String, name: String, color: UIColor)
 typealias NormalizedYVectors = (vectors: [ValueVector], yRange: ClosedRange<CGFloat>)
 typealias SeparatlyNormalizedYVectors = [(vector: ValueVector, yRange: ClosedRange<CGFloat>)]
-typealias PercentageYVectors = [ValueVector]
 
 enum DataChartType: String {
   case linear
@@ -31,7 +30,6 @@ struct DataChart {
   let xVector: ValueVector
   let datesVector: [Date]
   let showsAxisLabelsOnBothSides = true
-  let percentageYVectors: [ValueVector]
   
   init(yVectors: [ChartValueVector], xVector: ValueVector, type: DataChartType, title: String? = nil) {
     yVectors.forEach{
@@ -42,23 +40,6 @@ struct DataChart {
     self.title = title
     self.type = type
     self.datesVector = xVector.map{Date(timeIntervalSince1970: TimeInterval($0 / 1000.0))}
-    if type == .percentage {
-      var percentVectors = [ValueVector]()
-      var sums = [CGFloat]()
-      let yVs = yVectors.map{$0.vector}
-
-      yVs[0].forEach{sums.append($0)}
-      for i in 1..<yVs.count {
-        for j in 0..<yVs[i].count {
-          sums[j] = sums[j] + yVs[i][j]
-        }
-      }
-      yVs.forEach{percentVectors.append(zip($0, sums).map{$0 / $1})}
-      
-      self.percentageYVectors = percentVectors
-    } else {
-      self.percentageYVectors = []
-    }
   }
   
   func normalizedYVectorsFromZeroMinimum(in xRange: ClosedRange<Int>, excludedIdxs: Set<Int>) -> NormalizedYVectors {
@@ -105,10 +86,57 @@ struct DataChart {
       let min = $0[xRange].min() ?? 0
       let max = $0[xRange].max() ?? 0
       guard min != max else {
-        return (Array(repeating: 0, count: $0.count), 0...0)
+        return (Array(repeating: 0.0, count: $0.count), 0...0)
       }
       return ($0.map{(($0 - min) / (max - min))}, min...max)
     }
+  }
+  
+  /// Pass minimum 2 vectors
+  private func stackedVectors(_ vectors: [ValueVector]) -> [ValueVector] {
+    var stacked = [vectors[0]]
+    for i in 1..<vectors.count {
+      stacked.append(zip(vectors[i], stacked[i-1]).map{$0 + $1})
+    }
+    return stacked
+  }
+  
+  func percentageYVectors(excludedIndicies: Set<Int>) -> [ValueVector] {
+    let includedIdxs = (0..<yVectors.count).filter{!excludedIndicies.contains($0)}.sorted()
+    guard let firstIncludedIdx = includedIdxs.first else {
+      //for animation
+      return Array(repeating: Array(repeating: 1.0, count: xVector.count), count: yVectors.count)
+    }
+    if includedIdxs.count == 1 {
+      //for animatiom
+      var a: [ValueVector] = Array(repeating: Array(repeating: 0.0, count: xVector.count), count: firstIncludedIdx)
+      a.append(contentsOf: Array(repeating: Array(repeating: 1.0, count: xVector.count), count: yVectors.count - firstIncludedIdx))
+      return a
+    }
+    
+    let stacked = stackedVectors(includedIdxs.map{yVectors[$0].vector})
+    let maximums = stacked.last!
+    let percentage = stacked.map{zip($0, maximums).map{$0 / $1}}
+
+    
+    var retVal = [ValueVector]()
+    var j = 0
+    for i in 0..<yVectors.count {
+      if includedIdxs.contains(i) {
+        retVal.append(percentage[j])
+        j += 1
+      } else {
+        //this is for hiding animation
+        if i == 0 {
+          retVal.append(Array(repeating: 0.0, count: xVector.count))
+        } else if i == yVectors.count - 1 {
+          retVal.append(Array(repeating: 1.0, count: xVector.count))
+        } else {
+          retVal.append(retVal[i-1])
+        }
+      }
+    }
+    return retVal
   }
   
   /// Maps the value in range of 0...1 to an according index in the xVector

@@ -13,12 +13,13 @@ class TGCAPercentageChartView: TGCAChartView {
   
   override func drawChart() {
 //    let normalizedYVectors = getNormalizedYVectors()
-    let yVectors = chart.percentageYVectors
+    let yVectors = getPercentageYVectors().map{mapToChartBoundsHeight($0)}
     let xVector = mapToChartBoundsWidth(getNormalizedXVector())
     
     currentYValueRange = 0...100
     
     var draws = [Drawing]()
+    var shapes = [CAShapeLayer]()
     for i in 0..<yVectors.count {
       let yVector = yVectors[i]
       let points = convertToPoints(xVector: xVector, yVector: yVector)
@@ -28,16 +29,19 @@ class TGCAPercentageChartView: TGCAChartView {
       if hiddenDrawingIndicies.contains(i) {
         shape.opacity = 0
       }
-      lineLayer.addSublayer(shape)
+      shapes.append(shape)
       draws.append(Drawing(shapeLayer: shape, yPositions: yVector))
+    }
+    shapes.reversed().forEach{
+      lineLayer.addSublayer($0)
     }
     drawings = ChartDrawings(drawings: draws, xPositions: xVector)
   }
   
   override func updateChart() {
     let xVector = mapToChartBoundsWidth(getNormalizedXVector())
-    let normalizedYVectors = chart.percentageYVectors.map{mapToChartBoundsHeight($0)}
-    
+    let yVectors = getPercentageYVectors().map{mapToChartBoundsHeight($0)}
+
     let didYChange = false //currentYValueRange != normalizedYVectors.yRange
     
     currentYValueRange = 0...100
@@ -46,7 +50,7 @@ class TGCAPercentageChartView: TGCAChartView {
     for i in 0..<drawings.drawings.count {
       
       let drawing = drawings.drawings[i]
-      let yVector = normalizedYVectors[i]
+      let yVector = yVectors[i]
       let points = convertToPoints(xVector: xVector, yVector: yVector)
       newDrawings.append(Drawing(shapeLayer: drawing.shapeLayer, yPositions: yVector))
       let squareLine = bezierLine(withPoints: points)
@@ -83,7 +87,7 @@ class TGCAPercentageChartView: TGCAChartView {
   }
   
   override func updateChartByHiding(at index: Int, originalHidden: Bool) {
-    let normalizedYVectors = chart.percentageYVectors.map{mapToChartBoundsHeight($0)}
+    let yVectors = getPercentageYVectors().map{mapToChartBoundsHeight($0)}
     let xVector = mapToChartBoundsWidth(getNormalizedXVector())
     
     currentYValueRange = 0...100
@@ -92,7 +96,7 @@ class TGCAPercentageChartView: TGCAChartView {
     for i in 0..<drawings.drawings.count {
       
       let drawing = drawings.drawings[i]
-      let yVector = normalizedYVectors[i]
+      let yVector = yVectors[i]
       let points = convertToPoints(xVector: xVector, yVector: yVector)
       let squareLine = bezierLine(withPoints: points)
       let newPath = bezierArea(topPath: squareLine, bottomPath: bezierLine(from: CGPoint(x: points[0].x, y: chartBoundsBottom), to: CGPoint(x: points.last!.x, y: chartBoundsBottom)))
@@ -141,6 +145,10 @@ class TGCAPercentageChartView: TGCAChartView {
       newDrawings.append(Drawing(shapeLayer: drawing.shapeLayer, yPositions: yVector))
     }
     drawings = ChartDrawings(drawings: newDrawings, xPositions: xVector)
+  }
+  
+  private func getPercentageYVectors() -> [ValueVector] {
+    return chart.percentageYVectors(excludedIndicies: hiddenDrawingIndicies)
   }
   
 }
