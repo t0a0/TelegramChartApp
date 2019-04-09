@@ -606,7 +606,6 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     
     var blocks = [()->()]()
     var removalBlocks = [()->()]()
-    var newAxes = [HorizontalAxis]()
     
     if diffs[0] != 0 {
       //update zero axis without line animation
@@ -619,19 +618,18 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
       let oldTextPos = newTextLayer.position
       newTextLayer.position = CGPoint(x: newTextLayer.position.x, y: newTextLayer.position.y - diffs[0])
       
+      let oldLabelLayer = ax.labelLayer
+      
       blocks.append {
-        ax.labelLayer.position = oldTextLayerTargetPosition
-        ax.labelLayer.opacity = 0
+        oldLabelLayer.position = oldTextLayerTargetPosition
+        oldLabelLayer.opacity = 0
         newTextLayer.position = oldTextPos
         newTextLayer.opacity = 1.0
       }
       removalBlocks.append {
-        ax.labelLayer.removeFromSuperlayer()
+        oldLabelLayer.removeFromSuperlayer()
       }
-      newAxes.append(HorizontalAxis(lineLayer: ax.lineLayer, labelLayer: newTextLayer, value: values[0]))
-    } else {
-      //do not update zero axis
-      newAxes.append(horizontalAxes[0])
+      ax.update(labelLayer: newTextLayer, value: values[0])
     }
     
     for i in 1..<horizontalAxes.count {
@@ -656,14 +654,17 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
       let oldTextPos = newTextLayer.position
       newLineLayer.position = CGPoint(x: newLineLayer.position.x, y: newLineLayer.position.y - diffs[i])
       newTextLayer.position = CGPoint(x: newTextLayer.position.x, y: newTextLayer.position.y - diffs[i])
-      newAxes.append(HorizontalAxis(lineLayer: newLineLayer, labelLayer: newTextLayer, value: values[i]))
       
+      let oldLabelLayer = ax.labelLayer
+      let oldLineLayer = ax.lineLayer
+      
+      ax.update(lineLayer: newLineLayer, labelLayer: newTextLayer, value: values[i])
       
       blocks.append {
-        ax.labelLayer.position = oldTextLayerTargetPosition
-        ax.labelLayer.opacity = 0
-        ax.lineLayer.opacity = 0
-        ax.lineLayer.position = oldLineLayerTargetPosition
+        oldLabelLayer.position = oldTextLayerTargetPosition
+        oldLabelLayer.opacity = 0
+        oldLineLayer.opacity = 0
+        oldLineLayer.position = oldLineLayerTargetPosition
         
         newLineLayer.opacity = ChartViewConstants.axisLineOpacity
         newLineLayer.position = oldShapePos
@@ -671,12 +672,11 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
         newTextLayer.opacity = 1.0
       }
       removalBlocks.append {
-        ax.lineLayer.removeFromSuperlayer()
-        ax.labelLayer.removeFromSuperlayer()
+        oldLabelLayer.removeFromSuperlayer()
+        oldLineLayer.removeFromSuperlayer()
       }
     }
     
-    self.horizontalAxes = newAxes
     return (blocks, removalBlocks)
   }
   
@@ -1030,10 +1030,26 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   
   // MARK: - Structs and typealiases
   
-  private struct HorizontalAxis {
-    let lineLayer: CAShapeLayer
-    let labelLayer: CATextLayer
-    let value: CGFloat
+  private class HorizontalAxis {
+    private(set) var lineLayer: CAShapeLayer
+    private(set) var labelLayer: CATextLayer
+    private(set) var value: CGFloat
+    
+    init(lineLayer: CAShapeLayer, labelLayer: CATextLayer, value: CGFloat) {
+      self.lineLayer = lineLayer
+      self.labelLayer = labelLayer
+      self.value = value
+    }
+    
+    func update(labelLayer: CATextLayer, value: CGFloat) {
+      self.labelLayer = labelLayer
+      self.value = value
+    }
+    
+    func update(lineLayer: CAShapeLayer, labelLayer: CATextLayer, value: CGFloat) {
+      self.lineLayer = lineLayer
+      update(labelLayer: labelLayer, value: value)
+    }
   }
   
   class ChartDrawings {

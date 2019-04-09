@@ -264,13 +264,11 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
     
     var blocks = [()->()]()
     var removalBlocks = [()->()]()
-    var newAxes = [HorizontalAxis]()
 
     for i in 0..<horizontalAxes.count {
       let ax = horizontalAxes[i]
 
       if diffs[i] == 0 {
-        newAxes.append(ax)
         continue
       }
       
@@ -283,21 +281,23 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
       axisLayer.addSublayer(newTextLayer)
       let newTextLayerTargetPosition = newTextLayer.position
       newTextLayer.position = CGPoint(x: newTextLayer.position.x, y: newTextLayer.position.y - diffs[i])
-      newAxes.append(HorizontalAxis(lineLayer: ax.lineLayer, leftTextLayer: newTextLayer, rightTextLayer: ax.rightTextLayer, leftValue: leftValues[i], rightValue: ax.rightValue))
+      
+      let oldTextLayer = ax.leftTextLayer
+      
+      ax.update(leftTextLayer: newTextLayer, leftValue: leftValues[i])
       
       blocks.append {
-        ax.leftTextLayer.position = oldTextLayerTargetPosition
-        ax.leftTextLayer.opacity = 0
+        oldTextLayer.position = oldTextLayerTargetPosition
+        oldTextLayer.opacity = 0
         
         newTextLayer.position = newTextLayerTargetPosition
         newTextLayer.opacity = 1.0
       }
       removalBlocks.append {
-        ax.leftTextLayer.removeFromSuperlayer()
+        oldTextLayer.removeFromSuperlayer()
       }
     }
     
-    self.horizontalAxes = newAxes
     return (blocks, removalBlocks)
   }
   
@@ -321,13 +321,11 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
     
     var blocks = [()->()]()
     var removalBlocks = [()->()]()
-    var newAxes = [HorizontalAxis]()
     
     for i in 0..<horizontalAxes.count {
       let ax = horizontalAxes[i]
       
       if diffs[i] == 0 {
-        newAxes.append(ax)
         continue
       }
       
@@ -342,21 +340,23 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
       axisLayer.addSublayer(newTextLayer)
       let newTextLayerTargetPosition = newTextLayer.position
       newTextLayer.position = CGPoint(x: newTextLayer.position.x, y: newTextLayer.position.y - diffs[i])
-      newAxes.append(HorizontalAxis(lineLayer: ax.lineLayer, leftTextLayer: ax.leftTextLayer, rightTextLayer: newTextLayer, leftValue: ax.leftValue, rightValue: rightValues[i]))
+      
+      let oldTextLayer = ax.rightTextLayer
+      
+      ax.update(rightTextLayer: newTextLayer, rightValue: rightValues[i])
       
       blocks.append {
-        ax.rightTextLayer.position = oldTextLayerTargetPosition
-        ax.rightTextLayer.opacity = 0
+        oldTextLayer.position = oldTextLayerTargetPosition
+        oldTextLayer.opacity = 0
         
         newTextLayer.position = newTextLayerTargetPosition
         newTextLayer.opacity = 1.0
       }
       removalBlocks.append {
-        ax.rightTextLayer.removeFromSuperlayer()
+        oldTextLayer.removeFromSuperlayer()
       }
     }
     
-    self.horizontalAxes = newAxes
     return (blocks, removalBlocks)
   }
   
@@ -418,12 +418,30 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
     horizontalAxes = nil
   }
   
-  private struct HorizontalAxis {
+  private class HorizontalAxis {
     let lineLayer: CAShapeLayer
-    let leftTextLayer: CATextLayer
-    let rightTextLayer: CATextLayer
-    let leftValue: CGFloat
-    let rightValue: CGFloat
+    private(set) var leftTextLayer: CATextLayer
+    private(set) var rightTextLayer: CATextLayer
+    private(set) var leftValue: CGFloat
+    private(set) var rightValue: CGFloat
+    
+    init(lineLayer: CAShapeLayer, leftTextLayer: CATextLayer, rightTextLayer: CATextLayer, leftValue: CGFloat, rightValue: CGFloat) {
+      self.lineLayer = lineLayer
+      self.leftTextLayer = leftTextLayer
+      self.rightTextLayer = rightTextLayer
+      self.leftValue = leftValue
+      self.rightValue = rightValue
+    }
+    
+    func update(leftTextLayer: CATextLayer, leftValue: CGFloat) {
+      self.leftTextLayer = leftTextLayer
+      self.leftValue = leftValue
+    }
+    
+    func update(rightTextLayer: CATextLayer, rightValue: CGFloat) {
+      self.rightTextLayer = rightTextLayer
+      self.rightValue = rightValue
+    }
   }
   
   //MARK: - Helper Methods
