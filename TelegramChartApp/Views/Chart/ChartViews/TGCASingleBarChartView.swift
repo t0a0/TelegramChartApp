@@ -83,7 +83,7 @@ class TGCASingleBarChartView: TGCAChartView {
   
   override func updateChartByHiding(at index: Int, originalHidden: Bool) {
     let normalizedYVectors = getNormalizedYVectors()
-    let xVector = mapToChartBoundsWidth(getNormalizedXVector())
+    let xVector = drawings.xPositions
     
     updateCurrentYValueRange(with: normalizedYVectors.yRange)
 
@@ -138,6 +138,5 @@ class TGCASingleBarChartView: TGCAChartView {
       
       drawing.yPositions = yVector
     }
-    drawings.xPositions = xVector
   }
 }

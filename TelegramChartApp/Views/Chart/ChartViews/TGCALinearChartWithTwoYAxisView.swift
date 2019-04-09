@@ -130,7 +130,7 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
   
   override func updateChartByHiding(at index: Int, originalHidden: Bool) {
     let normalizedYVectors = getSeparatelyNormalizedYVectors()
-    let xVector = mapToChartBoundsWidth(getNormalizedXVector())
+    let xVector = drawings.xPositions
     let yVectors = normalizedYVectors.map{mapToChartBoundsHeight($0.vector)}
 
     updateCurrentYValueRanges(left: normalizedYVectors.first!.yRange, right: normalizedYVectors.last!.yRange)
@@ -184,7 +184,6 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
       
       drawing.yPositions = yVector
     }
-    drawings.xPositions = xVector
   }
   
   //MARK: - Axes

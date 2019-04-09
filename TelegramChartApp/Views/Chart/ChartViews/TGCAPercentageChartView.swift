@@ -58,7 +58,7 @@ class TGCAPercentageChartView: TGCAChartView {
   override func updateChartByHiding(at index: Int, originalHidden: Bool) {
     updateChartPercentageYVectors()
     let yVectors = getPercentageYVectors().map{mapToChartBoundsHeight($0)}
-    let xVector = mapToChartBoundsWidth(getNormalizedXVector())
+    let xVector = drawings.xPositions
     
     for i in 0..<drawings.drawings.count {
       
@@ -114,7 +114,6 @@ class TGCAPercentageChartView: TGCAChartView {
       
       drawing.yPositions = yVector
     }
-    drawings.xPositions = xVector
   }
   
   //MARKL - Get Y vectors
