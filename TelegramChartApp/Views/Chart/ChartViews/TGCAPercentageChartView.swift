@@ -17,7 +17,7 @@ class TGCAPercentageChartView: TGCAChartView {
     let yVectors = getPercentageYVectors().map{mapToChartBoundsHeight($0)}
     let xVector = mapToChartBoundsWidth(getNormalizedXVector())
     
-    currentYValueRange = 0...100
+    updateCurrentYValueRange(with: 0...100)
     
     var draws = [Drawing]()
     var shapes = [CAShapeLayer]()
@@ -43,8 +43,6 @@ class TGCAPercentageChartView: TGCAChartView {
     let xVector = mapToChartBoundsWidth(getNormalizedXVector())
     let yVectors = getPercentageYVectors().map{mapToChartBoundsHeight($0)}
     
-    currentYValueRange = 0...100
-
     var newDrawings = [Drawing]()
     for i in 0..<drawings.drawings.count {
       
@@ -64,8 +62,6 @@ class TGCAPercentageChartView: TGCAChartView {
     let yVectors = getPercentageYVectors().map{mapToChartBoundsHeight($0)}
     let xVector = mapToChartBoundsWidth(getNormalizedXVector())
     
-    currentYValueRange = 0...100
-
     var newDrawings = [Drawing]()
     for i in 0..<drawings.drawings.count {
       

@@ -18,6 +18,9 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
   func updateCurrentYValueRanges(left: ClosedRange<CGFloat>, right: ClosedRange<CGFloat>) {
     let leftChanged = leftYValueRange != left
     let rightChanged = rightYValueRange != right
+    if !leftChanged && !rightChanged {
+      return
+    }
     leftYValueRange = left
     rightYValueRange = right
     if horizontalAxes != nil {
@@ -33,21 +36,19 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
         animBlocks.append(contentsOf: blocks.animationBlocks)
         removalBlocks.append(contentsOf: blocks.removalBlocks)
       }
-      if !animBlocks.isEmpty || !removalBlocks.isEmpty {
-        DispatchQueue.main.async {
-          CATransaction.flush()
-          CATransaction.begin()
-          CATransaction.setAnimationDuration(AXIS_ANIMATION_DURATION)
-          CATransaction.setCompletionBlock{
-            for r in removalBlocks {
-              r()
-            }
+      DispatchQueue.main.async {
+        CATransaction.flush()
+        CATransaction.begin()
+        CATransaction.setAnimationDuration(AXIS_ANIMATION_DURATION)
+        CATransaction.setCompletionBlock{
+          for r in removalBlocks {
+            r()
           }
-          for ab in animBlocks {
-            ab()
-          }
-          CATransaction.commit()
         }
+        for ab in animBlocks {
+          ab()
+        }
+        CATransaction.commit()
       }
     }
   }
@@ -197,20 +198,20 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
   
   private func valuesForLeftAxis() -> [CGFloat] {
     let distanceInYRange = leftYValueRange.upperBound - leftYValueRange.lowerBound
-    let distanceInBounds = capHeightMultiplierForHorizontalAxes / CGFloat(numOfHorizontalAxes)
-    var retVal = [CGFloat]()
-    for i in 0..<numOfHorizontalAxes {
-      retVal.append((distanceInYRange * distanceInBounds * CGFloat(i+1)) + leftYValueRange.lowerBound)
+    let distanceInBounds = capHeightMultiplierForHorizontalAxes / CGFloat(numOfHorizontalAxes-1)
+    var retVal = [leftYValueRange.lowerBound]
+    for i in 1..<numOfHorizontalAxes {
+      retVal.append((distanceInYRange * distanceInBounds * CGFloat(i)) + leftYValueRange.lowerBound)
     }
     return retVal
   }
   
   private func valuesForRightAxis() -> [CGFloat] {
     let distanceInYRange = rightYValueRange.upperBound - rightYValueRange.lowerBound
-    let distanceInBounds = capHeightMultiplierForHorizontalAxes / CGFloat(numOfHorizontalAxes)
-    var retVal = [CGFloat]()
-    for i in 0..<numOfHorizontalAxes {
-      retVal.append((distanceInYRange * distanceInBounds * CGFloat(i+1)) + rightYValueRange.lowerBound)
+    let distanceInBounds = capHeightMultiplierForHorizontalAxes / CGFloat(numOfHorizontalAxes-1)
+    var retVal = [rightYValueRange.lowerBound]
+    for i in 1..<numOfHorizontalAxes {
+      retVal.append((distanceInYRange * distanceInBounds * CGFloat(i)) + rightYValueRange.lowerBound)
     }
     return retVal
   }
@@ -219,21 +220,22 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
     
     let boundsRight = bounds.origin.x + bounds.width
     
-    var newAxis = [HorizontalAxis]()
-    
     let leftValues = valuesForLeftAxis()
     let rightValues = valuesForRightAxis()
     let leftTexts = leftValues.map{chartLabelFormatterService.prettyValueString(from: $0)}
     let rightTexts = rightValues.map{chartLabelFormatterService.prettyValueString(from: $0)}
     
+    var newAxis = [HorizontalAxis]()
+
     for i in 0..<horizontalAxesDefaultYPositions.count {
       let position = horizontalAxesDefaultYPositions[i]
       let line = bezierLine(from: CGPoint(x: bounds.origin.x, y: position), to: CGPoint(x: boundsRight, y: position))
-      let lineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: 0.5)
+      let lineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: ChartViewConstants.axisLineWidth)
       lineLayer.opacity = ChartViewConstants.axisLineOpacity
       
       let leftTextLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: leftTexts[i], color: leftAxisLabelColor)
       let rightTextLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: rightTexts[i], color: rightAxisLabelColor)
+      leftTextLayer.alignmentMode = .left
       rightTextLayer.frame.origin.x = boundsRight - rightTextLayer.frame.width
       rightTextLayer.alignmentMode = .right
       axisLayer.addSublayer(lineLayer)
@@ -243,8 +245,6 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
     }
     horizontalAxes = newAxis
   }
-  
-  typealias AxisAnimationBlocks = (animationBlocks: [()->()], removalBlocks: [()->()])
   
   private func updateLeftHorizontalAxes() -> AxisAnimationBlocks {
     

@@ -19,6 +19,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   
   struct ChartViewConstants {
     static let axisLineOpacity: Float = 0.5
+    static let axisLineWidth: CGFloat = 0.75
   }
   
   let axisLayer = CALayer()
@@ -86,7 +87,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   let circlePointRadius: CGFloat = 4.0
   
   /// Number of horizontal axes that should be shown on screen. Doesnt include zero axis
-  let numOfHorizontalAxes = 5
+  let numOfHorizontalAxes = 6
   
   /// Used to provide additional bottom offset for chart bounds
   let heightForGuideLabels: CGFloat = 20.0
@@ -111,8 +112,10 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   var hiddenDrawingIndicies: Set<Int>!
   
   private var horizontalAxes: [HorizontalAxis]!
-  private var zeroAxis: HorizontalAxis!
-  
+  private var horizontalAxesSpacing: CGFloat!
+  /// The axes are drawn from the bottom of the bounds to the top of the bounds, capped by this value.
+  let capHeightMultiplierForHorizontalAxes: CGFloat = 0.85
+  var horizontalAxesDefaultYPositions: [CGFloat]!
   
   var currentChartAnnotation: ChartAnnotation?
   
@@ -126,26 +129,40 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   var currentXIndexRange: ClosedRange<Int>!
   
   /// Range between total min and max Y of currently visible charts
-  var currentYValueRange: ClosedRange<CGFloat> = 0...0 {
-    didSet {
-      guard oldValue != currentYValueRange else {
-        return
-      }
-      if shouldDisplayAxesAndLabels {
-        configureStringsForHorizontalAxesLabels()
-        if !valuesStartFromZero {
-          updateZeroAxis()
+  private(set) var currentYValueRange: ClosedRange<CGFloat> = 0...0
+  
+
+  
+  func updateCurrentYValueRange(with newRange: ClosedRange<CGFloat>) {
+    guard newRange != currentYValueRange else {
+      return
+    }
+    currentYValueRange = newRange
+    if horizontalAxes != nil {
+      var animBlocks = [()->()]()
+      var removalBlocks = [()->()]()
+      
+      let blocks = updateHorizontalAxes()
+      animBlocks.append(contentsOf: blocks.animationBlocks)
+      removalBlocks.append(contentsOf: blocks.removalBlocks)
+      
+      DispatchQueue.main.async {
+        CATransaction.flush()
+        CATransaction.begin()
+        CATransaction.setAnimationDuration(AXIS_ANIMATION_DURATION)
+        CATransaction.setCompletionBlock{
+          for r in removalBlocks {
+            r()
+          }
         }
-        animateHorizontalAxesChange(fromPreviousRange: oldValue, toNewRange: currentYValueRange)
+        for ab in animBlocks {
+          ab()
+        }
+        CATransaction.commit()
       }
     }
   }
-  
-  /// The axes are drawn from the bottom of the bounds to the top of the bounds, capped by this value.
-  let capHeightMultiplierForHorizontalAxes: CGFloat = 0.85
-  var horizontalAxesDefaultYPositions: [CGFloat]!
-  var labelTextsForCurrentYRange: [String]!
-  
+
   // MARK: - Public functions
   
   func reset() {
@@ -162,8 +179,8 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   /// Configures the view to display the chart.
   func configure(with chart: DataChart, hiddenIndicies: Set<Int>, displayRange: ClosedRange<CGFloat>? = nil) {
     reset()
-    configureChartBounds()
-    configureHorizontalAxesDefaultPositions()
+    configure()
+
     self.chart = chart
     hiddenDrawingIndicies = hiddenIndicies
     
@@ -176,7 +193,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     drawChart()
     
     if shouldDisplayAxesAndLabels  {
-      drawAxes()
+      addHorizontalAxes()
       addGuideLabels()
     }
   }
@@ -186,8 +203,8 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     let yVectors = normalizedYVectors.vectors.map{mapToChartBoundsHeight($0)}
     let xVector = mapToChartBoundsWidth(getNormalizedXVector())
     
-    currentYValueRange = normalizedYVectors.yRange
-    
+    updateCurrentYValueRange(with: normalizedYVectors.yRange)
+
     var draws = [Drawing]()
     for i in 0..<yVectors.count {
       let yVector = yVectors[i]
@@ -209,8 +226,8 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     
     let didYChange = currentYValueRange != normalizedYVectors.yRange
     
-    currentYValueRange = normalizedYVectors.yRange
-    
+    updateCurrentYValueRange(with: normalizedYVectors.yRange)
+
     var newDrawings = [Drawing]()
     for i in 0..<drawings.drawings.count {
       
@@ -248,11 +265,6 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
       }
     }
     self.drawings = ChartDrawings(drawings: newDrawings, xPositions: xVector)
-  }
-  
-  func drawAxes() {
-    addZeroAxis()
-    addHorizontalAxes()
   }
   
   /// Updates the diplayed X range. Accepted are subranges of 0...1.
@@ -320,8 +332,8 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     let normalizedYVectors = getNormalizedYVectors()
     let xVector = mapToChartBoundsWidth(getNormalizedXVector())
     
-    currentYValueRange = normalizedYVectors.yRange
-    
+    updateCurrentYValueRange(with: normalizedYVectors.yRange)
+
     var newDrawings = [Drawing]()
     for i in 0..<drawings.drawings.count {
       
@@ -378,7 +390,13 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   
   // MARK: - Configuration
   
-  func configureChartBounds() {
+  private func configure() {
+    configureChartBounds()
+    configureHorizontalAxesSpacing()
+    configureHorizontalAxesDefaultPositions()
+  }
+  
+  private func configureChartBounds() {
     // We need to inset drawing so that if the edge points are selected, the circular point on the graph is fully visible in the view
     let inset = graphLineWidth + (canShowAnnotations ? circlePointRadius : 0)
     chartBounds = CGRect(x: bounds.origin.x + inset,
@@ -386,25 +404,16 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
                          width: bounds.width - inset * 2,
                          height: bounds.height - inset * 2
                           - (shouldDisplayAxesAndLabels ? heightForGuideLabels : 0))
+
 //    lineLayer.frame = chartBounds
   }
   
-  func configureHorizontalAxesDefaultPositions() {
-    let space = chartBounds.height * capHeightMultiplierForHorizontalAxes / CGFloat(numOfHorizontalAxes)
-    var retVal = [CGFloat]()
-    for i in 0..<numOfHorizontalAxes {
-      retVal.append(chartBoundsBottom - (CGFloat(i) * space + space))
-    }
-    horizontalAxesDefaultYPositions = retVal
+  private func configureHorizontalAxesSpacing() {
+    horizontalAxesSpacing = chartBounds.height * capHeightMultiplierForHorizontalAxes / CGFloat(numOfHorizontalAxes - 1)
   }
   
-  func configureStringsForHorizontalAxesLabels() {
-    var textsForAxesLabels = [String]()
-    for i in 0..<numOfHorizontalAxes {
-      let value = (((currentYValueRange.upperBound - currentYValueRange.lowerBound) * capHeightMultiplierForHorizontalAxes / CGFloat(numOfHorizontalAxes)) * CGFloat(i+1)) + currentYValueRange.lowerBound
-      textsForAxesLabels.append(chartLabelFormatterService.prettyValueString(from: value))
-    }
-    labelTextsForCurrentYRange = textsForAxesLabels
+  private func configureHorizontalAxesDefaultPositions() {
+    horizontalAxesDefaultYPositions = (0..<numOfHorizontalAxes).map{chartBoundsBottom - (CGFloat($0) * horizontalAxesSpacing)}
   }
   
   // MARK: - Guide Labels
@@ -543,89 +552,113 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   }
   
   // MARK: - Horizontal axes
+  typealias AxisAnimationBlocks = (animationBlocks: [()->()], removalBlocks: [()->()])
   
-  func addZeroAxis() {
-    let zposition = chartBoundsBottom
-    let zline = bezierLine(from: CGPoint(x: bounds.origin.x, y: zposition), to: CGPoint(x: bounds.origin.x + bounds.width, y: zposition))
-    let zshapeL = shapeLayer(withPath: zline.cgPath, color: axisColor, lineWidth: 0.5)
-    zshapeL.opacity = ChartViewConstants.axisLineOpacity
-    let text = chartLabelFormatterService.prettyValueString(from: currentYValueRange.lowerBound)
-    let ztextL = textLayer(origin: CGPoint(x: bounds.origin.x, y: zposition - 20), text: text, color: axisLabelColor)
-    axisLayer.addSublayer(zshapeL)
-    axisLayer.addSublayer(ztextL)
-    
-    zeroAxis = HorizontalAxis(lineLayer: zshapeL, labelLayer: ztextL)
-  }
-  
-  func updateZeroAxis() {
-    guard let zeroAxis = zeroAxis else {
-      return
+  private func valuesForAxes() -> [CGFloat] {
+    let distanceInYRange = currentYValueRange.upperBound - currentYValueRange.lowerBound
+    let distanceInBounds = capHeightMultiplierForHorizontalAxes / CGFloat(numOfHorizontalAxes-1)
+    var retVal = [currentYValueRange.lowerBound]
+    for i in 1..<numOfHorizontalAxes {
+      retVal.append((distanceInYRange * distanceInBounds * CGFloat(i)) + currentYValueRange.lowerBound)
     }
-    let text = chartLabelFormatterService.prettyValueString(from: currentYValueRange.lowerBound)
-    zeroAxis.labelLayer.string = text
+    return retVal
   }
-  
+
   func addHorizontalAxes() {
+    
+    let boundsRight = bounds.origin.x + bounds.width
+    
+    let values = valuesForAxes()
+    let texts = values.map{chartLabelFormatterService.prettyValueString(from: $0)}
+    
     var newAxis = [HorizontalAxis]()
     
     for i in 0..<horizontalAxesDefaultYPositions.count {
       let position = horizontalAxesDefaultYPositions[i]
-      let line = bezierLine(from: CGPoint(x: bounds.origin.x, y: position), to: CGPoint(x: bounds.origin.x + bounds.width, y: position))
-      let shapeL = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: 0.5)
-      shapeL.opacity = ChartViewConstants.axisLineOpacity
-      shapeL.zPosition = zPositions.Chart.axis.rawValue
-      let textL = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: labelTextsForCurrentYRange[i], color: axisLabelColor)
-      axisLayer.addSublayer(shapeL)
-      axisLayer.addSublayer(textL)
-      newAxis.append(HorizontalAxis(lineLayer: shapeL, labelLayer: textL))
+      let line = bezierLine(from: CGPoint(x: bounds.origin.x, y: 0), to: CGPoint(x: boundsRight, y: 0))
+      let lineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: ChartViewConstants.axisLineWidth)
+      lineLayer.opacity = ChartViewConstants.axisLineOpacity
+      let labelLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: texts[i], color: axisLabelColor)
+      labelLayer.alignmentMode = .left
+      axisLayer.addSublayer(lineLayer)
+      lineLayer.position.y = position
+      axisLayer.addSublayer(labelLayer)
+      newAxis.append(HorizontalAxis(lineLayer: lineLayer, labelLayer: labelLayer, value: values[i]))
     }
     horizontalAxes = newAxis
   }
   
-  func animateHorizontalAxesChange(fromPreviousRange previousRange: ClosedRange<CGFloat>, toNewRange newRange: ClosedRange<CGFloat>) {
-    guard let horizontalAxis = horizontalAxes else {
-      return
+  func updateHorizontalAxes() -> AxisAnimationBlocks{
+    let boundsRight = bounds.origin.x + bounds.width
+
+    let values = valuesForAxes()
+    let texts = values.map{chartLabelFormatterService.prettyValueString(from: $0)}
+  
+    //diffs between new values and old values
+    let diffs: [CGFloat] = zip(values, horizontalAxes.map{$0.value}).map{ arg in
+      let (new, old) = arg
+      let result = new - old
+      if result > 0 {
+        return horizontalAxesSpacing
+      } else if result < 0 {
+        return -horizontalAxesSpacing
+      }
+      return 0
     }
     
-    //TODO: Doesnt repect the startsFromZero variable. to do it should calculate line specific coefficient for every line.
-    let coefficient: CGFloat = newRange.upperBound / previousRange.upperBound
-    let coefIsZero = coefficient == 0
-    let coefIsInf = coefficient == CGFloat.infinity
-    var blocks = [()->()]()
-    var removalBlocks = [()->()]()
-    var newAxes = [HorizontalAxis]()
-    for i in 0..<horizontalAxis.count {
-      let ax = horizontalAxis[i]
+    //update zero axis without line animation
+    let ax = horizontalAxes[0]
+    let position = horizontalAxesDefaultYPositions[0]
+    let oldTextLayerTargetPosition = CGPoint(x: ax.labelLayer.position.x, y: ax.labelLayer.position.y + diffs[0])
+    let newTextLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: texts[0], color: axisLabelColor)
+    newTextLayer.opacity = 0
+    axisLayer.addSublayer(newTextLayer)
+    let oldTextPos = newTextLayer.position
+    newTextLayer.position = CGPoint(x: newTextLayer.position.x, y: newTextLayer.position.y - diffs[0])
+
+    var blocks = [{
+      ax.labelLayer.position = oldTextLayerTargetPosition
+      ax.labelLayer.opacity = 0
+      newTextLayer.position = oldTextPos
+      newTextLayer.opacity = 1.0
+      }]
+    var removalBlocks = [{
+      ax.labelLayer.removeFromSuperlayer()
+      }]
+    var newAxes = [HorizontalAxis(lineLayer: ax.lineLayer, labelLayer: newTextLayer, value: values[0])]
+        
+    for i in 1..<horizontalAxes.count {
+      let ax = horizontalAxes[i]
       let position = horizontalAxesDefaultYPositions[i]
-      //TODO: FIX ANIMATION POSITION!!!
-      let newLinePosition = CGPoint(x: ax.lineLayer.position.x, y: coefIsZero ? chartBoundsBottom : (coefficient > 1 ? position * coefficient : position - position * coefficient))
-      let newTextPosition = CGPoint(x: ax.labelLayer.position.x, y: coefIsZero ? chartBoundsBottom : (coefficient > 1 ? ax.labelLayer.position.y * coefficient : ax.labelLayer.position.y - ax.labelLayer.position.y * coefficient))
+
+      let oldLineLayerTargetPosition = CGPoint(x: ax.lineLayer.position.x, y: ax.lineLayer.position.y + diffs[i])
+      let oldTextLayerTargetPosition = CGPoint(x: ax.labelLayer.position.x, y: ax.labelLayer.position.y + diffs[i])
       
-      
-      let line = bezierLine(from: CGPoint(x: bounds.origin.x, y: position), to: CGPoint(x: bounds.origin.x + bounds.width, y: position))
-      let shapeL = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: 0.5)
-      let textL = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: labelTextsForCurrentYRange[i], color: axisLabelColor)
-      textL.opacity = 0
-      shapeL.opacity = 0
-      axisLayer.addSublayer(shapeL)
-      axisLayer.addSublayer(textL)
-      let oldShapePos = shapeL.position
-      let oldTextPos = textL.position
-      shapeL.position = CGPoint(x: shapeL.position.x, y: coefIsInf ? chartBounds.origin.y :  (coefficient > 1 ? -position / coefficient : position + position / coefficient))
-      textL.position = CGPoint(x: textL.position.x, y: coefIsInf ? chartBounds.origin.y :  (coefficient > 1 ? textL.position.y / coefficient : textL.position.y * coefficient))
-      newAxes.append(HorizontalAxis(lineLayer: shapeL, labelLayer: textL))
+      let line = bezierLine(from: CGPoint(x: bounds.origin.x, y: 0), to: CGPoint(x: boundsRight, y: 0))
+      let newLineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: ChartViewConstants.axisLineWidth)
+      let newTextLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: texts[i], color: axisLabelColor)
+      newTextLayer.opacity = 0
+      newLineLayer.opacity = 0
+      axisLayer.addSublayer(newLineLayer)
+      newLineLayer.position.y = position
+      axisLayer.addSublayer(newTextLayer)
+      let oldShapePos = newLineLayer.position
+      let oldTextPos = newTextLayer.position
+      newLineLayer.position = CGPoint(x: newLineLayer.position.x, y: newLineLayer.position.y - diffs[i])
+      newTextLayer.position = CGPoint(x: newTextLayer.position.x, y: newTextLayer.position.y - diffs[i])
+      newAxes.append(HorizontalAxis(lineLayer: newLineLayer, labelLayer: newTextLayer, value: values[i]))
       
       
       blocks.append {
-        ax.labelLayer.position = newTextPosition
+        ax.labelLayer.position = oldTextLayerTargetPosition
         ax.labelLayer.opacity = 0
         ax.lineLayer.opacity = 0
-        ax.lineLayer.position = newLinePosition
+        ax.lineLayer.position = oldLineLayerTargetPosition
         
-        shapeL.opacity = ChartViewConstants.axisLineOpacity
-        shapeL.position = oldShapePos
-        textL.position = oldTextPos
-        textL.opacity = 1.0
+        newLineLayer.opacity = ChartViewConstants.axisLineOpacity
+        newLineLayer.position = oldShapePos
+        newTextLayer.position = oldTextPos
+        newTextLayer.opacity = 1.0
       }
       removalBlocks.append {
         ax.lineLayer.removeFromSuperlayer()
@@ -634,22 +667,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     }
     
     self.horizontalAxes = newAxes
-    
-    DispatchQueue.main.async {
-      CATransaction.flush()
-      CATransaction.begin()
-      CATransaction.setAnimationDuration(AXIS_ANIMATION_DURATION)
-      CATransaction.setCompletionBlock{
-        for r in removalBlocks {
-          r()
-        }
-      }
-      for b in blocks {
-        b()
-      }
-      CATransaction.commit()
-    }
-    
+    return (blocks, removalBlocks)
   }
   
   // MARK: - Annotation
@@ -814,7 +832,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     textLayer.font = "Helvetica" as CFTypeRef
     textLayer.fontSize = 13.5
     textLayer.string = text
-    textLayer.frame = CGRect(origin: origin, size: CGSize(width: 50, height: heightForGuideLabels))
+    textLayer.frame = CGRect(origin: origin, size: CGSize(width: 100, height: heightForGuideLabels))
     textLayer.contentsScale = UIScreen.main.scale
     textLayer.foregroundColor = color
     return textLayer
@@ -825,7 +843,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     textLayer.font = "Helvetica" as CFTypeRef
     textLayer.fontSize = 13.5
     textLayer.string = text
-    textLayer.frame = CGRect(origin: CGPoint.zero, size: CGSize(width: 50, height: heightForGuideLabels))
+    textLayer.frame = CGRect(origin: CGPoint.zero, size: CGSize(width: 100, height: heightForGuideLabels))
     textLayer.position = position
     textLayer.contentsScale = UIScreen.main.scale
     textLayer.foregroundColor = color
@@ -923,14 +941,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   }
   
   func removeAxes() {
-    removeZeroAxis()
     removeHorizontalAxes()
-  }
-  
-  func removeZeroAxis() {
-    zeroAxis?.labelLayer.removeFromSuperlayer()
-    zeroAxis?.lineLayer.removeFromSuperlayer()
-    zeroAxis = nil
   }
   
   func removeHorizontalAxes() {
@@ -1012,6 +1023,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   private struct HorizontalAxis {
     let lineLayer: CAShapeLayer
     let labelLayer: CATextLayer
+    let value: CGFloat
   }
   
   struct ChartDrawings {
@@ -1092,8 +1104,6 @@ extension TGCAChartView: ThemeChangeObserving {
         $0.lineLayer.strokeColor = axisColor
         $0.labelLayer.foregroundColor = axisLabelColor
       }
-      zeroAxis?.labelLayer.foregroundColor = axisLabelColor
-      zeroAxis?.lineLayer.strokeColor = axisColor
       
       //guide labels
       activeGuideLabels?.forEach{$0.textLayer.foregroundColor = axisLabelColor}

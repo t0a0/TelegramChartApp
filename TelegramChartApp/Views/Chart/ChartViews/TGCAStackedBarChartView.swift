@@ -15,7 +15,7 @@ class TGCAStackedBarChartView: TGCASingleBarChartView {
     let yVectors = normalizedYVectors.vectors.map{mapToChartBoundsHeight($0)}
     let xVector = mapToChartBoundsWidth(getNormalizedXVector())
     
-    currentYValueRange = normalizedYVectors.yRange
+    updateCurrentYValueRange(with: normalizedYVectors.yRange)
     
     var draws = [Drawing]()
     var shapes = [CAShapeLayer]()
@@ -42,8 +42,8 @@ class TGCAStackedBarChartView: TGCASingleBarChartView {
     let normalizedYVectors = chart.normalizedStackedYVectorsFromZeroMinimum(in: currentXIndexRange, excludedIndicies: hiddenDrawingIndicies)
     let yVectors = normalizedYVectors.vectors.map{mapToChartBoundsHeight($0)}
     let didYChange = currentYValueRange != normalizedYVectors.yRange
-    currentYValueRange = normalizedYVectors.yRange
-    
+    updateCurrentYValueRange(with: normalizedYVectors.yRange)
+
     var newDrawings = [Drawing]()
     for i in 0..<drawings.drawings.count {
       
@@ -94,8 +94,8 @@ class TGCAStackedBarChartView: TGCASingleBarChartView {
     let yVectors = normalizedYVectors.vectors.map{mapToChartBoundsHeight($0)}
     let xVector = mapToChartBoundsWidth(getNormalizedXVector())
     
-    currentYValueRange = normalizedYVectors.yRange
-    
+    updateCurrentYValueRange(with: normalizedYVectors.yRange)
+
     var newDrawings = [Drawing]()
     for i in 0..<drawings.drawings.count {
       
