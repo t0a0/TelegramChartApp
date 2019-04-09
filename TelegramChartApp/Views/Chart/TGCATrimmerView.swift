@@ -146,29 +146,33 @@ class TGCATrimmerView: UIView {
     leftMaskView.isUserInteractionEnabled = false
     leftMaskView.backgroundColor = .lightGray
     leftMaskView.alpha = 0.8
+    leftMaskView.layer.cornerRadius = TGCATrimmerView.shoulderWidth / 2
+    leftMaskView.layer.masksToBounds = true
     leftMaskView.translatesAutoresizingMaskIntoConstraints = false
     insertSubview(leftMaskView, belowSubview: leftShoulderView)
     leftMaskView.leftAnchor.constraint(equalTo: leftAnchor).isActive = true
     let leftMaskViewBottomConstraint = leftMaskView.bottomAnchor.constraint(equalTo: bottomAnchor)
     leftMaskViewBottomConstraint.isActive = true
-    leftMaskViewBottomConstraint.constant = -2.0
+    leftMaskViewBottomConstraint.constant = -1.0
     let leftMaskViewTopConstraint = leftMaskView.topAnchor.constraint(equalTo: topAnchor)
     leftMaskViewTopConstraint.isActive = true
-    leftMaskViewTopConstraint.constant = 2.0
+    leftMaskViewTopConstraint.constant = 1.0
     leftMaskView.rightAnchor.constraint(equalTo: leftShoulderView.rightAnchor).isActive = true
     
     rightMaskView.isUserInteractionEnabled = false
     rightMaskView.backgroundColor = .lightGray
     rightMaskView.alpha = 0.8
+    rightMaskView.layer.cornerRadius = TGCATrimmerView.shoulderWidth / 2
+    rightMaskView.layer.masksToBounds = true
     rightMaskView.translatesAutoresizingMaskIntoConstraints = false
     insertSubview(rightMaskView, belowSubview: rightShoulderView)
     rightMaskView.rightAnchor.constraint(equalTo: rightAnchor).isActive = true
     let rightMaskViewBottomConstraint = rightMaskView.bottomAnchor.constraint(equalTo: bottomAnchor)
     rightMaskViewBottomConstraint.isActive = true
-    rightMaskViewBottomConstraint.constant = -2.0
+    rightMaskViewBottomConstraint.constant = -1.0
     let rightMaskViewTopConstraint = rightMaskView.topAnchor.constraint(equalTo: topAnchor)
     rightMaskViewTopConstraint.isActive = true
-    rightMaskViewTopConstraint.constant = 2.0
+    rightMaskViewTopConstraint.constant = 1.0
     rightMaskView.leftAnchor.constraint(equalTo: rightShoulderView.leftAnchor).isActive = true
   }
   

@@ -35,14 +35,14 @@
                                 <rect key="frame" x="0.0" y="240.5" width="290" height="42"/>
                                 <subviews>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="qiT-Vp-D3B" customClass="TGCAStackedBarChartView" customModule="TelegramChartApp" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="2" width="290" height="38"/>
+                                        <rect key="frame" x="0.0" y="1" width="290" height="40"/>
                                     </view>
                                 </subviews>
                                 <constraints>
                                     <constraint firstItem="qiT-Vp-D3B" firstAttribute="leading" secondItem="6fd-ow-cEz" secondAttribute="leading" id="Pv2-vT-kaB"/>
                                     <constraint firstAttribute="trailing" secondItem="qiT-Vp-D3B" secondAttribute="trailing" id="TfB-ge-y2h"/>
-                                    <constraint firstAttribute="bottom" secondItem="qiT-Vp-D3B" secondAttribute="bottom" constant="2" id="Tho-GY-qSA"/>
-                                    <constraint firstItem="qiT-Vp-D3B" firstAttribute="top" secondItem="6fd-ow-cEz" secondAttribute="top" constant="2" id="X1I-Tp-Cei"/>
+                                    <constraint firstAttribute="bottom" secondItem="qiT-Vp-D3B" secondAttribute="bottom" constant="1" id="Tho-GY-qSA"/>
+                                    <constraint firstItem="qiT-Vp-D3B" firstAttribute="top" secondItem="6fd-ow-cEz" secondAttribute="top" constant="1" id="X1I-Tp-Cei"/>
                                     <constraint firstAttribute="height" constant="42" id="a2p-p8-tlE"/>
                                 </constraints>
                             </view>

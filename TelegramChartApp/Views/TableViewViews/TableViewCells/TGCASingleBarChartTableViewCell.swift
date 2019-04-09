@@ -31,4 +31,9 @@ class TGCASingleBarChartTableViewCell: TGCAChartTableViewCell {
       singleThumbnailBarChartView = (newValue as! TGCASingleBarChartView)
     }
   }
+  
+  override func awakeFromNib() {
+    super.awakeFromNib()
+    chartView?.valuesStartFromZero = true
+  }
 }

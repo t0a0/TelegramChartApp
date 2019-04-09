@@ -30,4 +30,9 @@ class TGCALinearChartTableViewCell: TGCAChartTableViewCell {
       linearThumbnailChartView = (newValue as! TGCALinearChartView)
     }
   }
+  
+  override func awakeFromNib() {
+    super.awakeFromNib()
+    chartView?.valuesStartFromZero = false
+  }
 }

@@ -35,14 +35,14 @@
                                 <rect key="frame" x="0.0" y="245.5" width="290" height="42"/>
                                 <subviews>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="tH2-ne-gyz" customClass="TGCAChartView" customModule="TelegramChartApp" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="2" width="290" height="38"/>
+                                        <rect key="frame" x="0.0" y="1" width="290" height="40"/>
                                     </view>
                                 </subviews>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="42" id="32k-P5-VaZ"/>
                                     <constraint firstAttribute="trailing" secondItem="tH2-ne-gyz" secondAttribute="trailing" id="A8G-gF-69H"/>
-                                    <constraint firstAttribute="bottom" secondItem="tH2-ne-gyz" secondAttribute="bottom" constant="2" id="Cdn-Je-wbz"/>
-                                    <constraint firstItem="tH2-ne-gyz" firstAttribute="top" secondItem="hq7-6g-Yxo" secondAttribute="top" constant="2" id="GcR-lg-Vjv"/>
+                                    <constraint firstAttribute="bottom" secondItem="tH2-ne-gyz" secondAttribute="bottom" constant="1" id="Cdn-Je-wbz"/>
+                                    <constraint firstItem="tH2-ne-gyz" firstAttribute="top" secondItem="hq7-6g-Yxo" secondAttribute="top" constant="1" id="GcR-lg-Vjv"/>
                                     <constraint firstItem="tH2-ne-gyz" firstAttribute="leading" secondItem="hq7-6g-Yxo" secondAttribute="leading" id="RMk-3P-s0B"/>
                                 </constraints>
                             </view>

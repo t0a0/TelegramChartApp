@@ -35,13 +35,13 @@
                                 <rect key="frame" x="0.0" y="240.5" width="290" height="42"/>
                                 <subviews>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="V1N-eV-w3w" customClass="TGCALinearChartWithTwoYAxisView" customModule="TelegramChartApp" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="2" width="290" height="38"/>
+                                        <rect key="frame" x="0.0" y="1" width="290" height="40"/>
                                     </view>
                                 </subviews>
                                 <constraints>
-                                    <constraint firstItem="V1N-eV-w3w" firstAttribute="top" secondItem="nwW-bg-bU5" secondAttribute="top" constant="2" id="5cf-Cr-2a4"/>
+                                    <constraint firstItem="V1N-eV-w3w" firstAttribute="top" secondItem="nwW-bg-bU5" secondAttribute="top" constant="1" id="5cf-Cr-2a4"/>
                                     <constraint firstAttribute="height" constant="42" id="CMg-44-GJY"/>
-                                    <constraint firstAttribute="bottom" secondItem="V1N-eV-w3w" secondAttribute="bottom" constant="2" id="IoJ-rk-2pd"/>
+                                    <constraint firstAttribute="bottom" secondItem="V1N-eV-w3w" secondAttribute="bottom" constant="1" id="IoJ-rk-2pd"/>
                                     <constraint firstAttribute="trailing" secondItem="V1N-eV-w3w" secondAttribute="trailing" id="rtJ-CR-OD1"/>
                                     <constraint firstItem="V1N-eV-w3w" firstAttribute="leading" secondItem="nwW-bg-bU5" secondAttribute="leading" id="ya3-zm-pUq"/>
                                 </constraints>

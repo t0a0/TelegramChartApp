@@ -31,4 +31,10 @@ class TGCAPercentageChartTableViewCell: TGCAChartTableViewCell {
       percentageThumbnailChartView = (newValue as! TGCAPercentageChartView)
     }
   }
+  
+  override func awakeFromNib() {
+    super.awakeFromNib()
+    thumbnailChartView?.graphLineWidth = 0.0
+  }
+  
 }

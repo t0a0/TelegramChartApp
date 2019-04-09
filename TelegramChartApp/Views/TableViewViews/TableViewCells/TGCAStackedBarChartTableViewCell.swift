@@ -31,4 +31,9 @@ class TGCAStackedBarChartTableViewCell: TGCAChartTableViewCell {
       stackedThumbnailBarChartView = (newValue as! TGCAStackedBarChartView)
     }
   }
+  
+  override func awakeFromNib() {
+    super.awakeFromNib()
+    chartView?.valuesStartFromZero = true
+  }
 }
