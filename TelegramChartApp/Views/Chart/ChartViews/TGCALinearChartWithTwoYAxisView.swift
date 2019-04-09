@@ -229,8 +229,9 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
 
     for i in 0..<horizontalAxesDefaultYPositions.count {
       let position = horizontalAxesDefaultYPositions[i]
-      let line = bezierLine(from: CGPoint(x: bounds.origin.x, y: position), to: CGPoint(x: boundsRight, y: position))
+      let line = bezierLine(from: CGPoint(x: bounds.origin.x, y: 0), to: CGPoint(x: boundsRight, y: 0))
       let lineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: ChartViewConstants.axisLineWidth)
+      lineLayer.position.y = position
       lineLayer.opacity = ChartViewConstants.axisLineOpacity
       
       let leftTextLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: leftTexts[i], color: leftAxisLabelColor)
@@ -251,27 +252,39 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
     let leftValues = valuesForLeftAxis()
     let leftTexts = leftValues.map{chartLabelFormatterService.prettyValueString(from: $0)}
     
-    let coefficients = (0..<leftValues.count).map{
-      leftValues[$0] / horizontalAxes[$0].leftValue
+    //diffs between new values and old values
+    let diffs: [CGFloat] = zip(leftValues, horizontalAxes.map{$0.leftValue}).map{ arg in
+      let (new, old) = arg
+      let result = new - old
+      if result > 0 {
+        return horizontalAxesSpacing
+      } else if result < 0 {
+        return -horizontalAxesSpacing
+      }
+      return 0
     }
+    
     var blocks = [()->()]()
     var removalBlocks = [()->()]()
     var newAxes = [HorizontalAxis]()
 
     for i in 0..<horizontalAxes.count {
       let ax = horizontalAxes[i]
-      let coefficient = coefficients[i]
-      let coefIsZero = coefficient == 0
-      let coefIsInf = coefficient == CGFloat.infinity
+
+      if diffs[i] == 0 {
+        newAxes.append(ax)
+        continue
+      }
+      
       let position = horizontalAxesDefaultYPositions[i]
       
-      let oldTextLayerTargetPosition = CGPoint(x: ax.leftTextLayer.position.x, y: coefIsZero ? chartBoundsBottom : (coefficient > 1 ? ax.leftTextLayer.position.y * coefficient : ax.leftTextLayer.position.y - ax.leftTextLayer.position.y * coefficient))
+      let oldTextLayerTargetPosition = CGPoint(x: ax.leftTextLayer.position.x, y: ax.leftTextLayer.position.y + diffs[i])
       
       let newTextLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: leftTexts[i], color: leftAxisLabelColor)
       newTextLayer.opacity = 0
       axisLayer.addSublayer(newTextLayer)
       let newTextLayerTargetPosition = newTextLayer.position
-      newTextLayer.position = CGPoint(x: newTextLayer.position.x, y: coefIsInf ? chartBounds.origin.y :  (coefficient > 1 ? newTextLayer.position.y / coefficient : newTextLayer.position.y * coefficient))
+      newTextLayer.position = CGPoint(x: newTextLayer.position.x, y: newTextLayer.position.y - diffs[i])
       newAxes.append(HorizontalAxis(lineLayer: ax.lineLayer, leftTextLayer: newTextLayer, rightTextLayer: ax.rightTextLayer, leftValue: leftValues[i], rightValue: ax.rightValue))
       
       blocks.append {
@@ -296,21 +309,33 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
     let rightValues = valuesForRightAxis()
     let rightTexts = rightValues.map{chartLabelFormatterService.prettyValueString(from: $0)}
     
-    let coefficients = (0..<rightValues.count).map{
-      rightValues[$0] / horizontalAxes[$0].rightValue
+    //diffs between new values and old values
+    let diffs: [CGFloat] = zip(rightValues, horizontalAxes.map{$0.rightValue}).map{ arg in
+      let (new, old) = arg
+      let result = new - old
+      if result > 0 {
+        return horizontalAxesSpacing
+      } else if result < 0 {
+        return -horizontalAxesSpacing
+      }
+      return 0
     }
+    
     var blocks = [()->()]()
     var removalBlocks = [()->()]()
     var newAxes = [HorizontalAxis]()
     
     for i in 0..<horizontalAxes.count {
       let ax = horizontalAxes[i]
-      let coefficient = coefficients[i]
-      let coefIsZero = coefficient == 0
-      let coefIsInf = coefficient == CGFloat.infinity
+      
+      if diffs[i] == 0 {
+        newAxes.append(ax)
+        continue
+      }
+      
       let position = horizontalAxesDefaultYPositions[i]
       
-      let oldTextLayerTargetPosition = CGPoint(x: ax.rightTextLayer.position.x, y: coefIsZero ? chartBoundsBottom : (coefficient > 1 ? ax.rightTextLayer.position.y * coefficient : ax.rightTextLayer.position.y - ax.rightTextLayer.position.y * coefficient))
+      let oldTextLayerTargetPosition = CGPoint(x: ax.rightTextLayer.position.x, y: ax.rightTextLayer.position.y + diffs[i])
       
       let newTextLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: rightTexts[i], color: rightAxisLabelColor)
       newTextLayer.frame.origin.x = boundsRight - newTextLayer.frame.width
@@ -318,7 +343,7 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
       newTextLayer.opacity = 0
       axisLayer.addSublayer(newTextLayer)
       let newTextLayerTargetPosition = newTextLayer.position
-      newTextLayer.position = CGPoint(x: newTextLayer.position.x, y: coefIsInf ? chartBounds.origin.y :  (coefficient > 1 ? newTextLayer.position.y / coefficient : newTextLayer.position.y * coefficient))
+      newTextLayer.position = CGPoint(x: newTextLayer.position.x, y: newTextLayer.position.y - diffs[i])
       newAxes.append(HorizontalAxis(lineLayer: ax.lineLayer, leftTextLayer: ax.leftTextLayer, rightTextLayer: newTextLayer, leftValue: ax.leftValue, rightValue: rightValues[i]))
       
       blocks.append {

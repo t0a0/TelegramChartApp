@@ -112,7 +112,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   var hiddenDrawingIndicies: Set<Int>!
   
   private var horizontalAxes: [HorizontalAxis]!
-  private var horizontalAxesSpacing: CGFloat!
+  var horizontalAxesSpacing: CGFloat!
   /// The axes are drawn from the bottom of the bounds to the top of the bounds, capped by this value.
   let capHeightMultiplierForHorizontalAxes: CGFloat = 0.85
   var horizontalAxesDefaultYPositions: [CGFloat]!
@@ -577,11 +577,11 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
       let position = horizontalAxesDefaultYPositions[i]
       let line = bezierLine(from: CGPoint(x: bounds.origin.x, y: 0), to: CGPoint(x: boundsRight, y: 0))
       let lineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: ChartViewConstants.axisLineWidth)
+      lineLayer.position.y = position
       lineLayer.opacity = ChartViewConstants.axisLineOpacity
       let labelLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: texts[i], color: axisLabelColor)
       labelLayer.alignmentMode = .left
       axisLayer.addSublayer(lineLayer)
-      lineLayer.position.y = position
       axisLayer.addSublayer(labelLayer)
       newAxis.append(HorizontalAxis(lineLayer: lineLayer, labelLayer: labelLayer, value: values[i]))
     }
@@ -606,29 +606,41 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
       return 0
     }
     
-    //update zero axis without line animation
-    let ax = horizontalAxes[0]
-    let position = horizontalAxesDefaultYPositions[0]
-    let oldTextLayerTargetPosition = CGPoint(x: ax.labelLayer.position.x, y: ax.labelLayer.position.y + diffs[0])
-    let newTextLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: texts[0], color: axisLabelColor)
-    newTextLayer.opacity = 0
-    axisLayer.addSublayer(newTextLayer)
-    let oldTextPos = newTextLayer.position
-    newTextLayer.position = CGPoint(x: newTextLayer.position.x, y: newTextLayer.position.y - diffs[0])
-
-    var blocks = [{
-      ax.labelLayer.position = oldTextLayerTargetPosition
-      ax.labelLayer.opacity = 0
-      newTextLayer.position = oldTextPos
-      newTextLayer.opacity = 1.0
-      }]
-    var removalBlocks = [{
-      ax.labelLayer.removeFromSuperlayer()
-      }]
-    var newAxes = [HorizontalAxis(lineLayer: ax.lineLayer, labelLayer: newTextLayer, value: values[0])]
-        
+    var blocks = [()->()]()
+    var removalBlocks = [()->()]()
+    var newAxes = [HorizontalAxis]()
+    
+    if diffs[0] != 0 {
+      //update zero axis without line animation
+      let ax = horizontalAxes[0]
+      let position = horizontalAxesDefaultYPositions[0]
+      let oldTextLayerTargetPosition = CGPoint(x: ax.labelLayer.position.x, y: ax.labelLayer.position.y + diffs[0])
+      let newTextLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: texts[0], color: axisLabelColor)
+      newTextLayer.opacity = 0
+      axisLayer.addSublayer(newTextLayer)
+      let oldTextPos = newTextLayer.position
+      newTextLayer.position = CGPoint(x: newTextLayer.position.x, y: newTextLayer.position.y - diffs[0])
+      
+      blocks.append {
+        ax.labelLayer.position = oldTextLayerTargetPosition
+        ax.labelLayer.opacity = 0
+        newTextLayer.position = oldTextPos
+        newTextLayer.opacity = 1.0
+      }
+      removalBlocks.append {
+        ax.labelLayer.removeFromSuperlayer()
+      }
+      newAxes.append(HorizontalAxis(lineLayer: ax.lineLayer, labelLayer: newTextLayer, value: values[0]))
+    } else {
+      //do not update zero axis
+      newAxes.append(horizontalAxes[0])
+    }
+    
     for i in 1..<horizontalAxes.count {
       let ax = horizontalAxes[i]
+      
+      //no need to check for diff == 0 because its impossible
+      
       let position = horizontalAxesDefaultYPositions[i]
 
       let oldLineLayerTargetPosition = CGPoint(x: ax.lineLayer.position.x, y: ax.lineLayer.position.y + diffs[i])
