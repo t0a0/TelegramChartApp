@@ -118,7 +118,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   let capHeightMultiplierForHorizontalAxes: CGFloat = 0.85
   var horizontalAxesDefaultYPositions: [CGFloat]!
   
-  var currentChartAnnotation: ChartAnnotation?
+  private var currentChartAnnotation: ChartAnnotation?
   
   /// Guide labels that are currently shown
   var activeGuideLabels: [GuideLabel]!
@@ -1069,7 +1069,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     }
   }
   
-  class ChartAnnotation {
+  private class ChartAnnotation {
     let lineLayer: CAShapeLayer
     let annotationView: TGCAChartAnnotationView
     let circleLayers: [CAShapeLayer]
