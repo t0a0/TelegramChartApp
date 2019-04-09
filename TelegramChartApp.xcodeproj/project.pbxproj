@@ -119,7 +119,7 @@
 				161CA5F32259543100FFC1DF /* TGCAChartHeaderView.swift */,
 				161CA5F52259544000FFC1DF /* TGCAChartHeaderView.xib */,
 				168DDC892241AC8200F51300 /* Chart */,
-				1682D8092245E27D000E76E4 /* TableViewViews */,
+				167FCAFE2234377D001CA7E5 /* TableViewCells */,
 				161CA5F722595E4400FFC1DF /* TGCAFilterButton.swift */,
 				161CA5F92259736200FFC1DF /* TGCAChartFiltersView.swift */,
 			);
@@ -224,14 +224,6 @@
 				16FAF472225ABC3A00EEADE8 /* TGCALinearChartTableViewCell.xib */,
 			);
 			path = TableViewCells;
-			sourceTree = "<group>";
-		};
-		1682D8092245E27D000E76E4 /* TableViewViews */ = {
-			isa = PBXGroup;
-			children = (
-				167FCAFE2234377D001CA7E5 /* TableViewCells */,
-			);
-			path = TableViewViews;
 			sourceTree = "<group>";
 		};
 		1682D80A2245E2DA000E76E4 /* Storyboards */ = {
