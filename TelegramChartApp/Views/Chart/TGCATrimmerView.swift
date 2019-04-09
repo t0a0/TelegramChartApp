@@ -146,7 +146,7 @@ class TGCATrimmerView: UIView {
     leftMaskView.isUserInteractionEnabled = false
     leftMaskView.backgroundColor = .lightGray
     leftMaskView.alpha = 0.8
-    leftMaskView.layer.cornerRadius = TGCATrimmerView.shoulderWidth / 2
+    leftMaskView.layer.cornerRadius = TGCATrimmerView.shoulderWidth * 0.75
     leftMaskView.layer.masksToBounds = true
     leftMaskView.translatesAutoresizingMaskIntoConstraints = false
     insertSubview(leftMaskView, belowSubview: leftShoulderView)
@@ -162,7 +162,7 @@ class TGCATrimmerView: UIView {
     rightMaskView.isUserInteractionEnabled = false
     rightMaskView.backgroundColor = .lightGray
     rightMaskView.alpha = 0.8
-    rightMaskView.layer.cornerRadius = TGCATrimmerView.shoulderWidth / 2
+    rightMaskView.layer.cornerRadius = TGCATrimmerView.shoulderWidth * 0.75
     rightMaskView.layer.masksToBounds = true
     rightMaskView.translatesAutoresizingMaskIntoConstraints = false
     insertSubview(rightMaskView, belowSubview: rightShoulderView)
