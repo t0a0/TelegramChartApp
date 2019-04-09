@@ -228,13 +228,12 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     
     updateCurrentYValueRange(with: normalizedYVectors.yRange)
 
-    var newDrawings = [Drawing]()
     for i in 0..<drawings.drawings.count {
       
       let drawing = drawings.drawings[i]
       let yVector = mapToChartBoundsHeight(normalizedYVectors.vectors[i])
       let points = convertToPoints(xVector: xVector, yVector: yVector)
-      newDrawings.append(Drawing(shapeLayer: drawing.shapeLayer, yPositions: yVector))
+      drawing.yPositions = yVector
       let newPath = bezierLine(withPoints: points)
       
       if let oldAnim = drawing.shapeLayer.animation(forKey: "pathAnimation") {
@@ -264,7 +263,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
         }
       }
     }
-    self.drawings = ChartDrawings(drawings: newDrawings, xPositions: xVector)
+    drawings.xPositions = xVector
   }
   
   /// Updates the diplayed X range. Accepted are subranges of 0...1.
@@ -334,7 +333,6 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     
     updateCurrentYValueRange(with: normalizedYVectors.yRange)
 
-    var newDrawings = [Drawing]()
     for i in 0..<drawings.drawings.count {
       
       let drawing = drawings.drawings[i]
@@ -383,9 +381,9 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
         drawing.shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
       }
       
-      newDrawings.append(Drawing(shapeLayer: drawing.shapeLayer, yPositions: yVector))
+      drawing.yPositions = yVector
     }
-    drawings = ChartDrawings(drawings: newDrawings, xPositions: xVector)
+    drawings.xPositions = xVector
   }
   
   // MARK: - Configuration
@@ -1038,14 +1036,24 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     let value: CGFloat
   }
   
-  struct ChartDrawings {
+  class ChartDrawings {
     let drawings: [Drawing]
-    let xPositions: [CGFloat]
+    var xPositions: [CGFloat]
+    
+    init(drawings: [Drawing], xPositions: [CGFloat]) {
+      self.drawings = drawings
+      self.xPositions = xPositions
+    }
   }
   
-  struct Drawing {
+  class Drawing {
     let shapeLayer: CAShapeLayer
-    let yPositions: [CGFloat]
+    var yPositions: [CGFloat]
+    
+    init(shapeLayer: CAShapeLayer, yPositions: [CGFloat]) {
+      self.shapeLayer = shapeLayer
+      self.yPositions = yPositions
+    }
   }
   
   struct ChartAnnotation {

@@ -90,13 +90,12 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
     let rightChanged = rightYValueRange != normalizedYVectors.last!.yRange
     updateCurrentYValueRanges(left: normalizedYVectors.first!.yRange, right: normalizedYVectors.last!.yRange)
     
-    var newDrawings = [Drawing]()
     for i in 0..<drawings.drawings.count {
       
       let drawing = drawings.drawings[i]
       let yVector = yVectors[i]
       let points = convertToPoints(xVector: xVector, yVector: yVector)
-      newDrawings.append(Drawing(shapeLayer: drawing.shapeLayer, yPositions: yVector))
+      drawing.yPositions = yVector
       let newPath = bezierLine(withPoints: points)
       
       if let oldAnim = drawing.shapeLayer.animation(forKey: "pathAnimation") {
@@ -126,7 +125,7 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
         }
       }
     }
-    self.drawings = ChartDrawings(drawings: newDrawings, xPositions: xVector)
+    drawings.xPositions = xVector
   }
   
   override func updateChartByHiding(at index: Int, originalHidden: Bool) {
@@ -136,7 +135,6 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
 
     updateCurrentYValueRanges(left: normalizedYVectors.first!.yRange, right: normalizedYVectors.last!.yRange)
     
-    var newDrawings = [Drawing]()
     for i in 0..<drawings.drawings.count {
       let yVector = yVectors[i]
       let drawing = drawings.drawings[i]
@@ -184,9 +182,9 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
         drawing.shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
       }
       
-      newDrawings.append(Drawing(shapeLayer: drawing.shapeLayer, yPositions: yVector))
+      drawing.yPositions = yVector
     }
-    drawings = ChartDrawings(drawings: newDrawings, xPositions: xVector)
+    drawings.xPositions = xVector
   }
   
   //MARK: - Axes

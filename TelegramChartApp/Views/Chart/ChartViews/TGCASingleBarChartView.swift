@@ -42,13 +42,12 @@ class TGCASingleBarChartView: TGCAChartView {
     
     updateCurrentYValueRange(with: normalizedYVectors.yRange)
 
-    var newDrawings = [Drawing]()
     for i in 0..<drawings.drawings.count {
       
       let drawing = drawings.drawings[i]
       let yVector = mapToChartBoundsHeight(normalizedYVectors.vectors[i])
       let points = convertToPoints(xVector: xVector, yVector: yVector)
-      newDrawings.append(Drawing(shapeLayer: drawing.shapeLayer, yPositions: yVector))
+      drawing.yPositions = yVector
       let squareLine = squareBezierLine(withPoints: points)
       let newPath = bezierArea(topPath: squareLine, bottomPath: bezierLine(from: CGPoint(x: points[0].x, y: chartBoundsBottom), to: CGPoint(x: points.last!.x, y: chartBoundsBottom)))
       
@@ -79,7 +78,7 @@ class TGCASingleBarChartView: TGCAChartView {
         }
       }
     }
-    self.drawings = ChartDrawings(drawings: newDrawings, xPositions: xVector)
+    drawings.xPositions = xVector
   }
   
   override func updateChartByHiding(at index: Int, originalHidden: Bool) {
@@ -88,7 +87,6 @@ class TGCASingleBarChartView: TGCAChartView {
     
     updateCurrentYValueRange(with: normalizedYVectors.yRange)
 
-    var newDrawings = [Drawing]()
     for i in 0..<drawings.drawings.count {
       
       let drawing = drawings.drawings[i]
@@ -138,8 +136,8 @@ class TGCASingleBarChartView: TGCAChartView {
         drawing.shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
       }
       
-      newDrawings.append(Drawing(shapeLayer: drawing.shapeLayer, yPositions: yVector))
+      drawing.yPositions = yVector
     }
-    drawings = ChartDrawings(drawings: newDrawings, xPositions: xVector)
+    drawings.xPositions = xVector
   }
 }
