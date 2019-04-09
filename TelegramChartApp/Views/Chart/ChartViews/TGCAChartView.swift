@@ -824,6 +824,27 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     return UIBezierPath(ovalIn: rect)
   }
   
+  func bezierArea(topPoints: [CGPoint], bottomPoints: [CGPoint]) -> UIBezierPath {
+    let a = UIBezierPath()
+    a.move(to: CGPoint(x: bottomPoints[0].x, y: bottomPoints[0].y))
+    for tp in topPoints {
+      a.addLine(to: tp)
+    }
+    for bp in bottomPoints.reversed() {
+      a.addLine(to: bp)
+    }
+    return a
+  }
+  
+  func bezierArea(topPath: UIBezierPath, bottomPath: UIBezierPath) -> UIBezierPath {
+    let path = UIBezierPath()
+    path.append(topPath)
+    path.addLine(to: bottomPath.currentPoint)
+    path.append(bottomPath.reversing())
+    path.addLine(to: topPath.reversing().currentPoint)
+    return path
+  }
+  
   func shapeLayer(withPath path: CGPath, color: CGColor, lineWidth: CGFloat = 2, fillColor: CGColor? = nil) -> CAShapeLayer{
     let shapeLayer = CAShapeLayer()
     shapeLayer.path = path
@@ -832,8 +853,18 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     shapeLayer.lineJoin = .round
     shapeLayer.lineCap = .round
     shapeLayer.fillColor = fillColor
-    shapeLayer.contentsScale = UIScreen.main.scale
+    shapeLayer.contentsScale = 1.0
     return shapeLayer
+  }
+  
+  func filledShapeLayer(withPath path: CGPath, color: CGColor) -> CAShapeLayer {
+    let fillLayer = CAShapeLayer()
+    fillLayer.path = path
+    fillLayer.fillColor = color
+    fillLayer.lineJoin = .miter
+    fillLayer.lineCap = .butt
+    fillLayer.contentsScale = 1.0
+    return fillLayer
   }
   
   func textLayer(origin: CGPoint, text: String, color: CGColor) -> CATextLayer {
@@ -857,40 +888,6 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     textLayer.contentsScale = UIScreen.main.scale
     textLayer.foregroundColor = color
     return textLayer
-  }
-  
-  func bezierArea(topPoints: [CGPoint], bottomPoints: [CGPoint]) -> UIBezierPath {
-    let a = UIBezierPath()
-    a.move(to: CGPoint(x: bottomPoints[0].x, y: bottomPoints[0].y))
-    for tp in topPoints {
-      a.addLine(to: tp)
-    }
-    for bp in bottomPoints.reversed() {
-      a.addLine(to: bp)
-    }
-    return a
-  }
-  
-  func bezierArea(topPath: UIBezierPath, bottomPath: UIBezierPath) -> UIBezierPath {
-    let path = UIBezierPath()
-    path.append(topPath)
-    path.addLine(to: bottomPath.currentPoint)
-    path.append(bottomPath.reversing())
-    path.addLine(to: topPath.reversing().currentPoint)
-    return path
-  }
-  
-  func filledShapeLayer(withPath path: CGPath, color: CGColor, lineWidth: CGFloat) -> CAShapeLayer {
-    let fillLayer = CAShapeLayer()
-    fillLayer.path = path
-    fillLayer.fillColor = color
-    fillLayer.strokeColor = color
-    fillLayer.lineWidth = lineWidth
-    fillLayer.lineJoin = .round
-    fillLayer.lineCap = .round
-    fillLayer.fillRule = .evenOdd
-    fillLayer.contentsScale = UIScreen.main.scale
-    return fillLayer
   }
   
   // MARK: - Touches

@@ -24,7 +24,7 @@ class TGCAStackedBarChartView: TGCASingleBarChartView {
       let points = convertToPoints(xVector: xVector, yVector: yVector)
       let squareLine = squareBezierLine(withPoints: points)
       let line = bezierArea(topPath: squareLine, bottomPath: bezierLine(from: CGPoint(x: points[0].x, y: chartBoundsBottom), to: CGPoint(x: points.last!.x, y: chartBoundsBottom)))
-      let shape = filledShapeLayer(withPath: line.cgPath, color: chart.yVectors[i].metaData.color.cgColor, lineWidth: graphLineWidth)
+      let shape = filledShapeLayer(withPath: line.cgPath, color: chart.yVectors[i].metaData.color.cgColor)
       if hiddenDrawingIndicies.contains(i) {
         shape.opacity = 0
       }
@@ -65,10 +65,7 @@ class TGCAStackedBarChartView: TGCASingleBarChartView {
         } else {
           pathAnimation.beginTime = CACurrentMediaTime()
         }
-        DispatchQueue.main.async {
-
         drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
-        }
       } else {
         if didYChange  {
           let pathAnimation = CABasicAnimation(keyPath: "path")
@@ -77,9 +74,7 @@ class TGCAStackedBarChartView: TGCASingleBarChartView {
           pathAnimation.toValue = drawing.shapeLayer.path
           pathAnimation.duration = CHART_PATH_ANIMATION_DURATION
           pathAnimation.beginTime = CACurrentMediaTime()
-          DispatchQueue.main.async {
-            drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
-          }
+          drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
         } else {
           drawing.shapeLayer.path = newPath.cgPath
         }

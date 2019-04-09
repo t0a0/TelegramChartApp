@@ -145,22 +145,7 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
   
   func configureChartCell(_ cell: TGCAChartTableViewCell, section: Int) {
     
-    cell.headerView.label.text = "LMAO IM HEADER"
-    
     if let chart = charts?[section] {
-      cell.chartView?.configure(with: chart.chart, hiddenIndicies: chart.hiddenIndicies, displayRange: chart.trimRange)
-      cell.thumbnailChartView?.configure(with: chart.chart, hiddenIndicies: chart.hiddenIndicies)
-      cell.trimmerView?.setCurrentRange(chart.trimRange)
-      
-      cell.trimmerView?.onChange = {(newRange, event) in
-        if event == .Started {
-          cell.chartView?.isUserInteractionEnabled = false
-        } else if event == .Ended {
-          cell.chartView?.isUserInteractionEnabled = true
-        }
-        cell.chartView?.trimDisplayRange(to: newRange, with: event)
-        chart.updateTrimRange(to: newRange)
-      }
       
       var b = [TGCAFilterButton]()
       
@@ -193,13 +178,27 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
         }
         b.append(button)
       }
-      
       cell.chartFiltersHeightConstraint.constant = cell.chartFiltersView?.setupButtons(b) ?? 0
+      
+      cell.chartView?.configure(with: chart.chart, hiddenIndicies: chart.hiddenIndicies, displayRange: chart.trimRange)
+      cell.thumbnailChartView?.configure(with: chart.chart, hiddenIndicies: chart.hiddenIndicies)
+      cell.trimmerView?.setCurrentRange(chart.trimRange)
+      
+      cell.trimmerView?.onChange = {(newRange, event) in
+        if event == .Started {
+          cell.chartView?.isUserInteractionEnabled = false
+        } else if event == .Ended {
+          cell.chartView?.isUserInteractionEnabled = true
+        }
+        cell.chartView?.trimDisplayRange(to: newRange, with: event)
+        chart.updateTrimRange(to: newRange)
+      }
     }
-
+    
+    cell.headerView.label.text = "LMAO IM HEADER"
     cell.backgroundColor = UIApplication.myDelegate.currentTheme.foregroundColor
   }
-  
+
 }
 
 extension TGCAChartDetailViewController: UITableViewDelegate {

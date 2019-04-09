@@ -26,7 +26,7 @@ class TGCAPercentageChartView: TGCAChartView {
       let points = convertToPoints(xVector: xVector, yVector: yVector)
       let line = bezierLine(withPoints: points)
       let area = bezierArea(topPath: line, bottomPath: bezierLine(from: CGPoint(x: points[0].x, y: chartBoundsBottom), to: CGPoint(x: points.last!.x, y: chartBoundsBottom)))
-      let shape = filledShapeLayer(withPath: area.cgPath, color: chart.yVectors[i].metaData.color.cgColor, lineWidth: graphLineWidth)
+      let shape = filledShapeLayer(withPath: area.cgPath, color: chart.yVectors[i].metaData.color.cgColor)
       if hiddenDrawingIndicies.contains(i) {
         shape.opacity = 0
       }

@@ -24,7 +24,7 @@ class TGCASingleBarChartView: TGCAChartView {
       let points = convertToPoints(xVector: xVector, yVector: yVector)
       let squareLine = squareBezierLine(withPoints: points)
       let line = bezierArea(topPath: squareLine, bottomPath: bezierLine(from: CGPoint(x: points[0].x, y: chartBoundsBottom), to: CGPoint(x: points.last!.x, y: chartBoundsBottom)))
-      let shape = filledShapeLayer(withPath: line.cgPath, color: chart.yVectors[i].metaData.color.cgColor, lineWidth: graphLineWidth)
+      let shape = filledShapeLayer(withPath: line.cgPath, color: chart.yVectors[i].metaData.color.cgColor)
       if hiddenDrawingIndicies.contains(i) {
         shape.opacity = 0
       }
