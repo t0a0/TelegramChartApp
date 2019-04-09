@@ -786,7 +786,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     
     let line = bezierLine(from: CGPoint(x: xPoint, y: annotation.annotationView.frame.origin.y + annotation.annotationView.frame.height), to: CGPoint(x: xPoint, y: chartBoundsBottom))
     currentChartAnnotation?.lineLayer.path = line.cgPath
-    currentChartAnnotation?.updateDiplayedIndex(to: index)
+    currentChartAnnotation?.updateDisplayedIndex(to: index)
   }
   
   // MARK: - Drawing
@@ -1069,14 +1069,21 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     }
   }
   
-  struct ChartAnnotation {
+  class ChartAnnotation {
     let lineLayer: CAShapeLayer
     let annotationView: TGCAChartAnnotationView
     let circleLayers: [CAShapeLayer]
     private(set) var displayedIndex: Int
     
-    mutating func updateDiplayedIndex(to toIndex: Int) {
-      displayedIndex = toIndex
+    init(lineLayer: CAShapeLayer, annotationView: TGCAChartAnnotationView, circleLayers: [CAShapeLayer], displayedIndex: Int){
+      self.lineLayer = lineLayer
+      self.annotationView = annotationView
+      self.circleLayers = circleLayers
+      self.displayedIndex = displayedIndex
+    }
+    
+    func updateDisplayedIndex(to index: Int) {
+      self.displayedIndex = index
     }
   }
   
