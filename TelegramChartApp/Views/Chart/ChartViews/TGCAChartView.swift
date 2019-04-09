@@ -20,6 +20,12 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   struct ChartViewConstants {
     static let axisLineOpacity: Float = 0.5
     static let axisLineWidth: CGFloat = 0.75
+    static let sizeForGuideLabels = CGSize(width: 60.0, height: 20.0)
+    static let circlePointRadius: CGFloat = 4.0
+    static let guideLabelsFont = "Helvetica" as CFTypeRef
+    static let guideLabelsFontSize: CGFloat = 13.5
+    static let contentScaleForText: CGFloat = 1.0
+    static let contentScaleForShapes = UIScreen.main.scale
   }
   
   let axisLayer = CALayer()
@@ -83,14 +89,9 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   
   var canShowAnnotations = true
   
-  /// Radius of the circle, layed over the chart when the annotation is shown
-  let circlePointRadius: CGFloat = 4.0
   
   /// Number of horizontal axes that should be shown on screen. Doesnt include zero axis
   let numOfHorizontalAxes = 6
-  
-  /// Used to provide additional bottom offset for chart bounds
-  let heightForGuideLabels: CGFloat = 20.0
   
   /// Maximum number of guide labels that should be visible on the screen
   var numOfGuideLabels = 6
@@ -395,12 +396,12 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   
   private func configureChartBounds() {
     // We need to inset drawing so that if the edge points are selected, the circular point on the graph is fully visible in the view
-    let inset = graphLineWidth + (canShowAnnotations ? circlePointRadius : 0)
+    let inset = graphLineWidth + (canShowAnnotations ? ChartViewConstants.circlePointRadius : 0)
     chartBounds = CGRect(x: bounds.origin.x + inset,
                          y: bounds.origin.y + inset,
                          width: bounds.width - inset * 2,
                          height: bounds.height - inset * 2
-                          - (shouldDisplayAxesAndLabels ? heightForGuideLabels : 0))
+                          - (shouldDisplayAxesAndLabels ? ChartViewConstants.sizeForGuideLabels.height : 0))
 
 //    lineLayer.frame = chartBounds
   }
@@ -695,7 +696,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
       let drawing = drawings.drawings[i]
       let point = CGPoint(x: xPoint, y: drawing.yPositions[index])
       
-      let circle = bezierCircle(at: point, radius: circlePointRadius)
+      let circle = bezierCircle(at: point, radius: ChartViewConstants.circlePointRadius)
       let circleShape = shapeLayer(withPath: circle.cgPath, color: chart.yVectors[i].metaData.color.cgColor, lineWidth: graphLineWidth, fillColor: circlePointFillColor)
       circleShape.zPosition = zPositions.Annotation.circleShape.rawValue
       circleLayers.append(circleShape)
@@ -740,7 +741,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     for i in 0..<drawings.drawings.count {
       let drawing = drawings.drawings[i]
       let point = CGPoint(x: xPoint, y: drawing.yPositions[index])
-      let circle = bezierCircle(at: point, radius: circlePointRadius)
+      let circle = bezierCircle(at: point, radius: ChartViewConstants.circlePointRadius)
       let circleLayer = annotation.circleLayers[i]
       
       if animated {
@@ -853,7 +854,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     shapeLayer.lineJoin = .round
     shapeLayer.lineCap = .round
     shapeLayer.fillColor = fillColor
-    shapeLayer.contentsScale = 1.0
+    shapeLayer.contentsScale = ChartViewConstants.contentScaleForShapes
     return shapeLayer
   }
   
@@ -863,29 +864,29 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     fillLayer.fillColor = color
     fillLayer.lineJoin = .miter
     fillLayer.lineCap = .butt
-    fillLayer.contentsScale = 1.0
+    fillLayer.contentsScale = ChartViewConstants.contentScaleForShapes
     return fillLayer
   }
   
   func textLayer(origin: CGPoint, text: String, color: CGColor) -> CATextLayer {
     let textLayer = CATextLayer()
-    textLayer.font = "Helvetica" as CFTypeRef
-    textLayer.fontSize = 13.5
+    textLayer.font = ChartViewConstants.guideLabelsFont
+    textLayer.fontSize = ChartViewConstants.guideLabelsFontSize
     textLayer.string = text
-    textLayer.frame = CGRect(origin: origin, size: CGSize(width: 100, height: heightForGuideLabels))
-    textLayer.contentsScale = UIScreen.main.scale
+    textLayer.frame = CGRect(origin: origin, size: ChartViewConstants.sizeForGuideLabels)
+    textLayer.contentsScale = ChartViewConstants.contentScaleForText
     textLayer.foregroundColor = color
     return textLayer
   }
   
   func textLayer(position: CGPoint, text: String, color: CGColor) -> CATextLayer {
     let textLayer = CATextLayer()
-    textLayer.font = "Helvetica" as CFTypeRef
-    textLayer.fontSize = 13.5
+    textLayer.font = ChartViewConstants.guideLabelsFont
+    textLayer.fontSize = ChartViewConstants.guideLabelsFontSize
     textLayer.string = text
-    textLayer.frame = CGRect(origin: CGPoint.zero, size: CGSize(width: 100, height: heightForGuideLabels))
+    textLayer.frame = CGRect(origin: CGPoint.zero, size: ChartViewConstants.sizeForGuideLabels)
     textLayer.position = position
-    textLayer.contentsScale = UIScreen.main.scale
+    textLayer.contentsScale = ChartViewConstants.contentScaleForText
     textLayer.foregroundColor = color
     return textLayer
   }
