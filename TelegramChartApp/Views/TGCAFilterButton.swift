@@ -40,7 +40,6 @@ class TGCAFilterButton: UIButton {
   }
   
   private func setup() {
-    clipsToBounds = true
     layer.masksToBounds = true
     layer.cornerRadius = TGCAFilterButton.cornerRadius
   }
