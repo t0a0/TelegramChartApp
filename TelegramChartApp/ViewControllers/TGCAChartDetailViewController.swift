@@ -12,6 +12,7 @@ import UIKit
 class TGCAChartDetailViewController: UIViewController {
   
   let SECTION_HEADER_HEIGHT: CGFloat = 50.0
+  let dateRangeFormatter = TGCADateRangeFormatterService()
   
   @IBOutlet weak var tableView: UITableView!
     
@@ -146,7 +147,8 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
   func configureChartCell(_ cell: TGCAChartTableViewCell, section: Int) {
     
     if let chart = charts?[section] {
-      
+      cell.headerView.label.text = ""
+
       var b = [TGCAFilterButton]()
       
       for i in 0..<chart.chart.yVectors.count {
@@ -180,6 +182,14 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
       }
       cell.chartFiltersHeightConstraint.constant = cell.chartFiltersView?.setupButtons(b) ?? 0
       
+      cell.chartView?.onRangeChange = {[weak self] left, right in
+        guard let left = left else {
+          cell.headerView.label.text = ""
+          return
+        }
+        cell.headerView.label.text = self?.dateRangeFormatter.prettyDateStringFrom(left: left, right: right)
+      }
+      
       cell.chartView?.configure(with: chart.chart, hiddenIndicies: chart.hiddenIndicies, displayRange: chart.trimRange)
       cell.thumbnailChartView?.configure(with: chart.chart, hiddenIndicies: chart.hiddenIndicies)
       cell.trimmerView?.setCurrentRange(chart.trimRange)
@@ -194,9 +204,9 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
         chart.updateTrimRange(to: newRange)
       }
     }
-    
-    cell.headerView.label.text = "LMAO IM HEADER"
-    cell.backgroundColor = UIApplication.myDelegate.currentTheme.foregroundColor
+    let theme = UIApplication.myDelegate.currentTheme
+    cell.headerView.label.textColor = theme.mainTextColor
+    cell.backgroundColor = theme.foregroundColor
   }
 
 }

@@ -9,23 +9,21 @@
 import Foundation
 import UIKit
 
-struct TGCAChartLabelFormatterService: ChartLabelFormatterProtocol {
+class TGCAChartLabelFormatterService {
   
-  private let dateFormatter: DateFormatter
-
-  init() {
+  private lazy var dateFormatter: DateFormatter = {
     let df = DateFormatter()
-    df.locale = Locale(identifier: "en_EN")
-    df.dateFormat = "MMM dd"    
-    self.dateFormatter = df
-  }
+    df.locale = Locale(identifier: "en_US")
+    df.dateFormat = "MMM dd"
+    return df
+  }()
   
   func prettyValueString(from value: CGFloat) -> String {
     return prettify(value: value)
   }
   
-  func prettyDateString(from timeIntervalSince1970inMillis: CGFloat) -> String {
-    return dateFormatter.string(from: Date(timeIntervalSince1970: TimeInterval(timeIntervalSince1970inMillis / 1000.0)))
+  func prettyDateString(from date: Date) -> String {
+    return dateFormatter.string(from: date)
   }
   
   // MARK: Private

@@ -40,7 +40,7 @@ class TGCAChartAnnotationView: UIView {
   }
   
   private func configureDateFormatter() {
-    dateFormatter.locale = Locale(identifier: "en_EN")
+    dateFormatter.locale = Locale(identifier: "en_US")
   }
   
   // MARK: - Init

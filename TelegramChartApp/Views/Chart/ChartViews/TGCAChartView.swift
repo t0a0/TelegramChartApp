@@ -9,7 +9,9 @@
 import UIKit
 import QuartzCore
 
-class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
+class TGCAChartView: UIView {
+  
+  var onRangeChange: ((_ left: Date?, _ right: Date?)->())?
   
   @IBOutlet var contentView: UIView!
   
@@ -77,7 +79,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   }
   
   /// Service that knows how to format values for Y axes and dates for X axis.
-  let chartLabelFormatterService: ChartLabelFormatterProtocol = TGCAChartLabelFormatterService()
+  let chartLabelFormatterService = TGCAChartLabelFormatterService()
   
   var graphLineWidth: CGFloat = 2.0
   
@@ -128,12 +130,22 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   var transitioningGuideLabels: [GuideLabel]!
   
   /// Range of X values that is curently diplayed
-  var currentXIndexRange: ClosedRange<Int>!
+  var currentXIndexRange: ClosedRange<Int>! {
+    didSet {
+      guard onRangeChange != nil else {
+        return
+      }
+      if currentXIndexRange == nil {
+        onRangeChange?(nil, nil)
+      } else {
+        let datesVector = chart.datesVector
+        onRangeChange?(datesVector[currentXIndexRange.lowerBound], datesVector[currentXIndexRange.upperBound])
+      }
+    }
+  }
   
   /// Range between total min and max Y of currently visible charts
   private(set) var currentYValueRange: ClosedRange<CGFloat> = 0...0
-  
-
   
   private func updateCurrentYValueRange(with newRange: ClosedRange<CGFloat>) -> YRangeChangeResult {
     guard newRange != currentYValueRange else {
@@ -585,8 +597,8 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   
   private func generateGuideLabels(for xIndexes: [Int]) -> [GuideLabel] {
     
-    let timeStamps = xIndexes.map{chart.xVector[$0]}
-    let strings = timeStamps.map{chartLabelFormatterService.prettyDateString(from: $0)}
+    let dates = xIndexes.map{chart.datesVector[$0]}
+    let strings = dates.map{chartLabelFormatterService.prettyDateString(from: $0)}
     
     var labels = [GuideLabel]()
     for i in 0..<xIndexes.count {
