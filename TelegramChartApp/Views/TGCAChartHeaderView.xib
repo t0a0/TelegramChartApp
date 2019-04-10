@@ -23,25 +23,30 @@
             <subviews>
                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="uzP-rc-0gO">
                     <rect key="frame" x="0.0" y="0.0" width="80" height="197"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="80" id="Ofl-fv-Nq7"/>
+                    </constraints>
+                    <fontDescription key="fontDescription" type="system" pointSize="13"/>
                     <state key="normal" title="&lt; Zoom out"/>
                     <connections>
                         <action selector="zoomOutTapped:" destination="-1" eventType="touchUpInside" id="4Kt-Vm-CrZ"/>
                     </connections>
                 </button>
-                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="G6F-9j-PGg">
-                    <rect key="frame" x="132" y="0.0" width="43" height="197"/>
-                    <fontDescription key="fontDescription" type="system" weight="medium" pointSize="17"/>
+                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="9" translatesAutoresizingMaskIntoConstraints="NO" id="G6F-9j-PGg">
+                    <rect key="frame" x="134.5" y="89.5" width="38.5" height="18"/>
+                    <fontDescription key="fontDescription" type="system" weight="medium" pointSize="15"/>
                     <nil key="textColor"/>
                     <nil key="highlightedColor"/>
                 </label>
             </subviews>
             <constraints>
+                <constraint firstItem="G6F-9j-PGg" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="uzP-rc-0gO" secondAttribute="trailing" constant="8" id="EOB-bE-mmz"/>
                 <constraint firstAttribute="bottom" secondItem="uzP-rc-0gO" secondAttribute="bottom" id="PW0-hg-qNr"/>
-                <constraint firstItem="G6F-9j-PGg" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" id="UR1-BK-U1S"/>
+                <constraint firstItem="G6F-9j-PGg" firstAttribute="centerX" secondItem="iN0-l3-epB" secondAttribute="centerX" priority="750" id="Wb6-VN-AQM"/>
                 <constraint firstItem="uzP-rc-0gO" firstAttribute="leading" secondItem="iN0-l3-epB" secondAttribute="leading" id="cCO-rg-KVf"/>
+                <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="G6F-9j-PGg" secondAttribute="trailing" priority="750" id="dkv-WL-3Oe"/>
                 <constraint firstAttribute="top" secondItem="uzP-rc-0gO" secondAttribute="top" id="fMk-vI-Lfe"/>
-                <constraint firstItem="G6F-9j-PGg" firstAttribute="centerX" secondItem="iN0-l3-epB" secondAttribute="centerX" id="gPJ-eZ-ghK"/>
-                <constraint firstAttribute="bottom" secondItem="G6F-9j-PGg" secondAttribute="bottom" id="hve-wl-0hx"/>
+                <constraint firstItem="G6F-9j-PGg" firstAttribute="centerY" secondItem="iN0-l3-epB" secondAttribute="centerY" id="jxb-Bs-ocS"/>
             </constraints>
             <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
             <point key="canvasLocation" x="51.449275362318843" y="-444.97767857142856"/>
