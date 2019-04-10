@@ -825,16 +825,18 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     return UIBezierPath(ovalIn: rect)
   }
   
-  func bezierArea(topPoints: [CGPoint], bottomPoints: [CGPoint]) -> UIBezierPath {
-    let a = UIBezierPath()
-    a.move(to: CGPoint(x: bottomPoints[0].x, y: bottomPoints[0].y))
+  func bezierArea(topPoints: [CGPoint], bottom: CGFloat) -> UIBezierPath {
+    let line = UIBezierPath()
+    var curY = bottom
+    line.move(to: CGPoint(x: bottom, y: curY))
     for tp in topPoints {
-      a.addLine(to: tp)
+      line.addLine(to: CGPoint(x: tp.x, y: curY))
+      line.addLine(to: CGPoint(x: tp.x, y: tp.y))
+      curY = tp.y
     }
-    for bp in bottomPoints.reversed() {
-      a.addLine(to: bp)
-    }
-    return a
+    line.addLine(to: CGPoint(x: line.currentPoint.x, y: bottom))
+    line.close()
+    return line
   }
   
   func bezierArea(topPath: UIBezierPath, bottomPath: UIBezierPath) -> UIBezierPath {
