@@ -46,18 +46,17 @@ struct DataChart {
 
     let vectors = yVectors.map{$0.vector}
     
-    let minimum: CGFloat = 0
     var maximum: CGFloat = 0
     for i in 0..<vectors.count {
       if !excludedIdxs.contains(i) {
         maximum = max(maximum, vectors[i][xRange].max() ?? 0)
       }
     }
-    guard minimum != maximum else {
+    guard 0 != maximum else {
       return (vectors.map{$0.map{_ in 0}}, 0...0)
     }
     
-    return (vectors.map{$0.map{(($0 - minimum) / (maximum - minimum))}}, minimum...maximum)
+    return (vectors.map{$0.map{$0 / maximum}}, 0...maximum)
   }
   
   func normalizedYVectorsFromLocalMinimum(in xRange: ClosedRange<Int>, excludedIdxs: Set<Int>) -> NormalizedYVectors {
@@ -94,15 +93,62 @@ struct DataChart {
   
   /// For stacked bar chart
   func normalizedStackedYVectorsFromZeroMinimum(in xRange: ClosedRange<Int>, excludedIndicies: Set<Int>) -> NormalizedYVectors {
-    let stacked = stackedVectors(yVectors.map{$0.vector})
+    guard excludedIndicies.count != yVectors.count else {
+      return (Array(repeating: Array(repeating: 0.0, count: xVector.count), count: yVectors.count), 0...0)
+    }
+    
+    let includedIdxs = (0..<yVectors.count).filter{!excludedIndicies.contains($0)}.sorted()
+    
+    let stacked = stackedVectors(includedIdxs.map{yVectors[$0].vector})
     let max = stacked.last![xRange].max()!
-    return (stacked.map{$0.map{$0/max}}, 0...max)
+    
+    let normalizedStacked = stacked.map{$0.map{$0/max}}
+    var retVal = [ValueVector]()
+    var j = 0
+    for i in 0..<yVectors.count {
+      if includedIdxs.contains(i) {
+        retVal.append(normalizedStacked[j])
+        j += 1
+      } else {
+        if i == 0 {
+          retVal.append(Array(repeating: 0.0, count: xVector.count))
+        } else {
+          retVal.append(retVal[i-1])
+        }
+      }
+    }
+    
+    return (retVal, 0...max)
   }
   
   func normalizedStackedYVectorsFromLocalMinimum(in xRange: ClosedRange<Int>, excludedIndicies: Set<Int>) -> NormalizedYVectors {
-    let stacked = stackedVectors(yVectors.map{$0.vector})
+    guard excludedIndicies.count != yVectors.count else {
+      return (Array(repeating: Array(repeating: 0.0, count: xVector.count), count: yVectors.count), 0...0)
+    }
+    
+    let includedIdxs = (0..<yVectors.count).filter{!excludedIndicies.contains($0)}.sorted()
+    
+    let stacked = stackedVectors(includedIdxs.map{yVectors[$0].vector})
     let max = stacked.last![xRange].max()!
-    return (stacked.map{$0.map{$0/max}}, 0...max)
+    let min = stacked.first![xRange].min()!
+    
+    let normalizedStacked = stacked.map{$0.map{($0-min)/(max-min)}}
+    var retVal = [ValueVector]()
+    var j = 0
+    for i in 0..<yVectors.count {
+      if includedIdxs.contains(i) {
+        retVal.append(normalizedStacked[j])
+        j += 1
+      } else {
+        if i == 0 {
+          retVal.append(Array(repeating: 0.0, count: xVector.count))
+        } else {
+          retVal.append(retVal[i-1])
+        }
+      }
+    }
+    
+    return (retVal, min...max)
   }
   
   /// For percentage chart
