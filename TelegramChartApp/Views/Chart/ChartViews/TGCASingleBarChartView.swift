@@ -22,8 +22,7 @@ class TGCASingleBarChartView: TGCAChartView {
     for i in 0..<yVectors.count {
       let yVector = yVectors[i]
       let points = convertToPoints(xVector: xVector, yVector: yVector)
-      let squareLine = squareBezierLine(withPoints: points)
-      let line = bezierArea(topPath: squareLine, bottomPath: bezierLine(from: CGPoint(x: points[0].x, y: chartBoundsBottom), to: CGPoint(x: points.last!.x, y: chartBoundsBottom)))
+      let line = squareBezierArea(topPoints: points, bottom: chartBoundsBottom)
       let shape = filledShapeLayer(withPath: line.cgPath, color: chart.yVectors[i].metaData.color.cgColor)
       if hiddenDrawingIndicies.contains(i) {
         shape.opacity = 0
@@ -48,8 +47,7 @@ class TGCASingleBarChartView: TGCAChartView {
       let yVector = mapToChartBoundsHeight(normalizedYVectors.vectors[i])
       let points = convertToPoints(xVector: xVector, yVector: yVector)
       drawing.yPositions = yVector
-      let squareLine = squareBezierLine(withPoints: points)
-      let newPath = bezierArea(topPath: squareLine, bottomPath: bezierLine(from: CGPoint(x: points[0].x, y: chartBoundsBottom), to: CGPoint(x: points.last!.x, y: chartBoundsBottom)))
+      let newPath = squareBezierArea(topPoints: points, bottom: chartBoundsBottom)
       
       if let oldAnim = drawing.shapeLayer.animation(forKey: "pathAnimation") {
         drawing.shapeLayer.removeAnimation(forKey: "pathAnimation")
@@ -92,8 +90,7 @@ class TGCASingleBarChartView: TGCAChartView {
       let drawing = drawings.drawings[i]
       let yVector = mapToChartBoundsHeight(normalizedYVectors.vectors[i])
       let points = convertToPoints(xVector: xVector, yVector: yVector)
-      let squareLine = squareBezierLine(withPoints: points)
-      let newPath = bezierArea(topPath: squareLine, bottomPath: bezierLine(from: CGPoint(x: points[0].x, y: chartBoundsBottom), to: CGPoint(x: points.last!.x, y: chartBoundsBottom)))
+      let newPath = squareBezierArea(topPoints: points, bottom: chartBoundsBottom)
       
       var oldPath: Any?
       if let _ = drawing.shapeLayer.animation(forKey: "pathAnimation") {
@@ -158,6 +155,7 @@ class TGCASingleBarChartView: TGCAChartView {
     guard let currentChartAnnotation = currentChartAnnotation as? ChartAnnotation else {
       return
     }
+    print(index)
     let (leftPath, rightPath) = getPathsForChartAnnotation(at: index)
 
     currentChartAnnotation.leftMask.path = leftPath
