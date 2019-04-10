@@ -139,4 +139,74 @@ class TGCASingleBarChartView: TGCAChartView {
       drawing.yPositions = yVector
     }
   }
+  
+  //MARK: - Annotations
+  private var chartAnnotationMaskColor = UIApplication.myDelegate.currentTheme.backgroundColor.withAlphaComponent(0.75).cgColor
+  
+  override func addChartAnnotation(for index: Int) {
+    let (leftPath, rightPath) = getPathsForChartAnnotation(at: index)
+    let leftMask = filledShapeLayer(withPath: leftPath, color: chartAnnotationMaskColor)
+    let rightMask = filledShapeLayer(withPath: rightPath, color: chartAnnotationMaskColor)
+
+    lineLayer.addSublayer(leftMask)
+    lineLayer.addSublayer(rightMask)
+    
+    currentChartAnnotation = ChartAnnotation(leftMask: leftMask, annotationView: TGCAChartAnnotationView(), rightMask: rightMask, displayedIndex: index)
+  }
+  
+  override func moveChartAnnotation(to index: Int, animated: Bool = false) {
+    guard let currentChartAnnotation = currentChartAnnotation as? ChartAnnotation else {
+      return
+    }
+    let (leftPath, rightPath) = getPathsForChartAnnotation(at: index)
+
+    currentChartAnnotation.leftMask.path = leftPath
+    currentChartAnnotation.rightMask.path = rightPath
+    currentChartAnnotation.updateDisplayedIndex(to: index)
+  }
+  
+  override func removeChartAnnotation() {
+    if let annotation = currentChartAnnotation {
+      (currentChartAnnotation as? ChartAnnotation)?.leftMask.removeFromSuperlayer()
+      (currentChartAnnotation as? ChartAnnotation)?.rightMask.removeFromSuperlayer()
+      annotation.annotationView.removeFromSuperview()
+      currentChartAnnotation = nil
+    }
+  }
+  
+  private func getPathsForChartAnnotation(at index: Int) -> (leftPath: CGPath, rightPath: CGPath) {
+    let yPositions = drawings.drawings[0].yPositions
+    let xPositions = drawings.xPositions
+    
+    var rightPath = CGPath(rect: CGRect.zero, transform: nil)
+    
+    if index != xPositions.count - 1 {
+      let rightYvector = Array(yPositions[(index+1)..<yPositions.count])
+      let rightXvector = Array(xPositions[(index+1)..<yPositions.count])
+      let rightPoints = convertToPoints(xVector: rightXvector, yVector: rightYvector)
+      rightPath = bezierArea(topPoints: rightPoints, bottom: chartBoundsBottom).cgPath
+    }
+    
+    let leftYvector = Array(yPositions[0...index])
+    let leftXvector = Array(xPositions[0...index])
+    let leftPoints = convertToPoints(xVector: leftXvector, yVector: leftYvector)
+    let leftPath = bezierArea(topPoints: leftPoints, bottom: chartBoundsBottom).cgPath
+    
+    return (leftPath, rightPath)
+  }
+  
+  //MARK: - Classes and structs
+  
+  private class ChartAnnotation: BaseChartAnnotation {
+    let leftMask: CAShapeLayer
+    let rightMask: CAShapeLayer
+    
+    init(leftMask: CAShapeLayer, annotationView: TGCAChartAnnotationView, rightMask: CAShapeLayer, displayedIndex: Int){
+      self.leftMask = leftMask
+      self.rightMask = rightMask
+      super.init(annotationView: annotationView, displayedIndex: displayedIndex)
+    }
+
+  }
+  
 }

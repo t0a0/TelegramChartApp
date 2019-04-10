@@ -118,7 +118,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   let capHeightMultiplierForHorizontalAxes: CGFloat = 0.85
   var horizontalAxesDefaultYPositions: [CGFloat]!
   
-  private var currentChartAnnotation: ChartAnnotation?
+  var currentChartAnnotation: BaseChartAnnotation?
   
   /// Guide labels that are currently shown
   var activeGuideLabels: [GuideLabel]!
@@ -169,7 +169,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   func reset() {
     chart = nil
     removeDrawings()
-    removeAxes()
+    removeHorizontalAxes()
     removeGuideLabels()
     removeChartAnnotation()
     currentYValueRange = 0...0
@@ -730,7 +730,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   }
   
   func moveChartAnnotation(to index: Int, animated: Bool = false) {
-    guard let annotation = currentChartAnnotation else {
+    guard let annotation = currentChartAnnotation as? ChartAnnotation else {
       return
     }
     let xPoint = drawings.xPositions[index]
@@ -785,8 +785,8 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     annotation.annotationView.center = CGPoint(x: xPos, y: bounds.origin.y + annotationSize.height / 2)
     
     let line = bezierLine(from: CGPoint(x: xPoint, y: annotation.annotationView.frame.origin.y + annotation.annotationView.frame.height), to: CGPoint(x: xPoint, y: chartBoundsBottom))
-    currentChartAnnotation?.lineLayer.path = line.cgPath
-    currentChartAnnotation?.updateDisplayedIndex(to: index)
+    (currentChartAnnotation as? ChartAnnotation)?.lineLayer.path = line.cgPath
+    (currentChartAnnotation as? ChartAnnotation)?.updateDisplayedIndex(to: index)
   }
   
   // MARK: - Drawing
@@ -949,10 +949,6 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     drawings = nil
   }
   
-  func removeAxes() {
-    removeHorizontalAxes()
-  }
-  
   func removeHorizontalAxes() {
     horizontalAxes?.forEach{
       $0.labelLayer.removeFromSuperlayer()
@@ -977,7 +973,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   }
   
   func removeChartAnnotation() {
-    if let annotation = currentChartAnnotation {
+    if let annotation = currentChartAnnotation as? ChartAnnotation {
       annotation.lineLayer.removeFromSuperlayer()
       annotation.annotationView.removeFromSuperview()
       for layer in annotation.circleLayers {
@@ -1071,22 +1067,16 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     }
   }
   
-  private class ChartAnnotation {
+  private class ChartAnnotation: BaseChartAnnotation {
     let lineLayer: CAShapeLayer
-    let annotationView: TGCAChartAnnotationView
     let circleLayers: [CAShapeLayer]
-    private(set) var displayedIndex: Int
     
     init(lineLayer: CAShapeLayer, annotationView: TGCAChartAnnotationView, circleLayers: [CAShapeLayer], displayedIndex: Int){
       self.lineLayer = lineLayer
-      self.annotationView = annotationView
       self.circleLayers = circleLayers
-      self.displayedIndex = displayedIndex
+      super.init(annotationView: annotationView, displayedIndex: displayedIndex)
     }
     
-    func updateDisplayedIndex(to index: Int) {
-      self.displayedIndex = index
-    }
   }
   
   struct zPositions {
@@ -1138,8 +1128,8 @@ extension TGCAChartView: ThemeChangeObserving {
     
     func applyChanges() {
       //annotation
-      currentChartAnnotation?.circleLayers.forEach{$0.fillColor = circlePointFillColor}
-      currentChartAnnotation?.lineLayer.strokeColor = axisColor
+      (currentChartAnnotation as? ChartAnnotation)?.circleLayers.forEach{$0.fillColor = circlePointFillColor}
+      (currentChartAnnotation as? ChartAnnotation)?.lineLayer.strokeColor = axisColor
       
       //axis
       horizontalAxes?.forEach{
@@ -1162,4 +1152,20 @@ extension TGCAChartView: ThemeChangeObserving {
     }
   }
   
+}
+
+
+class BaseChartAnnotation {
+  private(set) var displayedIndex: Int
+  let annotationView: TGCAChartAnnotationView
+  
+  init(annotationView: TGCAChartAnnotationView, displayedIndex: Int){
+    self.annotationView = annotationView
+    self.displayedIndex = displayedIndex
+  }
+  
+  func updateDisplayedIndex(to index: Int) {
+    self.displayedIndex = index
+  }
+
 }

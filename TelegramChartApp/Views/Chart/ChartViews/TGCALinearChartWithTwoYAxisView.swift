@@ -410,7 +410,7 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
     
   }
   
-  override func removeAxes() {
+  override func removeHorizontalAxes() {
     axisLayer.sublayers?.forEach{
       $0.removeFromSuperlayer()
     }
