@@ -29,7 +29,7 @@ class TGCAChartTableViewCell: UITableViewCell {
     thumbnailChartView?.isUserInteractionEnabled = false
     thumbnailChartView?.graphLineWidth = 1.0
     thumbnailChartView?.layer.cornerRadius = TGCATrimmerView.shoulderWidth * 0.75
-    
+    thumbnailChartView?.layer.masksToBounds = true
     headerView?.zoomOutButton.setTitle("Zoom Out", for: .normal)
     
     separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: CGFloat.greatestFiniteMagnitude)

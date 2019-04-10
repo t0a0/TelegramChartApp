@@ -53,7 +53,6 @@ class TGCAChartView: UIView {
     addSubview(contentView)
     contentView.frame = self.bounds
     contentView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
-    layer.masksToBounds = true
     isMultipleTouchEnabled = false
     applyCurrentTheme()
     axisLayer.zPosition = zPositions.Chart.axis.rawValue
@@ -71,7 +70,7 @@ class TGCAChartView: UIView {
   /// Need to redraw the chart when the bounds did change.
   override var bounds: CGRect {
     didSet {
-      numOfGuideLabels = Int(bounds.width / 60.0)
+      numOfGuideLabels = Int(bounds.width / ChartViewConstants.sizeForGuideLabels.width)
       if chart != nil {
         configure(with: chart, hiddenIndicies: hiddenDrawingIndicies)
       }
@@ -465,8 +464,6 @@ class TGCAChartView: UIView {
                          width: bounds.width - inset * 2,
                          height: bounds.height - inset * 2
                           - (shouldDisplayAxesAndLabels ? ChartViewConstants.sizeForGuideLabels.height : 0))
-
-//    lineLayer.frame = chartBounds
   }
   
   private func configureHorizontalAxesSpacing() {
@@ -964,7 +961,7 @@ class TGCAChartView: UIView {
   }
   
   func mapToChartBoundsWidth(_ vector: ValueVector) -> ValueVector {
-    return vector.map{$0 * chartBoundsRight}
+    return vector.map{$0 * chartBoundsRight + chartBounds.origin.x}
   }
   
   func mapToChartBoundsHeight(_ vector: ValueVector) -> ValueVector {
