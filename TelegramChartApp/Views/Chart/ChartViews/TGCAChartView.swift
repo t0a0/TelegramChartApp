@@ -26,6 +26,8 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     static let guideLabelsFontSize: CGFloat = 13.5
     static let contentScaleForShapes: CGFloat = 1.0
     static let contentScaleForText = UIScreen.main.scale
+    /// The axes are drawn from the bottom of the bounds to the top of the bounds, capped by this value.
+    static let capHeightMultiplierForHorizontalAxes: CGFloat = 0.85
   }
   
   let axisLayer = CALayer()
@@ -114,8 +116,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   
   private var horizontalAxes: [HorizontalAxis]!
   var horizontalAxesSpacing: CGFloat!
-  /// The axes are drawn from the bottom of the bounds to the top of the bounds, capped by this value.
-  let capHeightMultiplierForHorizontalAxes: CGFloat = 0.85
+
   var horizontalAxesDefaultYPositions: [CGFloat]!
   
   var currentChartAnnotation: BaseChartAnnotation?
@@ -453,7 +454,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   }
   
   private func configureHorizontalAxesSpacing() {
-    horizontalAxesSpacing = chartBounds.height * capHeightMultiplierForHorizontalAxes / CGFloat(numOfHorizontalAxes - 1)
+    horizontalAxesSpacing = chartBounds.height * ChartViewConstants.capHeightMultiplierForHorizontalAxes / CGFloat(numOfHorizontalAxes - 1)
   }
   
   private func configureHorizontalAxesDefaultPositions() {
@@ -482,9 +483,9 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     activeGuideLabels = newActiveGuideLabels
   }
   
-  var lastSpacing: Int!
-  var lastActualIndexes: [Int]!
-  var lastLeftover: CGFloat! {
+  private var lastSpacing: Int!
+  private var lastActualIndexes: [Int]!
+  private var lastLeftover: CGFloat! {
     didSet {
       guard oldValue != nil else {
         return
@@ -496,7 +497,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     }
   }
   
-  func animateGuideLabelsChange(from fromRange: ClosedRange<Int>, to toRange: ClosedRange<Int>, event: DisplayRangeChangeEvent) {
+  private func animateGuideLabelsChange(from fromRange: ClosedRange<Int>, to toRange: ClosedRange<Int>, event: DisplayRangeChangeEvent) {
   
     if event != .Scrolled {
       let (spacing, leftover) = bestIndexSpacing(for: toRange.distance + 1)
@@ -582,7 +583,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     
   }
   
-  func generateGuideLabels(for xIndexes: [Int]) -> [GuideLabel] {
+  private func generateGuideLabels(for xIndexes: [Int]) -> [GuideLabel] {
     
     let timeStamps = xIndexes.map{chart.xVector[$0]}
     let strings = timeStamps.map{chartLabelFormatterService.prettyDateString(from: $0)}
@@ -596,11 +597,12 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   }
   
   // MARK: - Horizontal axes
+  
   typealias AxisAnimationBlocks = (animationBlocks: [()->()], removalBlocks: [()->()])
   
   private func valuesForAxes() -> [CGFloat] {
     let distanceInYRange = currentYValueRange.upperBound - currentYValueRange.lowerBound
-    let distanceInBounds = capHeightMultiplierForHorizontalAxes / CGFloat(numOfHorizontalAxes-1)
+    let distanceInBounds = ChartViewConstants.capHeightMultiplierForHorizontalAxes / CGFloat(numOfHorizontalAxes-1)
     var retVal = [currentYValueRange.lowerBound]
     for i in 1..<numOfHorizontalAxes {
       retVal.append((distanceInYRange * distanceInBounds * CGFloat(i)) + currentYValueRange.lowerBound)
@@ -891,17 +893,17 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     drawings = nil
   }
   
+  private func removeGuideLabels() {
+    removeActiveGuideLabels()
+    removeTransitioningGuideLabels()
+  }
+  
   func removeHorizontalAxes() {
     horizontalAxes?.forEach{
       $0.labelLayer.removeFromSuperlayer()
       $0.lineLayer.removeFromSuperlayer()
     }
     horizontalAxes = nil
-  }
-  
-  func removeGuideLabels() {
-    removeActiveGuideLabels()
-    removeTransitioningGuideLabels()
   }
   
   func removeActiveGuideLabels() {

@@ -121,7 +121,7 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
   
   private func valuesForLeftAxis() -> [CGFloat] {
     let distanceInYRange = leftYValueRange.upperBound - leftYValueRange.lowerBound
-    let distanceInBounds = capHeightMultiplierForHorizontalAxes / CGFloat(numOfHorizontalAxes-1)
+    let distanceInBounds = ChartViewConstants.capHeightMultiplierForHorizontalAxes / CGFloat(numOfHorizontalAxes-1)
     var retVal = [leftYValueRange.lowerBound]
     for i in 1..<numOfHorizontalAxes {
       retVal.append((distanceInYRange * distanceInBounds * CGFloat(i)) + leftYValueRange.lowerBound)
@@ -131,7 +131,7 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
   
   private func valuesForRightAxis() -> [CGFloat] {
     let distanceInYRange = rightYValueRange.upperBound - rightYValueRange.lowerBound
-    let distanceInBounds = capHeightMultiplierForHorizontalAxes / CGFloat(numOfHorizontalAxes-1)
+    let distanceInBounds = ChartViewConstants.capHeightMultiplierForHorizontalAxes / CGFloat(numOfHorizontalAxes-1)
     var retVal = [rightYValueRange.lowerBound]
     for i in 1..<numOfHorizontalAxes {
       retVal.append((distanceInYRange * distanceInBounds * CGFloat(i)) + rightYValueRange.lowerBound)
