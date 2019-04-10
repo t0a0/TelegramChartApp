@@ -99,6 +99,12 @@ struct DataChart {
     return (stacked.map{$0.map{$0/max}}, 0...max)
   }
   
+  func normalizedStackedYVectorsFromLocalMinimum(in xRange: ClosedRange<Int>, excludedIndicies: Set<Int>) -> NormalizedYVectors {
+    let stacked = stackedVectors(yVectors.map{$0.vector})
+    let max = stacked.last![xRange].max()!
+    return (stacked.map{$0.map{$0/max}}, 0...max)
+  }
+  
   /// For percentage chart
   func percentageYVectors(excludedIndicies: Set<Int>) -> [ValueVector] {
     let includedIdxs = (0..<yVectors.count).filter{!excludedIndicies.contains($0)}.sorted()
