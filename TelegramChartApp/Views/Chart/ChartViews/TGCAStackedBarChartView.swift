@@ -59,7 +59,7 @@ class TGCAStackedBarChartView: TGCASingleBarChartView {
         
         opacityAnimation.values = [oldOpacity ?? drawing.shapeLayer.opacity, targetOpacity]
         drawing.shapeLayer.opacity = targetOpacity
-        opacityAnimation.keyTimes = (hiddenDrawingIndicies.count == chart.yVectors.count || (hiddenDrawingIndicies.count == chart.yVectors.count - 1 && originalHidden)) ? [0.0, 1.0] : (originalHidden ? [0.0, 0.25] : [0.75, 1.0])
+        opacityAnimation.keyTimes = (!animatesPositionOnHide || hiddenDrawingIndicies.count == chart.yVectors.count || (hiddenDrawingIndicies.count == chart.yVectors.count - 1 && originalHidden)) ? [0.0, 1.0] : (originalHidden ? [0.0, 0.25] : [0.75, 1.0])
         opacityAnimation.duration = CHART_FADE_ANIMATION_DURATION
         drawing.shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
       }

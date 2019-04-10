@@ -1036,7 +1036,7 @@ class TGCAChartView: UIView {
     let line = UIBezierPath()
     let firstPoint = topPoints.first!
     line.move(to: CGPoint(x: firstPoint.x, y: bottom))
-    for tp in topPoints[1..<topPoints.count] {
+    for tp in topPoints {
       line.addLine(to: CGPoint(x: tp.x, y: tp.y))
     }
     line.addLine(to: CGPoint(x: line.currentPoint.x, y: bottom))
