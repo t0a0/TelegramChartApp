@@ -15,11 +15,11 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
   private var leftYValueRange: ClosedRange<CGFloat> = 0...0
   private var rightYValueRange: ClosedRange<CGFloat> = 0...0
   
-  func updateCurrentYValueRanges(left: ClosedRange<CGFloat>, right: ClosedRange<CGFloat>) {
+  private func updateCurrentYValueRanges(left: ClosedRange<CGFloat>, right: ClosedRange<CGFloat>) -> DoubleAxisYRangeChageResult {
     let leftChanged = leftYValueRange != left
     let rightChanged = rightYValueRange != right
     if !leftChanged && !rightChanged {
-      return
+      return DoubleAxisYRangeChageResult(leftChanged: false, rightChanged: false)
     }
     leftYValueRange = left
     rightYValueRange = right
@@ -51,6 +51,7 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
         CATransaction.commit()
       }
     }
+    return DoubleAxisYRangeChageResult(leftChanged: leftChanged, rightChanged: rightChanged)
   }
   
   override func configure(with chart: DataChart, hiddenIndicies: Set<Int>, displayRange: ClosedRange<CGFloat>? = nil) {
@@ -59,50 +60,34 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
     rightAxisLabelColor = chart.yVectors.last?.metaData.color.cgColor
   }
   
-  override func drawChart() {
+  override func getCurrentVectorData() -> VectorDataProtocol {
     let normalizedYVectors = getSeparatelyNormalizedYVectors()
     let yVectors = normalizedYVectors.map{mapToChartBoundsHeight($0.vector)}
     let xVector = mapToChartBoundsWidth(getNormalizedXVector())
-    
-    updateCurrentYValueRanges(left: normalizedYVectors.first!.yRange, right: normalizedYVectors.last!.yRange)
-    
-    var draws = [Drawing]()
-    for i in 0..<yVectors.count {
-      let yVector = yVectors[i]
-      let points = convertToPoints(xVector: xVector, yVector: yVector)
-      let line = bezierLine(withPoints: points)
-      let shape = shapeLayer(withPath: line.cgPath, color: chart.yVectors[i].metaData.color.cgColor, lineWidth: graphLineWidth)
-      if hiddenDrawingIndicies.contains(i) {
-        shape.opacity = 0
-      }
-      lineLayer.addSublayer(shape)
-      draws.append(Drawing(shapeLayer: shape, yPositions: yVector))
+    let points = (0..<yVectors.count).map{
+      convertToPoints(xVector: xVector, yVector: yVectors[$0])
     }
-    drawings = ChartDrawings(drawings: draws, xPositions: xVector)
+    return VectorData(xVector: xVector, yVectors: yVectors, yRangeData: DoubleAxisYRangeData(leftYRange: normalizedYVectors.first!.yRange, rightYRange: normalizedYVectors.last!.yRange), points: points)
+  }
+
+  override func updateYValueRange(with yRangeData: YRangeDataProtocol) -> YRangeChangeResultProtocol? {
+    guard let yRangeData = yRangeData as? DoubleAxisYRangeData else {
+      return nil
+    }
+    return updateCurrentYValueRanges(left: yRangeData.leftYRange, right: yRangeData.rightYRange)
   }
   
-  override func updateChart() {
-    let xVector = mapToChartBoundsWidth(getNormalizedXVector())
-    let normalizedYVectors = getSeparatelyNormalizedYVectors()
-    let yVectors = normalizedYVectors.map{mapToChartBoundsHeight($0.vector)}
-
-    let leftChanged = leftYValueRange != normalizedYVectors.first!.yRange
-    let rightChanged = rightYValueRange != normalizedYVectors.last!.yRange
-    updateCurrentYValueRanges(left: normalizedYVectors.first!.yRange, right: normalizedYVectors.last!.yRange)
+  override func animateChartUpdate(withYChangeResult yChangeResult: YRangeChangeResultProtocol?, paths: [CGPath]) {
+    let leftChanged = (yChangeResult as? DoubleAxisYRangeChageResult)?.leftChanged ?? false
+    let rightChanged = (yChangeResult as? DoubleAxisYRangeChageResult)?.rightChanged ?? false
     
     for i in 0..<drawings.drawings.count {
-      
       let drawing = drawings.drawings[i]
-      let yVector = yVectors[i]
-      let points = convertToPoints(xVector: xVector, yVector: yVector)
-      drawing.yPositions = yVector
-      let newPath = bezierLine(withPoints: points)
-      
       if let oldAnim = drawing.shapeLayer.animation(forKey: "pathAnimation") {
         drawing.shapeLayer.removeAnimation(forKey: "pathAnimation")
         let pathAnimation = CABasicAnimation(keyPath: "path")
         pathAnimation.fromValue = drawing.shapeLayer.presentation()?.value(forKey: "path") ?? drawing.shapeLayer.path
-        drawing.shapeLayer.path = newPath.cgPath
+        drawing.shapeLayer.path = paths[i]
         pathAnimation.toValue = drawing.shapeLayer.path
         pathAnimation.duration = CHART_PATH_ANIMATION_DURATION
         if (i == 0 && !leftChanged) || (i == 1 && !rightChanged){
@@ -115,74 +100,15 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
         if (i == 0 && leftChanged) || (i == 1 && rightChanged) {
           let pathAnimation = CABasicAnimation(keyPath: "path")
           pathAnimation.fromValue = drawing.shapeLayer.path
-          drawing.shapeLayer.path = newPath.cgPath
+          drawing.shapeLayer.path = paths[i]
           pathAnimation.toValue = drawing.shapeLayer.path
           pathAnimation.duration = CHART_PATH_ANIMATION_DURATION
           pathAnimation.beginTime = CACurrentMediaTime()
           drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
         } else {
-          drawing.shapeLayer.path = newPath.cgPath
+          drawing.shapeLayer.path = paths[i]
         }
       }
-    }
-    drawings.xPositions = xVector
-  }
-  
-  override func updateChartByHiding(at index: Int, originalHidden: Bool) {
-    let normalizedYVectors = getSeparatelyNormalizedYVectors()
-    let xVector = drawings.xPositions
-    let yVectors = normalizedYVectors.map{mapToChartBoundsHeight($0.vector)}
-
-    updateCurrentYValueRanges(left: normalizedYVectors.first!.yRange, right: normalizedYVectors.last!.yRange)
-    
-    for i in 0..<drawings.drawings.count {
-      let yVector = yVectors[i]
-      let drawing = drawings.drawings[i]
-      let points = convertToPoints(xVector: xVector, yVector: yVector)
-      let newPath = bezierLine(withPoints: points)
-      
-      var oldPath: Any?
-      if let _ = drawing.shapeLayer.animation(forKey: "pathAnimation") {
-        oldPath = drawing.shapeLayer.presentation()?.value(forKey: "path")
-        drawing.shapeLayer.removeAnimation(forKey: "pathAnimation")
-      }
-      
-      let positionChangeBlock = {
-        let pathAnimation = CABasicAnimation(keyPath: "path")
-        pathAnimation.fromValue = oldPath ?? drawing.shapeLayer.path
-        drawing.shapeLayer.path = newPath.cgPath
-        pathAnimation.toValue = drawing.shapeLayer.path
-        pathAnimation.duration = CHART_PATH_ANIMATION_DURATION
-        drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
-      }
-      
-      if animatesPositionOnHide {
-        positionChangeBlock()
-      } else {
-        if !hiddenDrawingIndicies.contains(i) && !(originalHidden && i == index) {
-          positionChangeBlock()
-        }
-        if (originalHidden && i == index) {
-          drawing.shapeLayer.path = newPath.cgPath
-        }
-      }
-      
-      
-      if i == index {
-        var oldOpacity: Any?
-        if let _ = drawing.shapeLayer.animation(forKey: "opacityAnimation") {
-          oldOpacity = drawing.shapeLayer.presentation()?.value(forKey: "opacity")
-          drawing.shapeLayer.removeAnimation(forKey: "opacityAnimation")
-        }
-        let opacityAnimation = CABasicAnimation(keyPath: "opacity")
-        opacityAnimation.fromValue = oldOpacity ?? drawing.shapeLayer.opacity
-        drawing.shapeLayer.opacity = originalHidden ? 1 : 0
-        opacityAnimation.toValue = drawing.shapeLayer.opacity
-        opacityAnimation.duration = CHART_FADE_ANIMATION_DURATION
-        drawing.shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
-      }
-      
-      drawing.yPositions = yVector
     }
   }
   
@@ -417,6 +343,8 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
     horizontalAxes = nil
   }
   
+  //MARK: - Private classes and structs
+  
   private class HorizontalAxis {
     let lineLayer: CAShapeLayer
     private(set) var leftTextLayer: CATextLayer
@@ -441,6 +369,16 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
       self.rightTextLayer = rightTextLayer
       self.rightValue = rightValue
     }
+  }
+  
+  private struct DoubleAxisYRangeData: YRangeDataProtocol {
+    let leftYRange: ClosedRange<CGFloat>
+    let rightYRange: ClosedRange<CGFloat>
+  }
+  
+  private struct DoubleAxisYRangeChageResult: YRangeChangeResultProtocol {
+    let leftChanged: Bool
+    let rightChanged: Bool
   }
   
   //MARK: - Helper Methods

@@ -134,9 +134,9 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
   
 
   
-  func updateCurrentYValueRange(with newRange: ClosedRange<CGFloat>) {
+  private func updateCurrentYValueRange(with newRange: ClosedRange<CGFloat>) -> YRangeChangeResult {
     guard newRange != currentYValueRange else {
-      return
+      return YRangeChangeResult(didChange: false)
     }
     currentYValueRange = newRange
     if horizontalAxes != nil {
@@ -162,6 +162,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
         CATransaction.commit()
       }
     }
+    return YRangeChangeResult(didChange: true)
   }
 
   // MARK: - Public functions
@@ -199,74 +200,6 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     }
   }
   
-  func drawChart() {
-    let normalizedYVectors = getNormalizedYVectors()
-    let yVectors = normalizedYVectors.vectors.map{mapToChartBoundsHeight($0)}
-    let xVector = mapToChartBoundsWidth(getNormalizedXVector())
-    
-    updateCurrentYValueRange(with: normalizedYVectors.yRange)
-
-    var draws = [Drawing]()
-    for i in 0..<yVectors.count {
-      let yVector = yVectors[i]
-      let points = convertToPoints(xVector: xVector, yVector: yVector)
-      let line = bezierLine(withPoints: points)
-      let shape = shapeLayer(withPath: line.cgPath, color: chart.yVectors[i].metaData.color.cgColor, lineWidth: graphLineWidth)
-      if hiddenDrawingIndicies.contains(i) {
-        shape.opacity = 0
-      }
-      lineLayer.addSublayer(shape)
-      draws.append(Drawing(shapeLayer: shape, yPositions: yVector))
-    }
-    drawings = ChartDrawings(drawings: draws, xPositions: xVector)
-  }
-  
-  func updateChart() {
-    let xVector = mapToChartBoundsWidth(getNormalizedXVector())
-    let normalizedYVectors = getNormalizedYVectors()
-    
-    let didYChange = currentYValueRange != normalizedYVectors.yRange
-    
-    updateCurrentYValueRange(with: normalizedYVectors.yRange)
-
-    for i in 0..<drawings.drawings.count {
-      
-      let drawing = drawings.drawings[i]
-      let yVector = mapToChartBoundsHeight(normalizedYVectors.vectors[i])
-      let points = convertToPoints(xVector: xVector, yVector: yVector)
-      drawing.yPositions = yVector
-      let newPath = bezierLine(withPoints: points)
-      
-      if let oldAnim = drawing.shapeLayer.animation(forKey: "pathAnimation") {
-        drawing.shapeLayer.removeAnimation(forKey: "pathAnimation")
-        let pathAnimation = CABasicAnimation(keyPath: "path")
-        pathAnimation.fromValue = drawing.shapeLayer.presentation()?.value(forKey: "path") ?? drawing.shapeLayer.path
-        drawing.shapeLayer.path = newPath.cgPath
-        pathAnimation.toValue = drawing.shapeLayer.path
-        pathAnimation.duration = CHART_PATH_ANIMATION_DURATION
-        if !didYChange {
-          pathAnimation.beginTime = oldAnim.beginTime
-        } else {
-          pathAnimation.beginTime = CACurrentMediaTime()
-        }
-        drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
-      } else {
-        if didYChange  {
-          let pathAnimation = CABasicAnimation(keyPath: "path")
-          pathAnimation.fromValue = drawing.shapeLayer.path
-          drawing.shapeLayer.path = newPath.cgPath
-          pathAnimation.toValue = drawing.shapeLayer.path
-          pathAnimation.duration = CHART_PATH_ANIMATION_DURATION
-          pathAnimation.beginTime = CACurrentMediaTime()
-          drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
-        } else {
-          drawing.shapeLayer.path = newPath.cgPath
-        }
-      }
-    }
-    drawings.xPositions = xVector
-  }
-  
   /// Updates the diplayed X range. Accepted are subranges of 0...1.
   func trimDisplayRange(to newRange: ClosedRange<CGFloat>, with event: DisplayRangeChangeEvent) {
     
@@ -282,7 +215,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     }
     
     currentXIndexRange = newBounds
-  
+    
     updateChart()
     
     animateGuideLabelsChange(from: currentXIndexRange, to: newBounds, event: event)
@@ -328,18 +261,84 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     }
   }
   
-  func updateChartByHiding(at index: Int, originalHidden: Bool) {
+  // MARK: - Methods to subclass
+  
+  func prepareToDrawChart() { }
+  
+  func getCurrentVectorData() -> VectorDataProtocol {
     let normalizedYVectors = getNormalizedYVectors()
-    let xVector = drawings.xPositions
+    let yVectors = normalizedYVectors.vectors.map{mapToChartBoundsHeight($0)}
+    let xVector = mapToChartBoundsWidth(getNormalizedXVector())
+    let points = (0..<yVectors.count).map{
+      convertToPoints(xVector: xVector, yVector: yVectors[$0])
+    }
+    return VectorData(xVector: xVector, yVectors: yVectors, yRangeData: YRangeData(yRange: normalizedYVectors.yRange), points: points)
+  }
+  
+  func updateYValueRange(with yRangeData: YRangeDataProtocol) -> YRangeChangeResultProtocol? {
+    guard let yRangeData = yRangeData as? YRangeData else {
+      return nil
+    }
+    return updateCurrentYValueRange(with: yRangeData.yRange)
+  }
+  
+  func getPathsToDraw(with vectorData: VectorDataProtocol) -> [CGPath] {
+    let vectorData = vectorData as! VectorData
+    return vectorData.points.map{bezierLine(withPoints: $0).cgPath}
+  }
+  
+  func getShapeLayersToDraw(for paths: [CGPath]) -> [CAShapeLayer] {
+    return (0..<paths.count).map{
+      shapeLayer(withPath: paths[$0], color: chart.yVectors[$0].metaData.color.cgColor, lineWidth: graphLineWidth)
+    }
+  }
+  
+  func addShapeSublayers(_ layers: [CAShapeLayer]) {
+    layers.forEach{
+      lineLayer.addSublayer($0)
+    }
+  }
+  
+  func animateChartUpdate(withYChangeResult yChangeResult: YRangeChangeResultProtocol?, paths: [CGPath]) {
+    let didYChange = (yChangeResult as? YRangeChangeResult)?.didChange ?? false
     
-    updateCurrentYValueRange(with: normalizedYVectors.yRange)
-
     for i in 0..<drawings.drawings.count {
-      
       let drawing = drawings.drawings[i]
-      let yVector = mapToChartBoundsHeight(normalizedYVectors.vectors[i])
-      let points = convertToPoints(xVector: xVector, yVector: yVector)
-      let newPath = bezierLine(withPoints: points)
+      if let oldAnim = drawing.shapeLayer.animation(forKey: "pathAnimation") {
+        drawing.shapeLayer.removeAnimation(forKey: "pathAnimation")
+        let pathAnimation = CABasicAnimation(keyPath: "path")
+        pathAnimation.fromValue = drawing.shapeLayer.presentation()?.value(forKey: "path") ?? drawing.shapeLayer.path
+        drawing.shapeLayer.path = paths[i]
+        pathAnimation.toValue = drawing.shapeLayer.path
+        pathAnimation.duration = CHART_PATH_ANIMATION_DURATION
+        if !didYChange {
+          pathAnimation.beginTime = oldAnim.beginTime
+        } else {
+          pathAnimation.beginTime = CACurrentMediaTime()
+        }
+        drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
+      } else {
+        if didYChange  {
+          let pathAnimation = CABasicAnimation(keyPath: "path")
+          pathAnimation.fromValue = drawing.shapeLayer.path
+          drawing.shapeLayer.path = paths[i]
+          pathAnimation.toValue = drawing.shapeLayer.path
+          pathAnimation.duration = CHART_PATH_ANIMATION_DURATION
+          pathAnimation.beginTime = CACurrentMediaTime()
+          drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
+        } else {
+          drawing.shapeLayer.path = paths[i]
+        }
+      }
+    }
+    
+  }
+  
+  func prepareToUpdateChartByHiding() {}
+  
+  func animateChartHide(at index: Int, originalHidden: Bool, newPaths: [CGPath]) {
+    for i in 0..<drawings.drawings.count {
+      let drawing = drawings.drawings[i]
       
       var oldPath: Any?
       if let _ = drawing.shapeLayer.animation(forKey: "pathAnimation") {
@@ -350,7 +349,7 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
       let positionChangeBlock = {
         let pathAnimation = CABasicAnimation(keyPath: "path")
         pathAnimation.fromValue = oldPath ?? drawing.shapeLayer.path
-        drawing.shapeLayer.path = newPath.cgPath
+        drawing.shapeLayer.path = newPaths[i]
         pathAnimation.toValue = drawing.shapeLayer.path
         pathAnimation.duration = CHART_PATH_ANIMATION_DURATION
         drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
@@ -363,10 +362,9 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
           positionChangeBlock()
         }
         if (originalHidden && i == index) {
-          drawing.shapeLayer.path = newPath.cgPath
+          drawing.shapeLayer.path = newPaths[i]
         }
       }
-      
       
       if i == index {
         var oldOpacity: Any?
@@ -381,8 +379,56 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
         opacityAnimation.duration = CHART_FADE_ANIMATION_DURATION
         drawing.shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
       }
-      
-      drawing.yPositions = yVector
+    }
+  }
+  
+  //MARK: - Chart
+  
+  private func drawChart() {
+    prepareToDrawChart()
+    let vectorData = getCurrentVectorData()
+    _ = updateYValueRange(with: vectorData.yRangeData)
+    let pathsToDraw = getPathsToDraw(with: vectorData)
+    let shapesToDraw = getShapeLayersToDraw(for: pathsToDraw)
+
+    var draws = [Drawing]()
+    for i in 0..<shapesToDraw.count {
+      let shape = shapesToDraw[i]
+      if hiddenDrawingIndicies.contains(i) {
+        shape.opacity = 0
+      }
+      draws.append(Drawing(shapeLayer: shape, yPositions: vectorData.yVectors[i]))
+    }
+    drawings = ChartDrawings(drawings: draws, xPositions: vectorData.xVector)
+    
+    addShapeSublayers(shapesToDraw)
+  }
+  
+  private func updateChart() {
+    let vectorData = getCurrentVectorData()
+    let yChangeResult = updateYValueRange(with: vectorData.yRangeData)
+    let pathsToDraw = getPathsToDraw(with: vectorData)
+
+    animateChartUpdate(withYChangeResult: yChangeResult, paths: pathsToDraw)
+    
+    for i in 0..<drawings.drawings.count {
+      let drawing = drawings.drawings[i]
+      drawing.yPositions = vectorData.yVectors[i]
+    }
+    drawings.xPositions = vectorData.xVector
+  }
+  
+  private func updateChartByHiding(at index: Int, originalHidden: Bool) {
+    prepareToUpdateChartByHiding()
+    let vectorData = getCurrentVectorData()
+    _ = updateYValueRange(with: vectorData.yRangeData)
+    let pathsToDraw = getPathsToDraw(with: vectorData)
+    
+    animateChartHide(at: index, originalHidden: originalHidden, newPaths: pathsToDraw)
+    
+    for i in 0..<drawings.drawings.count {
+      let drawing = drawings.drawings[i]
+      drawing.yPositions = vectorData.yVectors[i]
     }
   }
   
@@ -789,113 +835,6 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     (currentChartAnnotation as? ChartAnnotation)?.updateDisplayedIndex(to: index)
   }
   
-  // MARK: - Drawing
-  
-  func bezierLine(withPoints points: [CGPoint]) -> UIBezierPath {
-    let line = UIBezierPath()
-    let firstPoint = points[0]
-    line.move(to: firstPoint)
-    for i in 1..<points.count {
-      line.addLine(to: points[i])
-    }
-    return line
-  }
-  
-  func squareBezierLine(withPoints points: [CGPoint]) -> UIBezierPath {
-    let line = UIBezierPath()
-    let firstPoint = points[0]
-    line.move(to: firstPoint)
-    for i in 1..<points.count {
-      let nextPoint = points[i]
-      line.addLine(to: CGPoint(x: nextPoint.x, y: line.currentPoint.y))
-      line.addLine(to: CGPoint(x: line.currentPoint.x, y: nextPoint.y))
-    }
-    return line
-  }
-  
-  func bezierLine(from fromPoint: CGPoint, to toPoint: CGPoint) -> UIBezierPath {
-    let line = UIBezierPath()
-    line.move(to: fromPoint)
-    line.addLine(to: toPoint)
-    return line
-  }
-  
-  func bezierCircle(at point: CGPoint, radius: CGFloat = 4.0) -> UIBezierPath {
-    let rect = CGRect(x: point.x - radius, y: point.y - radius, width: radius * 2, height: radius * 2)
-    return UIBezierPath(ovalIn: rect)
-  }
-  
-  func squareBezierArea(topPoints: [CGPoint], bottom: CGFloat) -> UIBezierPath {
-    let line = UIBezierPath()
-    var curY = bottom
-    let firstPoint = topPoints.first!
-    line.move(to: CGPoint(x: firstPoint.x, y: curY))
-    line.addLine(to: CGPoint(x: firstPoint.x, y: firstPoint.y))
-    curY = firstPoint.y
-    for tp in topPoints[1..<topPoints.count] {
-      line.addLine(to: CGPoint(x: tp.x, y: curY))
-      line.addLine(to: CGPoint(x: tp.x, y: tp.y))
-      curY = tp.y
-    }
-    line.addLine(to: CGPoint(x: line.currentPoint.x, y: bottom))
-    line.close()
-    return line
-  }
-  
-  func bezierArea(topPath: UIBezierPath, bottomPath: UIBezierPath) -> UIBezierPath {
-    let path = UIBezierPath()
-    path.append(topPath)
-    path.addLine(to: bottomPath.currentPoint)
-    path.append(bottomPath.reversing())
-    path.addLine(to: topPath.reversing().currentPoint)
-    return path
-  }
-  
-  func shapeLayer(withPath path: CGPath, color: CGColor, lineWidth: CGFloat = 2, fillColor: CGColor? = nil) -> CAShapeLayer{
-    let shapeLayer = CAShapeLayer()
-    shapeLayer.path = path
-    shapeLayer.strokeColor = color
-    shapeLayer.lineWidth = lineWidth
-    shapeLayer.lineJoin = .round
-    shapeLayer.lineCap = .round
-    shapeLayer.fillColor = fillColor
-    shapeLayer.contentsScale = ChartViewConstants.contentScaleForShapes
-    return shapeLayer
-  }
-  
-  func filledShapeLayer(withPath path: CGPath, color: CGColor) -> CAShapeLayer {
-    let fillLayer = CAShapeLayer()
-    fillLayer.path = path
-    fillLayer.fillColor = color
-    fillLayer.lineJoin = .miter
-    fillLayer.lineCap = .butt
-    fillLayer.contentsScale = ChartViewConstants.contentScaleForShapes
-    return fillLayer
-  }
-  
-  func textLayer(origin: CGPoint, text: String, color: CGColor) -> CATextLayer {
-    let textLayer = CATextLayer()
-    textLayer.font = ChartViewConstants.guideLabelsFont
-    textLayer.fontSize = ChartViewConstants.guideLabelsFontSize
-    textLayer.string = text
-    textLayer.frame = CGRect(origin: origin, size: ChartViewConstants.sizeForGuideLabels)
-    textLayer.contentsScale = ChartViewConstants.contentScaleForText
-    textLayer.foregroundColor = color
-    return textLayer
-  }
-  
-  func textLayer(position: CGPoint, text: String, color: CGColor) -> CATextLayer {
-    let textLayer = CATextLayer()
-    textLayer.font = ChartViewConstants.guideLabelsFont
-    textLayer.fontSize = ChartViewConstants.guideLabelsFontSize
-    textLayer.string = text
-    textLayer.frame = CGRect(origin: CGPoint.zero, size: ChartViewConstants.sizeForGuideLabels)
-    textLayer.position = position
-    textLayer.contentsScale = ChartViewConstants.contentScaleForText
-    textLayer.foregroundColor = color
-    return textLayer
-  }
-  
   // MARK: - Touches
   
   override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
@@ -1026,7 +965,141 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     return (i, leftover)
   }
   
+  // MARK: - Drawing
+  
+  func bezierLine(withPoints points: [CGPoint]) -> UIBezierPath {
+    let line = UIBezierPath()
+    let firstPoint = points[0]
+    line.move(to: firstPoint)
+    for i in 1..<points.count {
+      line.addLine(to: points[i])
+    }
+    return line
+  }
+  
+  func squareBezierLine(withPoints points: [CGPoint]) -> UIBezierPath {
+    let line = UIBezierPath()
+    let firstPoint = points[0]
+    line.move(to: firstPoint)
+    for i in 1..<points.count {
+      let nextPoint = points[i]
+      line.addLine(to: CGPoint(x: nextPoint.x, y: line.currentPoint.y))
+      line.addLine(to: CGPoint(x: line.currentPoint.x, y: nextPoint.y))
+    }
+    return line
+  }
+  
+  func bezierLine(from fromPoint: CGPoint, to toPoint: CGPoint) -> UIBezierPath {
+    let line = UIBezierPath()
+    line.move(to: fromPoint)
+    line.addLine(to: toPoint)
+    return line
+  }
+  
+  func bezierCircle(at point: CGPoint, radius: CGFloat = 4.0) -> UIBezierPath {
+    let rect = CGRect(x: point.x - radius, y: point.y - radius, width: radius * 2, height: radius * 2)
+    return UIBezierPath(ovalIn: rect)
+  }
+  
+  func squareBezierArea(topPoints: [CGPoint], bottom: CGFloat) -> UIBezierPath {
+    let line = UIBezierPath()
+    var curY = bottom
+    let firstPoint = topPoints.first!
+    line.move(to: CGPoint(x: firstPoint.x, y: curY))
+    line.addLine(to: CGPoint(x: firstPoint.x, y: firstPoint.y))
+    curY = firstPoint.y
+    for tp in topPoints[1..<topPoints.count] {
+      line.addLine(to: CGPoint(x: tp.x, y: curY))
+      line.addLine(to: CGPoint(x: tp.x, y: tp.y))
+      curY = tp.y
+    }
+    line.addLine(to: CGPoint(x: line.currentPoint.x, y: bottom))
+    line.close()
+    return line
+  }
+  
+  func bezierArea(topPoints: [CGPoint], bottom: CGFloat) -> UIBezierPath {
+    let line = UIBezierPath()
+    let firstPoint = topPoints.first!
+    line.move(to: CGPoint(x: firstPoint.x, y: bottom))
+    for tp in topPoints[1..<topPoints.count] {
+      line.addLine(to: CGPoint(x: tp.x, y: tp.y))
+    }
+    line.addLine(to: CGPoint(x: line.currentPoint.x, y: bottom))
+    line.close()
+    return line
+  }
+  
+  func bezierArea(topPath: UIBezierPath, bottomPath: UIBezierPath) -> UIBezierPath {
+    let path = UIBezierPath()
+    path.append(topPath)
+    path.addLine(to: bottomPath.currentPoint)
+    path.append(bottomPath.reversing())
+    path.addLine(to: topPath.reversing().currentPoint)
+    return path
+  }
+  
+  func shapeLayer(withPath path: CGPath, color: CGColor, lineWidth: CGFloat = 2, fillColor: CGColor? = nil) -> CAShapeLayer{
+    let shapeLayer = CAShapeLayer()
+    shapeLayer.path = path
+    shapeLayer.strokeColor = color
+    shapeLayer.lineWidth = lineWidth
+    shapeLayer.lineJoin = .round
+    shapeLayer.lineCap = .round
+    shapeLayer.fillColor = fillColor
+    shapeLayer.contentsScale = ChartViewConstants.contentScaleForShapes
+    return shapeLayer
+  }
+  
+  func filledShapeLayer(withPath path: CGPath, color: CGColor) -> CAShapeLayer {
+    let fillLayer = CAShapeLayer()
+    fillLayer.path = path
+    fillLayer.fillColor = color
+    fillLayer.lineJoin = .miter
+    fillLayer.lineCap = .butt
+    fillLayer.contentsScale = ChartViewConstants.contentScaleForShapes
+    return fillLayer
+  }
+  
+  func textLayer(origin: CGPoint, text: String, color: CGColor) -> CATextLayer {
+    let textLayer = CATextLayer()
+    textLayer.font = ChartViewConstants.guideLabelsFont
+    textLayer.fontSize = ChartViewConstants.guideLabelsFontSize
+    textLayer.string = text
+    textLayer.frame = CGRect(origin: origin, size: ChartViewConstants.sizeForGuideLabels)
+    textLayer.contentsScale = ChartViewConstants.contentScaleForText
+    textLayer.foregroundColor = color
+    return textLayer
+  }
+  
+  func textLayer(position: CGPoint, text: String, color: CGColor) -> CATextLayer {
+    let textLayer = CATextLayer()
+    textLayer.font = ChartViewConstants.guideLabelsFont
+    textLayer.fontSize = ChartViewConstants.guideLabelsFontSize
+    textLayer.string = text
+    textLayer.frame = CGRect(origin: CGPoint.zero, size: ChartViewConstants.sizeForGuideLabels)
+    textLayer.position = position
+    textLayer.contentsScale = ChartViewConstants.contentScaleForText
+    textLayer.foregroundColor = color
+    return textLayer
+  }
+  
   // MARK: - Structs and typealiases
+  
+  struct VectorData: VectorDataProtocol {
+    let xVector: ValueVector
+    let yVectors: [ValueVector]
+    let yRangeData: YRangeDataProtocol
+    let points: [[CGPoint]]
+  }
+  
+  struct YRangeData: YRangeDataProtocol {
+    let yRange: ClosedRange<CGFloat>
+  }
+  
+  private struct YRangeChangeResult: YRangeChangeResultProtocol {
+    let didChange: Bool
+  }
   
   private class HorizontalAxis {
     private(set) var lineLayer: CAShapeLayer
@@ -1172,3 +1245,13 @@ class BaseChartAnnotation {
   }
 
 }
+
+protocol VectorDataProtocol {
+  var xVector: ValueVector {get}
+  var yVectors: [ValueVector] {get}
+  var points: [[CGPoint]] {get}
+  var yRangeData: YRangeDataProtocol {get}
+}
+
+protocol YRangeDataProtocol {}
+protocol YRangeChangeResultProtocol {}

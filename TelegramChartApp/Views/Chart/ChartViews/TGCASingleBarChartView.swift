@@ -11,129 +11,14 @@ import UIKit
 
 class TGCASingleBarChartView: TGCAChartView {
   
-  override func drawChart() {
-    let normalizedYVectors = getNormalizedYVectors()
-    let yVectors = normalizedYVectors.vectors.map{mapToChartBoundsHeight($0)}
-    let xVector = mapToChartBoundsWidth(getNormalizedXVector())
-    
-    updateCurrentYValueRange(with: normalizedYVectors.yRange)
-
-    var draws = [Drawing]()
-    for i in 0..<yVectors.count {
-      let yVector = yVectors[i]
-      let points = convertToPoints(xVector: xVector, yVector: yVector)
-      let line = squareBezierArea(topPoints: points, bottom: chartBoundsBottom)
-      let shape = filledShapeLayer(withPath: line.cgPath, color: chart.yVectors[i].metaData.color.cgColor)
-      if hiddenDrawingIndicies.contains(i) {
-        shape.opacity = 0
-      }
-      lineLayer.addSublayer(shape)
-      draws.append(Drawing(shapeLayer: shape, yPositions: yVector))
-    }
-    drawings = ChartDrawings(drawings: draws, xPositions: xVector)
+  override func getPathsToDraw(with vectorData: VectorDataProtocol) -> [CGPath] {
+    let vectorData = vectorData as! VectorData
+    return vectorData.points.map{squareBezierArea(topPoints: $0, bottom: chartBoundsBottom).cgPath}
   }
   
-  override func updateChart() {
-    let xVector = mapToChartBoundsWidth(getNormalizedXVector())
-    let normalizedYVectors = getNormalizedYVectors()
-    
-    let didYChange = currentYValueRange != normalizedYVectors.yRange
-    
-    updateCurrentYValueRange(with: normalizedYVectors.yRange)
-
-    for i in 0..<drawings.drawings.count {
-      
-      let drawing = drawings.drawings[i]
-      let yVector = mapToChartBoundsHeight(normalizedYVectors.vectors[i])
-      let points = convertToPoints(xVector: xVector, yVector: yVector)
-      drawing.yPositions = yVector
-      let newPath = squareBezierArea(topPoints: points, bottom: chartBoundsBottom)
-      
-      if let oldAnim = drawing.shapeLayer.animation(forKey: "pathAnimation") {
-        drawing.shapeLayer.removeAnimation(forKey: "pathAnimation")
-        let pathAnimation = CABasicAnimation(keyPath: "path")
-        pathAnimation.fromValue = drawing.shapeLayer.presentation()?.value(forKey: "path") ?? drawing.shapeLayer.path
-        drawing.shapeLayer.path = newPath.cgPath
-        pathAnimation.toValue = drawing.shapeLayer.path
-        pathAnimation.duration = CHART_PATH_ANIMATION_DURATION
-        if !didYChange {
-          pathAnimation.beginTime = oldAnim.beginTime
-        } else {
-          pathAnimation.beginTime = CACurrentMediaTime()
-        }
-        drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
-      } else {
-        if didYChange  {
-          let pathAnimation = CABasicAnimation(keyPath: "path")
-          pathAnimation.fromValue = drawing.shapeLayer.path
-          drawing.shapeLayer.path = newPath.cgPath
-          pathAnimation.toValue = drawing.shapeLayer.path
-          pathAnimation.duration = CHART_PATH_ANIMATION_DURATION
-          pathAnimation.beginTime = CACurrentMediaTime()
-          drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
-        } else {
-          drawing.shapeLayer.path = newPath.cgPath
-        }
-      }
-    }
-    drawings.xPositions = xVector
-  }
-  
-  override func updateChartByHiding(at index: Int, originalHidden: Bool) {
-    let normalizedYVectors = getNormalizedYVectors()
-    let xVector = drawings.xPositions
-    
-    updateCurrentYValueRange(with: normalizedYVectors.yRange)
-
-    for i in 0..<drawings.drawings.count {
-      
-      let drawing = drawings.drawings[i]
-      let yVector = mapToChartBoundsHeight(normalizedYVectors.vectors[i])
-      let points = convertToPoints(xVector: xVector, yVector: yVector)
-      let newPath = squareBezierArea(topPoints: points, bottom: chartBoundsBottom)
-      
-      var oldPath: Any?
-      if let _ = drawing.shapeLayer.animation(forKey: "pathAnimation") {
-        oldPath = drawing.shapeLayer.presentation()?.value(forKey: "path")
-        drawing.shapeLayer.removeAnimation(forKey: "pathAnimation")
-      }
-      
-      let positionChangeBlock = {
-        let pathAnimation = CABasicAnimation(keyPath: "path")
-        pathAnimation.fromValue = oldPath ?? drawing.shapeLayer.path
-        drawing.shapeLayer.path = newPath.cgPath
-        pathAnimation.toValue = drawing.shapeLayer.path
-        pathAnimation.duration = CHART_PATH_ANIMATION_DURATION
-        drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
-      }
-      
-      if animatesPositionOnHide {
-        positionChangeBlock()
-      } else {
-        if !hiddenDrawingIndicies.contains(i) && !(originalHidden && i == index) {
-          positionChangeBlock()
-        }
-        if (originalHidden && i == index) {
-          drawing.shapeLayer.path = newPath.cgPath
-        }
-      }
-      
-      
-      if i == index {
-        var oldOpacity: Any?
-        if let _ = drawing.shapeLayer.animation(forKey: "opacityAnimation") {
-          oldOpacity = drawing.shapeLayer.presentation()?.value(forKey: "opacity")
-          drawing.shapeLayer.removeAnimation(forKey: "opacityAnimation")
-        }
-        let opacityAnimation = CABasicAnimation(keyPath: "opacity")
-        opacityAnimation.fromValue = oldOpacity ?? drawing.shapeLayer.opacity
-        drawing.shapeLayer.opacity = originalHidden ? 1 : 0
-        opacityAnimation.toValue = drawing.shapeLayer.opacity
-        opacityAnimation.duration = CHART_FADE_ANIMATION_DURATION
-        drawing.shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
-      }
-      
-      drawing.yPositions = yVector
+  override func getShapeLayersToDraw(for paths: [CGPath]) -> [CAShapeLayer] {
+    return (0..<paths.count).map{
+      filledShapeLayer(withPath: paths[$0], color: chart.yVectors[$0].metaData.color.cgColor)
     }
   }
   

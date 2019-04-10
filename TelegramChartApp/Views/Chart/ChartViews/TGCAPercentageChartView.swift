@@ -11,62 +11,55 @@ import UIKit
 
 class TGCAPercentageChartView: TGCAChartView {
   
-  override func drawChart() {
+  private struct PercentageYRangeData: YRangeDataProtocol {}
+  
+  override func prepareToDrawChart() {
     updateChartPercentageYVectors()
-    
+  }
+  
+  override func prepareToUpdateChartByHiding() {
+    updateChartPercentageYVectors()
+  }
+  
+  override func getCurrentVectorData() -> VectorDataProtocol {
     let yVectors = getPercentageYVectors().map{mapToChartBoundsHeight($0)}
     let xVector = mapToChartBoundsWidth(getNormalizedXVector())
-    
-    updateCurrentYValueRange(with: 0...100)
-    
-    var draws = [Drawing]()
-    var shapes = [CAShapeLayer]()
-    for i in 0..<yVectors.count {
-      let yVector = yVectors[i]
-      let points = convertToPoints(xVector: xVector, yVector: yVector)
-      let line = bezierLine(withPoints: points)
-      let area = bezierArea(topPath: line, bottomPath: bezierLine(from: CGPoint(x: points[0].x, y: chartBoundsBottom), to: CGPoint(x: points.last!.x, y: chartBoundsBottom)))
-      let shape = filledShapeLayer(withPath: area.cgPath, color: chart.yVectors[i].metaData.color.cgColor)
-      if hiddenDrawingIndicies.contains(i) {
-        shape.opacity = 0
-      }
-      shapes.append(shape)
-      draws.append(Drawing(shapeLayer: shape, yPositions: yVector))
+    let points = (0..<yVectors.count).map{
+      convertToPoints(xVector: xVector, yVector: yVectors[$0])
     }
-    shapes.reversed().forEach{
+    return VectorData(xVector: xVector, yVectors: yVectors, yRangeData: PercentageYRangeData(), points: points)
+  }
+  
+  override func updateYValueRange(with yRangeData: YRangeDataProtocol) -> YRangeChangeResultProtocol? {
+    return nil
+  }
+  
+  override func getPathsToDraw(with vectorData: VectorDataProtocol) -> [CGPath] {
+    let vectorData = vectorData as! VectorData
+    return vectorData.points.map{bezierArea(topPoints: $0, bottom: chartBoundsBottom).cgPath}
+  }
+  
+  override func getShapeLayersToDraw(for paths: [CGPath]) -> [CAShapeLayer] {
+    return (0..<paths.count).map{
+      filledShapeLayer(withPath: paths[$0], color: chart.yVectors[$0].metaData.color.cgColor)
+    }
+  }
+  
+  override func addShapeSublayers(_ layers: [CAShapeLayer]) {
+    layers.reversed().forEach{
       lineLayer.addSublayer($0)
     }
-    drawings = ChartDrawings(drawings: draws, xPositions: xVector)
   }
   
-  override func updateChart() {
-    let xVector = mapToChartBoundsWidth(getNormalizedXVector())
-    let yVectors = getPercentageYVectors().map{mapToChartBoundsHeight($0)}
-    
+  override func animateChartUpdate(withYChangeResult yChangeResult: YRangeChangeResultProtocol?, paths: [CGPath]) {
     for i in 0..<drawings.drawings.count {
-      let drawing = drawings.drawings[i]
-      let yVector = yVectors[i]
-      let points = convertToPoints(xVector: xVector, yVector: yVector)
-      drawing.yPositions = yVector
-      let line = bezierLine(withPoints: points)
-      let newPath = bezierArea(topPath: line, bottomPath: bezierLine(from: CGPoint(x: points[0].x, y: chartBoundsBottom), to: CGPoint(x: points.last!.x, y: chartBoundsBottom)))
-      drawing.shapeLayer.path = newPath.cgPath
+      drawings.drawings[i].shapeLayer.path = paths[i]
     }
-    drawings.xPositions = xVector
   }
   
-  override func updateChartByHiding(at index: Int, originalHidden: Bool) {
-    updateChartPercentageYVectors()
-    let yVectors = getPercentageYVectors().map{mapToChartBoundsHeight($0)}
-    let xVector = drawings.xPositions
-    
+  override func animateChartHide(at index: Int, originalHidden: Bool, newPaths: [CGPath]) {
     for i in 0..<drawings.drawings.count {
-      
       let drawing = drawings.drawings[i]
-      let yVector = yVectors[i]
-      let points = convertToPoints(xVector: xVector, yVector: yVector)
-      let line = bezierLine(withPoints: points)
-      let newPath = bezierArea(topPath: line, bottomPath: bezierLine(from: CGPoint(x: points[0].x, y: chartBoundsBottom), to: CGPoint(x: points.last!.x, y: chartBoundsBottom)))
       
       var oldPath: Any?
       if let _ = drawing.shapeLayer.animation(forKey: "pathAnimation") {
@@ -77,7 +70,7 @@ class TGCAPercentageChartView: TGCAChartView {
       let positionChangeBlock = {
         let pathAnimation = CABasicAnimation(keyPath: "path")
         pathAnimation.fromValue = oldPath ?? drawing.shapeLayer.path
-        drawing.shapeLayer.path = newPath.cgPath
+        drawing.shapeLayer.path = newPaths[i]
         pathAnimation.toValue = drawing.shapeLayer.path
         pathAnimation.duration = CHART_PATH_ANIMATION_DURATION
         drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
@@ -90,10 +83,9 @@ class TGCAPercentageChartView: TGCAChartView {
           positionChangeBlock()
         }
         if (originalHidden && i == index) {
-          drawing.shapeLayer.path = newPath.cgPath
+          drawing.shapeLayer.path = newPaths[i]
         }
       }
-      
       
       if i == index {
         var oldOpacity: Any?
@@ -111,14 +103,13 @@ class TGCAPercentageChartView: TGCAChartView {
         opacityAnimation.duration = CHART_FADE_ANIMATION_DURATION
         drawing.shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
       }
-      
-      drawing.yPositions = yVector
     }
   }
   
   //MARKL - Get Y vectors
   
   private var chartPercentageYVectors: [ValueVector]!
+  
   private func updateChartPercentageYVectors() {
     chartPercentageYVectors = chart.percentageYVectors(excludedIndicies: hiddenDrawingIndicies)
   }
