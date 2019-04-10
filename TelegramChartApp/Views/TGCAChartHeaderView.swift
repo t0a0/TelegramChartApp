@@ -63,6 +63,7 @@ extension TGCAChartHeaderView: ThemeChangeObserving {
     
     func applyChanges() {
       label.textColor = theme.mainTextColor
+      backgroundColor = theme.foregroundColor
     }
     
     if animated {
