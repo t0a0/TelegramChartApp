@@ -184,13 +184,13 @@ class TGCASingleBarChartView: TGCAChartView {
       let rightYvector = Array(yPositions[(index+1)..<yPositions.count])
       let rightXvector = Array(xPositions[(index+1)..<yPositions.count])
       let rightPoints = convertToPoints(xVector: rightXvector, yVector: rightYvector)
-      rightPath = bezierArea(topPoints: rightPoints, bottom: chartBoundsBottom).cgPath
+      rightPath = squareBezierArea(topPoints: rightPoints, bottom: chartBoundsBottom).cgPath
     }
     
     let leftYvector = Array(yPositions[0...index])
     let leftXvector = Array(xPositions[0...index])
     let leftPoints = convertToPoints(xVector: leftXvector, yVector: leftYvector)
-    let leftPath = bezierArea(topPoints: leftPoints, bottom: chartBoundsBottom).cgPath
+    let leftPath = squareBezierArea(topPoints: leftPoints, bottom: chartBoundsBottom).cgPath
     
     return (leftPath, rightPath)
   }
