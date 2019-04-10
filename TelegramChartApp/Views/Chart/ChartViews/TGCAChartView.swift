@@ -21,7 +21,8 @@ class TGCAChartView: UIView {
   
   struct ChartViewConstants {
     static let axisLineOpacity: Float = 0.5
-    static let axisLineWidth: CGFloat = 0.75
+    static let axisLineWidth: CGFloat = 0.5
+    static let annotationLineWidth: CGFloat = 1.0
     static let sizeForGuideLabels = CGSize(width: 60.0, height: 20.0)
     static let circlePointRadius: CGFloat = 4.0
     static let guideLabelsFont = "Helvetica" as CFTypeRef
@@ -744,9 +745,6 @@ class TGCAChartView: UIView {
   // MARK: - Annotation
   
   func addChartAnnotation(for index: Int) {
-    guard drawings != nil else {
-      return
-    }
     let xPoint = drawings.xPositions[index]
     var circleLayers = [CAShapeLayer]()
     
@@ -763,11 +761,10 @@ class TGCAChartView: UIView {
       circleLayers.append(circleShape)
       if hiddenDrawingIndicies.contains(i) {
         circleShape.opacity = 0
-        continue
       } else {
         circleShape.opacity = 1
+        coloredValues.append((chart.yVectors[i].vector[index], chart.yVectors[i].metaData.color))
       }
-      coloredValues.append((chart.yVectors[i].vector[index], chart.yVectors[i].metaData.color))
     }
     coloredValues.sort { (left, right) -> Bool in
       return left.0 >= right.0
@@ -778,7 +775,8 @@ class TGCAChartView: UIView {
     annotationView.center = CGPoint(x: xPos, y: bounds.origin.y + annotationSize.height / 2)
     
     let line = bezierLine(from: CGPoint(x: xPoint, y: annotationView.frame.origin.y + annotationView.frame.height), to: CGPoint(x: xPoint, y: chartBoundsBottom))
-    let lineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: 1.0)
+    let lineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: ChartViewConstants.annotationLineWidth)
+    lineLayer.opacity = ChartViewConstants.axisLineOpacity
     lineLayer.zPosition = zPositions.Annotation.lineShape.rawValue
     layer.addSublayer(lineLayer)
     for c in circleLayers {
