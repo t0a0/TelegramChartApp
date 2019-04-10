@@ -24,8 +24,8 @@ class TGCAChartView: UIView/*, LinearChartDisplaying*/ {
     static let circlePointRadius: CGFloat = 4.0
     static let guideLabelsFont = "Helvetica" as CFTypeRef
     static let guideLabelsFontSize: CGFloat = 13.5
-    static let contentScaleForText: CGFloat = 1.0
-    static let contentScaleForShapes = UIScreen.main.scale
+    static let contentScaleForShapes: CGFloat = 1.0
+    static let contentScaleForText = UIScreen.main.scale
   }
   
   let axisLayer = CALayer()
