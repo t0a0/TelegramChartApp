@@ -270,7 +270,11 @@ class TGCAChartView: UIView {
     updateChartByHiding(at: index, originalHidden: originalHidden)
     
     if let annotation = currentChartAnnotation {
-      moveChartAnnotation(to: annotation.displayedIndex, animated: true)
+      if hiddenDrawingIndicies.count == chart.yVectors.count {
+        removeChartAnnotation()
+      } else {
+        moveChartAnnotation(to: annotation.displayedIndex, animated: true)
+      }
     }
   }
   
@@ -860,7 +864,7 @@ class TGCAChartView: UIView {
   }
   
   override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-    guard canShowAnnotations else {
+    guard canShowAnnotations && hiddenDrawingIndicies.count != chart.yVectors.count else {
       return super.touchesBegan(touches, with: event)
     }
     guard let touchLocation = touches.first?.location(in: self), chartBounds.contains(touchLocation) else {

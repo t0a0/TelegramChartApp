@@ -23,13 +23,20 @@ class TGCASingleBarChartView: TGCAChartView {
   }
   
   //MARK: - Annotations
-  private var chartAnnotationMaskColor = UIApplication.myDelegate.currentTheme.backgroundColor.withAlphaComponent(0.75).cgColor
+  private var chartAnnotationMaskColor = UIApplication.myDelegate.currentTheme.foregroundColor.withAlphaComponent(0.75).cgColor
   
   override func addChartAnnotation(for index: Int) {
     let (leftPath, rightPath) = getPathsForChartAnnotation(at: index)
     let leftMask = filledShapeLayer(withPath: leftPath, color: chartAnnotationMaskColor)
     let rightMask = filledShapeLayer(withPath: rightPath, color: chartAnnotationMaskColor)
 
+    
+    //TODO: THis is a workaround against visible borders
+    leftMask.lineWidth = 0.5
+    leftMask.strokeColor = chartAnnotationMaskColor
+    rightMask.lineWidth = 0.5
+    rightMask.strokeColor = chartAnnotationMaskColor
+    
     lineLayer.addSublayer(leftMask)
     lineLayer.addSublayer(rightMask)
     
@@ -40,7 +47,6 @@ class TGCASingleBarChartView: TGCAChartView {
     guard let currentChartAnnotation = currentChartAnnotation as? ChartAnnotation else {
       return
     }
-    print(index)
     let (leftPath, rightPath) = getPathsForChartAnnotation(at: index)
 
     currentChartAnnotation.leftMask.path = leftPath
@@ -56,9 +62,11 @@ class TGCASingleBarChartView: TGCAChartView {
       currentChartAnnotation = nil
     }
   }
+
   
   private func getPathsForChartAnnotation(at index: Int) -> (leftPath: CGPath, rightPath: CGPath) {
-    let yPositions = drawings.drawings[0].yPositions
+    let nonHiddenMaximumIndex = (0..<chart.yVectors.count).filter{!hiddenDrawingIndicies.contains($0)}.sorted().max()!
+    let yPositions = drawings.drawings[nonHiddenMaximumIndex].yPositions
     let xPositions = drawings.xPositions
     
     var rightPath = CGPath(rect: CGRect.zero, transform: nil)
