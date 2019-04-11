@@ -190,6 +190,12 @@ struct DataChart {
     return retVal
   }
   
+  func percentages(at index: Int, includedIndicies: [Int]) -> [Int] {
+    let arrayNum = includedIndicies.map{yVectors[$0].vector[index]}
+    let sum = arrayNum.reduce(0, +)
+    return arrayNum.map{Int(($0 * 100 / sum).rounded())}
+  }
+  
   /// Maps the value in range of 0...1 to an according index in the xVector
   func translatedIndex(for xRangePosition: CGFloat) -> Int {
     return Int(round(CGFloat(xVector.count - 1) * xRangePosition))

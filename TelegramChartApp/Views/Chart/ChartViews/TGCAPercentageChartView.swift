@@ -110,9 +110,12 @@ class TGCAPercentageChartView: TGCAChartView {
   
   override func getChartAnnotationViewConfiguration(for index: Int) -> TGCAChartAnnotationView.AnnotationViewConfiguration {
     let includedIndicies = (0..<chart.yVectors.count).filter{!hiddenDrawingIndicies.contains($0)}
-    var coloredValues: [TGCAChartAnnotationView.ColoredValue] = includedIndicies.map{
-      let yVector = chart.yVectors[$0]
-      return TGCAChartAnnotationView.ColoredValue(title: yVector.metaData.name, value: yVector.vector[index], color: yVector.metaData.color, prefix: "100%")
+    let percentages = chart.percentages(at: index, includedIndicies: includedIndicies).map{"\($0)%"}
+    var coloredValues = [TGCAChartAnnotationView.ColoredValue]()
+    for i in 0..<includedIndicies.count {
+      let idx = includedIndicies[i]
+      let yVector = chart.yVectors[idx]
+      coloredValues.append(TGCAChartAnnotationView.ColoredValue(title: yVector.metaData.name, value: yVector.vector[index], color: yVector.metaData.color, prefix: percentages[i]))
     }
     coloredValues.sort { (left, right) -> Bool in
       return left.value >= right.value
