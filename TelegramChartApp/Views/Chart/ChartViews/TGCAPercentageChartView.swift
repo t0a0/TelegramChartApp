@@ -106,7 +106,7 @@ class TGCAPercentageChartView: TGCAChartView {
     }
   }
   
-  override func addChartAnnotation(for index: Int) {
+  /*override func addChartAnnotation(for index: Int) {
     let xPoint = drawings.xPositions[index]
     var coloredValues = [(CGFloat, UIColor)]()
     let date = chart.datesVector[index]
@@ -124,7 +124,6 @@ class TGCAPercentageChartView: TGCAChartView {
     
     let line = bezierLine(from: CGPoint(x: xPoint, y: annotationView.frame.origin.y + annotationView.frame.height), to: CGPoint(x: xPoint, y: chartBoundsBottom))
     let lineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: ChartViewConstants.annotationLineWidth)
-    lineLayer.opacity = ChartViewConstants.axisLineOpacity
     lineLayer.zPosition = zPositions.Annotation.lineShape.rawValue
     layer.addSublayer(lineLayer)
     annotationView.layer.zPosition = zPositions.Annotation.view.rawValue
@@ -156,7 +155,7 @@ class TGCAPercentageChartView: TGCAChartView {
     (currentChartAnnotation as? ChartAnnotation)?.lineLayer.path = line.cgPath
     (currentChartAnnotation as? ChartAnnotation)?.updateDisplayedIndex(to: index)
     
-  }
+  }*/
   
   override func removeChartAnnotation() {
     if let annotation = currentChartAnnotation as? ChartAnnotation {

@@ -15,44 +15,44 @@ struct TGCAColorTheme {
   let backgroundColor: UIColor
   let foregroundColor: UIColor
   let accentColor: UIColor
-  let buttonTextColor: UIColor
   let mainTextColor: UIColor
   let axisColor: UIColor
   let axisLabelColor: UIColor
   let trimmerShoulderColor: UIColor
   let annotationColor: UIColor
   let annotationLabelColor: UIColor
+  let annotationDisclosureIndicatorColor: UIColor
   let tableViewFooterHeaderColor: UIColor
   let statusBarStyle: UIStatusBarStyle
   
   static let normal = TGCAColorTheme(
     identifier: ThemeIdentifier.normal,
-    backgroundColor: UIColor(red: 239.0/255.0, green: 239.0/255.0, blue: 244.0/255.0, alpha: 1),
-    foregroundColor: UIColor(red: 254.0/255.0, green: 254.0/255.0, blue: 254.0/255.0, alpha: 1),
-    accentColor: UIColor(red: 0.0/255.0, green: 126.0/255.0, blue: 229.0/255.0, alpha: 1),
-    buttonTextColor: UIColor(red: 24.0/255.0, green: 145.0/255.0, blue: 255.0/255.0, alpha: 1),
+    backgroundColor: UIColor(red: 235.0/255.0, green: 235.0/255.0, blue: 241.0/255.0, alpha: 1),
+    foregroundColor: .white,
+    accentColor: UIColor(red: 10.0/255.0, green: 96.0/255.0, blue: 254.0/255.0, alpha: 1),
     mainTextColor: UIColor.black,
-    axisColor: UIColor(red: 207.0/255.0, green: 209.0/255.0, blue: 210.0/255.0, alpha: 1),
-    axisLabelColor: UIColor(red: 152.0/255.0, green: 158.0/255.0, blue: 163.0/255.0, alpha: 1),
-    trimmerShoulderColor: UIColor(red: 202.0/255.0, green: 212.0/255.0, blue: 222.0/255.0, alpha: 0.95),
-    annotationColor: UIColor(red: 240.0/255.0, green: 240.0/255.0, blue: 245.0/255.0, alpha: 0.9),
-    annotationLabelColor: UIColor(red: 109.0/255.0, green: 109.0/255.0, blue: 114.0/255.0, alpha: 1),
-    tableViewFooterHeaderColor: UIColor(red: 109.0/255.0, green: 109.0/255.0, blue: 114.0/255.0, alpha: 1),
+    axisColor: UIColor(red: 24.0/255.0, green: 45.0/255.0, blue: 59.0/255.0, alpha: 0.2),
+    axisLabelColor: UIColor(red: 123.0/255.0, green: 123.0/255.0, blue: 129.0/255.0, alpha: 1),
+    trimmerShoulderColor: UIColor(red: 179.0/255.0, green: 198.0/255.0, blue: 217.0/255.0, alpha: 1),
+    annotationColor: UIColor(red: 241.0/255.0, green: 241.0/255.0, blue: 245.0/255.0, alpha: 1),
+    annotationLabelColor: UIColor(red: 90.0/255.0, green: 90.0/255.0, blue: 95.0/255.0, alpha: 1),
+    annotationDisclosureIndicatorColor: UIColor(red: 184.0/255.0, green: 186.0/255.0, blue: 194.0/255.0, alpha: 1),
+    tableViewFooterHeaderColor: UIColor(red: 90.0/255.0, green: 90.0/255.0, blue: 95.0/255.0, alpha: 1),
     statusBarStyle: .default)
   
   static let dark = TGCAColorTheme(
     identifier: ThemeIdentifier.dark,
-    backgroundColor: UIColor(red: 24.0/255.0, green: 34.0/255.0, blue: 45.0/255.0, alpha: 1),
-    foregroundColor: UIColor(red: 33.0/255.0, green: 47.0/255.0, blue: 63.0/255.0, alpha: 1),
-    accentColor: UIColor(red: 0.0/255.0, green: 126.0/255.0, blue: 229.0/255.0, alpha: 1),
-    buttonTextColor: UIColor(red: 24.0/255.0, green: 145.0/255.0, blue: 255.0/255.0, alpha: 1),
+    backgroundColor: UIColor(red: 19.0/255.0, green: 24.0/255.0, blue: 34.0/255.0, alpha: 1),
+    foregroundColor: UIColor(red: 25.0/255.0, green: 35.0/255.0, blue: 48.0/255.0, alpha: 1),
+    accentColor: UIColor(red: 39.0/255.0, green: 146.0/255.0, blue: 254.0/255.0, alpha: 1),
     mainTextColor: UIColor.white,
-    axisColor: UIColor(red: 19.0/255.0, green: 27.0/255.0, blue: 35.0/255.0, alpha: 1),
-    axisLabelColor: UIColor(red: 93.0/255.0, green: 109.0/255.0, blue: 126.0/255.0, alpha: 1),
-    trimmerShoulderColor: UIColor(red: 53.0/255.0, green: 70.0/255.0, blue: 89.0/255.0, alpha: 0.95),
-    annotationColor: UIColor(red: 26.0/255.0, green: 40.0/255.0, blue: 55.0/255.0, alpha: 0.9),
-    annotationLabelColor: UIColor(red: 254.0/255.0, green: 254.0/255.0, blue: 254.0/255.0, alpha: 1),
-    tableViewFooterHeaderColor: UIColor(red: 91.0/255.0, green: 107.0/255.0, blue: 127.0/255.0, alpha: 1),
+    axisColor: UIColor(red: 133.0/255.0, green: 150.0/255.0, blue: 171.0/255.0, alpha: 0.2),
+    axisLabelColor: UIColor(red: 115.0/255.0, green: 131.0/255.0, blue: 155.0/255.0, alpha: 1),
+    trimmerShoulderColor: UIColor(red: 68.0/255.0, green: 79.0/255.0, blue: 89.0/255.0, alpha: 1),
+    annotationColor: UIColor(red: 19.0/255.0, green: 26.0/255.0, blue: 36.0/255.0, alpha: 1),
+    annotationLabelColor: .white,
+    annotationDisclosureIndicatorColor: UIColor(red: 59.0/255.0, green: 66.0/255.0, blue: 67.0/255.0, alpha: 1),
+    tableViewFooterHeaderColor: UIColor(red: 115.0/255.0, green: 132.0/255.0, blue: 156.0/255.0, alpha: 1),
     statusBarStyle: .lightContent)
   
 }

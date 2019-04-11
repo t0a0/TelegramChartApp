@@ -155,7 +155,6 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
       let line = bezierLine(from: CGPoint(x: bounds.origin.x, y: 0), to: CGPoint(x: boundsRight, y: 0))
       let lineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: ChartViewConstants.axisLineWidth)
       lineLayer.position.y = position
-      lineLayer.opacity = ChartViewConstants.axisLineOpacity
       
       let leftTextLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: leftTexts[i], color: leftAxisLabelColor)
       let rightTextLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: rightTexts[i], color: rightAxisLabelColor)
@@ -303,7 +302,7 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
       CATransaction.begin()
       CATransaction.setAnimationDuration(AXIS_ANIMATION_DURATION)
       self?.horizontalAxes?.forEach{
-        $0.lineLayer.opacity = ChartViewConstants.axisLineOpacity
+        $0.lineLayer.opacity = 1
         $0.leftTextLayer.opacity = 1
         $0.rightTextLayer.opacity = 1
       }

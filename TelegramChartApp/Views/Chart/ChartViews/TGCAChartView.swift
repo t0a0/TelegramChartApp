@@ -20,13 +20,12 @@ class TGCAChartView: UIView {
   var circlePointFillColor = UIColor.white.cgColor
   
   struct ChartViewConstants {
-    static let axisLineOpacity: Float = 0.5
     static let axisLineWidth: CGFloat = 0.5
     static let annotationLineWidth: CGFloat = 1.0
     static let sizeForGuideLabels = CGSize(width: 60.0, height: 20.0)
     static let circlePointRadius: CGFloat = 4.0
     static let guideLabelsFont = "Helvetica" as CFTypeRef
-    static let guideLabelsFontSize: CGFloat = 13.5
+    static let guideLabelsFontSize: CGFloat = 12
     static let contentScaleForShapes: CGFloat = 1.0
     static let contentScaleForText = UIScreen.main.scale
     /// The axes are drawn from the bottom of the bounds to the top of the bounds, capped by this value.
@@ -638,7 +637,6 @@ class TGCAChartView: UIView {
       let line = bezierLine(from: CGPoint(x: bounds.origin.x, y: 0), to: CGPoint(x: boundsRight, y: 0))
       let lineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: ChartViewConstants.axisLineWidth)
       lineLayer.position.y = position
-      lineLayer.opacity = ChartViewConstants.axisLineOpacity
       let labelLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: texts[i], color: axisLabelColor)
       labelLayer.alignmentMode = .left
       axisLayer.addSublayer(lineLayer)
@@ -728,7 +726,7 @@ class TGCAChartView: UIView {
         oldLineLayer.opacity = 0
         oldLineLayer.position = oldLineLayerTargetPosition
         
-        newLineLayer.opacity = ChartViewConstants.axisLineOpacity
+        newLineLayer.opacity = 1.0
         newLineLayer.position = oldShapePos
         newTextLayer.position = oldTextPos
         newTextLayer.opacity = 1.0
@@ -748,35 +746,39 @@ class TGCAChartView: UIView {
     let xPoint = drawings.xPositions[index]
     var circleLayers = [CAShapeLayer]()
     
-    var coloredValues = [(CGFloat, UIColor)]()
+    var coloredValues = [TGCAChartAnnotationView.ColoredValue]()
     let date = chart.datesVector[index]
     
     for i in 0..<drawings.drawings.count {
       let drawing = drawings.drawings[i]
+      let color = chart.yVectors[i].metaData.color
       let point = CGPoint(x: xPoint, y: drawing.yPositions[index])
       
       let circle = bezierCircle(at: point, radius: ChartViewConstants.circlePointRadius)
-      let circleShape = shapeLayer(withPath: circle.cgPath, color: chart.yVectors[i].metaData.color.cgColor, lineWidth: graphLineWidth, fillColor: circlePointFillColor)
+      let circleShape = shapeLayer(withPath: circle.cgPath, color: color.cgColor, lineWidth: graphLineWidth, fillColor: circlePointFillColor)
       circleShape.zPosition = zPositions.Annotation.circleShape.rawValue
       circleLayers.append(circleShape)
-      if hiddenDrawingIndicies.contains(i) {
-        circleShape.opacity = 0
-      } else {
+      if !hiddenDrawingIndicies.contains(i) {
         circleShape.opacity = 1
-        coloredValues.append((chart.yVectors[i].vector[index], chart.yVectors[i].metaData.color))
+        
+        coloredValues.append(TGCAChartAnnotationView.ColoredValue(title: chart.yVectors[i].metaData.name, value: chart.yVectors[i].vector[index], color: color))
+      } else {
+        circleShape.opacity = 0
       }
     }
     coloredValues.sort { (left, right) -> Bool in
-      return left.0 >= right.0
+      return left.value >= right.value
     }
-    let annotationView = TGCAChartAnnotationView(frame: CGRect.zero)
-    let annotationSize = annotationView.configure(date: date, coloredValues: coloredValues)
-    let xPos = min(bounds.origin.x + bounds.width - annotationSize.width / 2, max(bounds.origin.x + annotationSize.width / 2, xPoint))
-    annotationView.center = CGPoint(x: xPos, y: bounds.origin.y + annotationSize.height / 2)
     
+    let annotationView = TGCAChartAnnotationView(maxPossibleLabels: chart.yVectors.count)
+    let configuration = TGCAChartAnnotationView.AnnotationViewConfiguration(date: date, showsDisclosureIcon: true, mode: .Date, showsLeftColumn: false, coloredValues: coloredValues)
+    let annotationSize = annotationView.configure(with: configuration)
+    
+    let xPos = min(bounds.origin.x + bounds.width - annotationSize.width / 2, max(bounds.origin.x + annotationSize.width / 2, xPoint))
+    annotationView.frame.origin = CGPoint(x: xPos - annotationSize.width / 2, y: bounds.origin.y + 40.0)
+
     let line = bezierLine(from: CGPoint(x: xPoint, y: annotationView.frame.origin.y + annotationView.frame.height), to: CGPoint(x: xPoint, y: chartBoundsBottom))
     let lineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: ChartViewConstants.annotationLineWidth)
-    lineLayer.opacity = ChartViewConstants.axisLineOpacity
     lineLayer.zPosition = zPositions.Annotation.lineShape.rawValue
     layer.addSublayer(lineLayer)
     for c in circleLayers {
@@ -794,11 +796,12 @@ class TGCAChartView: UIView {
     }
     let xPoint = drawings.xPositions[index]
     
-    var coloredValues = [(CGFloat, UIColor)]()
+    var coloredValues = [TGCAChartAnnotationView.ColoredValue]()
     let date = chart.datesVector[index]
     
     for i in 0..<drawings.drawings.count {
       let drawing = drawings.drawings[i]
+
       let point = CGPoint(x: xPoint, y: drawing.yPositions[index])
       let circle = bezierCircle(at: point, radius: ChartViewConstants.circlePointRadius)
       let circleLayer = annotation.circleLayers[i]
@@ -833,15 +836,17 @@ class TGCAChartView: UIView {
       }
       
       if !hiddenDrawingIndicies.contains(i) {
-        coloredValues.append((chart.yVectors[i].vector[index], chart.yVectors[i].metaData.color))
+        coloredValues.append(TGCAChartAnnotationView.ColoredValue(title: chart.yVectors[i].metaData.name, value: chart.yVectors[i].vector[index], color: chart.yVectors[i].metaData.color))
       }
     }
     coloredValues.sort { (left, right) -> Bool in
-      return left.0 >= right.0
+      return left.value >= right.value
     }
-    let annotationSize = annotation.annotationView.configure(date: date, coloredValues: coloredValues)
+    let configuration = TGCAChartAnnotationView.AnnotationViewConfiguration(date: date, showsDisclosureIcon: true, mode: .Date, showsLeftColumn: false, coloredValues: coloredValues)
+    let annotationSize = annotation.annotationView.configure(with: configuration)
+    
     let xPos = min(bounds.origin.x + bounds.width - annotationSize.width / 2, max(bounds.origin.x + annotationSize.width / 2, xPoint))
-    annotation.annotationView.center = CGPoint(x: xPos, y: bounds.origin.y + annotationSize.height / 2)
+    annotation.annotationView.frame.origin = CGPoint(x: xPos - annotationSize.width / 2, y: bounds.origin.y + 40.0)
     
     let line = bezierLine(from: CGPoint(x: xPoint, y: annotation.annotationView.frame.origin.y + annotation.annotationView.frame.height), to: CGPoint(x: xPoint, y: chartBoundsBottom))
     (currentChartAnnotation as? ChartAnnotation)?.lineLayer.path = line.cgPath
@@ -1170,16 +1175,16 @@ class TGCAChartView: UIView {
   
   struct zPositions {
     enum Annotation: CGFloat {
-      case view = 10.0
-      case lineShape = 5.0
-      case circleShape = 6.0
+      case view = 10
+      case lineShape = 5
+      case circleShape = 6
     }
     
     enum Chart: CGFloat {
-      case axis = 7.0
+      case axis = 7
       case graph = 0
       case axisLabels = 2
-      case dates = 8.0
+      case dates = 8
     }
   }
   

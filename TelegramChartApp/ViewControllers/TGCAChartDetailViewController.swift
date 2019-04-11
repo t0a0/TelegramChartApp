@@ -71,6 +71,7 @@ class TGCAChartDetailViewController: UIViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
+    tableView.separatorStyle = .none
     registerCells()
     navigationItem.rightBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: self, action: #selector(toggleTheme(_:)))
     applyCurrentTheme()

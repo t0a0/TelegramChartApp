@@ -32,8 +32,6 @@ class TGCAChartTableViewCell: UITableViewCell {
     thumbnailChartView?.layer.masksToBounds = true
     headerView?.zoomOutButton.setTitle("Zoom Out", for: .normal)
     
-    separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: CGFloat.greatestFiniteMagnitude)
-    directionalLayoutMargins = .zero
     selectionStyle = .none
   }
 }
