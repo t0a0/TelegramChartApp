@@ -13,6 +13,8 @@ class TGCAChartDetailViewController: UIViewController {
   
   let SECTION_HEADER_HEIGHT: CGFloat = 50.0
   let dateRangeFormatter = TGCADateRangeFormatterService()
+  let dateToPathComponentsService = TGCADateToPathComponentsService()
+  let jsonToChartService = TGCAJsonToChartService()
   
   @IBOutlet weak var tableView: UITableView!
     
@@ -55,7 +57,7 @@ class TGCAChartDetailViewController: UIViewController {
     var charts = [DataChart]()
     
     for i in 1...5 {
-      if let chart = TGCAJsonToChartService().parseJson(named: "overview", subDir: "contest/\(i)") {
+      if let chart = jsonToChartService.parseJson(named: "overview", subDir: "contest/\(i)") {
         charts.append(chart)
       }
     }
@@ -108,6 +110,14 @@ class TGCAChartDetailViewController: UIViewController {
   
   @objc func toggleTheme(_ sender: Any?) {
     UIApplication.myDelegate.toggleTheme()
+  }
+  
+  func preloadJSONData(chartIndex: Int, date: Date) -> DataChart? {
+    let pc = dateToPathComponentsService .pathComponents(for: date)
+    return jsonToChartService.parseJson(named: pc.fileName, subDir: "contest/\(chartIndex+1)/\(pc.folder)")
+//    if let chart = jsonToChartService.parseJson(named: pc.fileName, subDir: "contest/\(chartIndex+1)/\(pc.folder)") {
+//      print(chart)
+//    }
   }
 }
 
@@ -189,6 +199,14 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
           return
         }
         cell.headerView.label.text = self?.dateRangeFormatter.prettyDateStringFrom(left: left, right: right)
+      }
+      
+      cell.chartView?.onAnnotationClick = {[weak self] date in
+        if let lul = self?.preloadJSONData(chartIndex: section, date: date) {
+          cell.chartView?.configure(with: lul, hiddenIndicies: [], displayRange: chart.trimRange)
+          cell.thumbnailChartView?.configure(with: lul, hiddenIndicies: [])
+        }
+        
       }
       
       cell.chartView?.configure(with: chart.chart, hiddenIndicies: chart.hiddenIndicies, displayRange: chart.trimRange)

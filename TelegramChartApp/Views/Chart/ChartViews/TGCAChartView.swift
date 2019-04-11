@@ -12,6 +12,7 @@ import QuartzCore
 class TGCAChartView: UIView {
   
   var onRangeChange: ((_ left: Date?, _ right: Date?)->())?
+  var onAnnotationClick: ((Date)->())?
   
   @IBOutlet var contentView: UIView!
   
@@ -897,6 +898,7 @@ class TGCAChartView: UIView {
     
     if let annotation = currentChartAnnotation {
       if annotation.annotationView.frame.contains(touchLocation) {
+        onAnnotationClick?(chart.datesVector[index])
         removeChartAnnotation()
         return
       } else {
