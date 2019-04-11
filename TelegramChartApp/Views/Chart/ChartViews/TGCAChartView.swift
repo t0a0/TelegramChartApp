@@ -231,23 +231,25 @@ class TGCAChartView: UIView {
   
   /// Updates the diplayed X range. Accepted are subranges of 0...1.
   func trimDisplayRange(to newRange: ClosedRange<CGFloat>, with event: DisplayRangeChangeEvent) {
+    trimXDisplayRange(to: chart.translatedBounds(for: newRange), with: event)
+  }
+  
+  private func trimXDisplayRange(to newRange: ClosedRange<Int>, with event: DisplayRangeChangeEvent) {
     
     removeChartAnnotation()
     
-    let newBounds = chart.translatedBounds(for: newRange)
-    
-    if currentXIndexRange == newBounds {
+    if currentXIndexRange == newRange {
       if event == .Ended {
         removeTransitioningGuideLabels()
       }
       return
     }
     
-    currentXIndexRange = newBounds
+    currentXIndexRange = newRange
     
     updateChart()
     
-    animateGuideLabelsChange(to: newBounds, event: event)
+    animateGuideLabelsChange(to: newRange, event: event)
   }
   
   func hideAll() {
