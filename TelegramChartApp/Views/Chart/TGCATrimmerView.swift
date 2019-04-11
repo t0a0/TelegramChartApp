@@ -336,6 +336,8 @@ extension TGCATrimmerView: ThemeChangeObserving {
     func applyChanges() {
       leftShoulderView.backgroundColor = theme.trimmerShoulderColor
       rightShoulderView.backgroundColor = theme.trimmerShoulderColor
+      leftShoulderView.imageView.backgroundColor = theme.trimmerShoulderColor
+      rightShoulderView.imageView.backgroundColor = theme.trimmerShoulderColor
       leftMaskView.backgroundColor = theme.backgroundColor
       rightMaskView.backgroundColor = theme.backgroundColor
     }
@@ -349,10 +351,12 @@ extension TGCATrimmerView: ThemeChangeObserving {
         applyChanges()
       }
       
-      CATransaction.begin()
-      CATransaction.setAnimationDuration(ANIMATION_DURATION)
+      let colorANim = CABasicAnimation(keyPath: "borderColor");
+      colorANim.fromValue = trimmedAreaView.layer.borderColor
       applyLayerChanges()
-      CATransaction.commit()
+      colorANim.toValue = theme.trimmerShoulderColor.cgColor
+      colorANim.duration = ANIMATION_DURATION
+      trimmedAreaView.layer.add(colorANim, forKey: nil)
       
     } else {
       applyChanges()
