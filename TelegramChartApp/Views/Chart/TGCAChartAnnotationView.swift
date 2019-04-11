@@ -38,13 +38,15 @@ class TGCAChartAnnotationView: UIView {
     let df = DateFormatter()
     df.locale = Locale(identifier: "en_US")
     df.dateFormat = "EE, dd MMM Y"
+    df.timeZone = TimeZone(secondsFromGMT: 0)
     return df
   }()
   
   private lazy var timeFormatter: DateFormatter = {
     let df = DateFormatter()
     df.locale = Locale(identifier: "en_US")
-    df.dateFormat = "hh:mm"
+    df.timeZone = TimeZone(secondsFromGMT: 0)
+    df.dateFormat = "HH:mm"
     return df
   }()
   

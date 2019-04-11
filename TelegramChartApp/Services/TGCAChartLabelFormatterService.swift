@@ -14,7 +14,16 @@ class TGCAChartLabelFormatterService {
   private lazy var dateFormatter: DateFormatter = {
     let df = DateFormatter()
     df.locale = Locale(identifier: "en_US")
+    df.timeZone = TimeZone(secondsFromGMT: 0)
     df.dateFormat = "MMM dd"
+    return df
+  }()
+  
+  private lazy var timeFormatter: DateFormatter = {
+    let df = DateFormatter()
+    df.locale = Locale(identifier: "en_US")
+    df.timeZone = TimeZone(secondsFromGMT: 0)
+    df.dateFormat = "HH:mm"
     return df
   }()
   
@@ -24,6 +33,10 @@ class TGCAChartLabelFormatterService {
   
   func prettyDateString(from date: Date) -> String {
     return dateFormatter.string(from: date)
+  }
+  
+  func prettyTimeString(from date: Date) -> String {
+    return timeFormatter.string(from: date)
   }
   
   // MARK: Private

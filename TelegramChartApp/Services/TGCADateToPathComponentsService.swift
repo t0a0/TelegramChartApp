@@ -19,6 +19,7 @@ class TGCADateToPathComponentsService {
   private lazy var yearMonthFormatter: DateFormatter = {
     let df = DateFormatter()
     df.locale = Locale(identifier: "en_US")
+    df.timeZone = TimeZone(secondsFromGMT: 0)
     df.dateFormat = "YYYY-MM"
     return df
   }()
@@ -26,6 +27,7 @@ class TGCADateToPathComponentsService {
   private lazy var dayFormatter: DateFormatter = {
     let df = DateFormatter()
     df.locale = Locale(identifier: "en_US")
+    df.timeZone = TimeZone(secondsFromGMT: 0)
     df.dateFormat = "dd"
     return df
   }()

@@ -14,6 +14,7 @@ class TGCADateRangeFormatterService {
   private lazy var fullDateFormatter: DateFormatter = {
     let df = DateFormatter()
     df.locale = Locale(identifier: "en_US")
+    df.timeZone = TimeZone(secondsFromGMT: 0)
     df.dateFormat = "EEEE, dd MMMM Y"
     return df
   }()
@@ -21,6 +22,7 @@ class TGCADateRangeFormatterService {
   private lazy var mediumDateFormatter: DateFormatter = {
     let df = DateFormatter()
     df.locale = Locale(identifier: "en_US")
+    df.timeZone = TimeZone(secondsFromGMT: 0)
     df.dateFormat = "dd MMMM Y"
     return df
   }()
