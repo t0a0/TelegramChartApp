@@ -41,6 +41,12 @@ class TGCATrimmerShoulderView: UIView {
   }
   
   func setupImageView() {
+    
+    imageView.isUserInteractionEnabled = false
+    imageView.tintColor = .white
+    imageView.clipsToBounds = true
+    imageView.contentMode = .scaleAspectFit
+    
     imageView.translatesAutoresizingMaskIntoConstraints = false
     imageView.isUserInteractionEnabled = true
     addSubview(imageView)
@@ -49,9 +55,6 @@ class TGCATrimmerShoulderView: UIView {
     imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor, multiplier: 1).isActive = true
     imageView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
     imageView.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
-
-    imageView.isUserInteractionEnabled = false
-    imageView.tintColor = .white
   }
 }
 
@@ -64,7 +67,8 @@ class TGCATrimmerLeftShoulderView: TGCATrimmerShoulderView {
   
   override func setupImageView() {
     super.setupImageView()
-    imageView.image = UIImage(named: "disclosure_image_reversed")
+    imageView.image = UIImage(named: "disclosure_image_reversed")?.withRenderingMode(.alwaysTemplate)
+    imageView.isOpaque = true
   }
   
 }
@@ -78,7 +82,8 @@ class TGCATrimmerRightShoulderView: TGCATrimmerShoulderView {
   
   override func setupImageView() {
     super.setupImageView()
-    imageView.image = UIImage(named: "disclosure_image")
+    imageView.image = UIImage(named: "disclosure_image")?.withRenderingMode(.alwaysTemplate)
+    imageView.isOpaque = true
   }
   
 }
