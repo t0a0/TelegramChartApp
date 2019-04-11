@@ -1265,7 +1265,7 @@ extension TGCAChartView: ThemeChangeObserving {
     axisLabelColor = theme.axisLabelColor.cgColor
     circlePointFillColor = theme.foregroundColor.cgColor
     
-    func applyChanges() {
+    func applyChanges() {      
       //annotation
       (currentChartAnnotation as? ChartAnnotation)?.circleLayers.forEach{$0.fillColor = circlePointFillColor}
       (currentChartAnnotation as? ChartAnnotation)?.lineLayer.strokeColor = axisColor

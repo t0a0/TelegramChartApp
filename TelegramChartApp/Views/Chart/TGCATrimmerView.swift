@@ -61,6 +61,8 @@ class TGCATrimmerView: UIView {
   private let rightShoulderView = TGCATrimmerRightShoulderView()
   private let leftMaskView = UIView()
   private let rightMaskView = UIView()
+  private let leftBackgroundView = UIView()
+  private let rightBackgroundView = UIView()
   
   // MARK: - Constraints
   
@@ -100,6 +102,7 @@ class TGCATrimmerView: UIView {
     setupTrimmedAreaView()
     setupShoulderViews()
     setupMaskViews()
+    setupBackgroundViews()
     setupGestures()
     applyCurrentTheme()
   }
@@ -124,6 +127,7 @@ class TGCATrimmerView: UIView {
     trimmedAreaView.translatesAutoresizingMaskIntoConstraints = false
     trimmedAreaView.isUserInteractionEnabled = true
     addSubview(trimmedAreaView)
+    trimmedAreaView.layer.zPosition = -1
     trimmedAreaView.topAnchor.constraint(equalTo: topAnchor).isActive = true
     trimmedAreaView.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
     leftConstraint = trimmedAreaView.leftAnchor.constraint(equalTo: leftAnchor)
@@ -141,7 +145,6 @@ class TGCATrimmerView: UIView {
     leftShoulderView.widthAnchor.constraint(equalToConstant: TGCATrimmerView.shoulderWidth).isActive = true
     leftShoulderView.leftAnchor.constraint(equalTo: trimmedAreaView.leftAnchor).isActive = true
     leftShoulderView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
-    leftShoulderView.backgroundColor = UIColor.lightGray
 
     rightShoulderView.isUserInteractionEnabled = true
     rightShoulderView.layer.masksToBounds = true
@@ -151,13 +154,10 @@ class TGCATrimmerView: UIView {
     rightShoulderView.widthAnchor.constraint(equalToConstant: TGCATrimmerView.shoulderWidth).isActive = true
     rightShoulderView.rightAnchor.constraint(equalTo: trimmedAreaView.rightAnchor).isActive = true
     rightShoulderView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
-    rightShoulderView.backgroundColor = UIColor.lightGray
   }
   
   private func setupMaskViews() {
     leftMaskView.isUserInteractionEnabled = false
-    leftMaskView.backgroundColor = .lightGray
-    leftMaskView.alpha = 0.8
     leftMaskView.layer.cornerRadius = TGCATrimmerView.shoulderWidth * 0.75
     leftMaskView.layer.masksToBounds = true
     leftMaskView.translatesAutoresizingMaskIntoConstraints = false
@@ -172,8 +172,6 @@ class TGCATrimmerView: UIView {
     leftMaskView.rightAnchor.constraint(equalTo: leftShoulderView.rightAnchor).isActive = true
     
     rightMaskView.isUserInteractionEnabled = false
-    rightMaskView.backgroundColor = .lightGray
-    rightMaskView.alpha = 0.8
     rightMaskView.layer.cornerRadius = TGCATrimmerView.shoulderWidth * 0.75
     rightMaskView.layer.masksToBounds = true
     rightMaskView.translatesAutoresizingMaskIntoConstraints = false
@@ -186,6 +184,39 @@ class TGCATrimmerView: UIView {
     rightMaskViewTopConstraint.isActive = true
     rightMaskViewTopConstraint.constant = 1.0
     rightMaskView.leftAnchor.constraint(equalTo: rightShoulderView.leftAnchor).isActive = true
+  }
+  
+  private func setupBackgroundViews() {
+    leftBackgroundView.isUserInteractionEnabled = false
+    leftBackgroundView.layer.cornerRadius = TGCATrimmerView.shoulderWidth * 0.75
+    leftBackgroundView.layer.masksToBounds = true
+    leftBackgroundView.translatesAutoresizingMaskIntoConstraints = false
+    insertSubview(leftBackgroundView, belowSubview: leftShoulderView)
+    leftBackgroundView.leftAnchor.constraint(equalTo: leftAnchor).isActive = true
+    let leftBackgroundViewBottomConstraint = leftBackgroundView.bottomAnchor.constraint(equalTo: bottomAnchor)
+    leftBackgroundViewBottomConstraint.isActive = true
+    leftBackgroundViewBottomConstraint.constant = -1.0
+    let leftBackgroundViewTopConstraint = leftBackgroundView.topAnchor.constraint(equalTo: topAnchor)
+    leftBackgroundViewTopConstraint.isActive = true
+    leftBackgroundViewTopConstraint.constant = 1.0
+    leftBackgroundView.rightAnchor.constraint(equalTo: leftShoulderView.rightAnchor).isActive = true
+    leftBackgroundView.layer.zPosition = -2
+    
+    rightBackgroundView.isUserInteractionEnabled = false
+    rightBackgroundView.layer.cornerRadius = TGCATrimmerView.shoulderWidth * 0.75
+    rightBackgroundView.layer.masksToBounds = true
+    rightBackgroundView.translatesAutoresizingMaskIntoConstraints = false
+    insertSubview(rightBackgroundView, belowSubview: rightShoulderView)
+    rightBackgroundView.rightAnchor.constraint(equalTo: rightAnchor).isActive = true
+    let rightBackgroundViewBottomConstraint = rightBackgroundView.bottomAnchor.constraint(equalTo: bottomAnchor)
+    rightBackgroundViewBottomConstraint.isActive = true
+    rightBackgroundViewBottomConstraint.constant = -1.0
+    let rightBackgroundViewTopConstraint = rightBackgroundView.topAnchor.constraint(equalTo: topAnchor)
+    rightBackgroundViewTopConstraint.isActive = true
+    rightBackgroundViewTopConstraint.constant = 1.0
+    rightBackgroundView.leftAnchor.constraint(equalTo: rightShoulderView.leftAnchor).isActive = true
+    rightBackgroundView.layer.zPosition = -2
+
   }
   
   // MARK: - Gestures
@@ -346,12 +377,15 @@ extension TGCATrimmerView: ThemeChangeObserving {
     let theme = UIApplication.myDelegate.currentTheme
     
     func applyChanges() {
+      leftBackgroundView.backgroundColor = theme.backgroundColor
+      rightBackgroundView.backgroundColor = theme.backgroundColor
+      trimmedAreaView.backgroundColor = theme.foregroundColor
       leftShoulderView.backgroundColor = theme.trimmerShoulderColor
       rightShoulderView.backgroundColor = theme.trimmerShoulderColor
       leftShoulderView.imageView.backgroundColor = theme.trimmerShoulderColor
       rightShoulderView.imageView.backgroundColor = theme.trimmerShoulderColor
-      leftMaskView.backgroundColor = theme.backgroundColor
-      rightMaskView.backgroundColor = theme.backgroundColor
+      leftMaskView.backgroundColor = theme.trimmerMaskColor
+      rightMaskView.backgroundColor = theme.trimmerMaskColor
     }
     
     func applyLayerChanges() {
