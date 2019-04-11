@@ -20,7 +20,7 @@
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="acd-KL-x9e">
-                        <rect key="frame" x="14" y="10" width="290" height="334.5"/>
+                        <rect key="frame" x="15" y="10" width="290" height="334.5"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="2Rj-Uc-fwE" customClass="TGCAChartHeaderView" customModule="TelegramChartApp" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="0.0" width="290" height="20"/>
@@ -56,10 +56,10 @@
                     </stackView>
                 </subviews>
                 <constraints>
-                    <constraint firstItem="acd-KL-x9e" firstAttribute="leading" secondItem="WOr-1p-FDU" secondAttribute="leading" constant="14" id="MQ1-Zc-Scd"/>
+                    <constraint firstItem="acd-KL-x9e" firstAttribute="leading" secondItem="WOr-1p-FDU" secondAttribute="leading" constant="15" id="MQ1-Zc-Scd"/>
                     <constraint firstAttribute="bottom" secondItem="acd-KL-x9e" secondAttribute="bottom" constant="15" id="PaB-j9-ynf"/>
                     <constraint firstItem="acd-KL-x9e" firstAttribute="top" secondItem="WOr-1p-FDU" secondAttribute="top" constant="10" id="W48-v1-5ul"/>
-                    <constraint firstAttribute="trailing" secondItem="acd-KL-x9e" secondAttribute="trailing" constant="16" id="hdb-gL-YLR"/>
+                    <constraint firstAttribute="trailing" secondItem="acd-KL-x9e" secondAttribute="trailing" constant="15" id="hdb-gL-YLR"/>
                 </constraints>
             </tableViewCellContentView>
             <viewLayoutGuide key="safeArea" id="Io8-C7-blh"/>

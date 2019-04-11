@@ -20,7 +20,7 @@
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="Qxk-Fl-8q7">
-                        <rect key="frame" x="14" y="10" width="290" height="334.5"/>
+                        <rect key="frame" x="15" y="10" width="290" height="334.5"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="jmX-MV-Zg4" customClass="TGCAChartHeaderView" customModule="TelegramChartApp" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="0.0" width="290" height="20"/>
@@ -57,8 +57,8 @@
                 </subviews>
                 <constraints>
                     <constraint firstItem="Qxk-Fl-8q7" firstAttribute="top" secondItem="RfU-FG-vja" secondAttribute="top" constant="10" id="PJD-a4-ihm"/>
-                    <constraint firstAttribute="trailing" secondItem="Qxk-Fl-8q7" secondAttribute="trailing" constant="16" id="T9I-Qm-IUv"/>
-                    <constraint firstItem="Qxk-Fl-8q7" firstAttribute="leading" secondItem="RfU-FG-vja" secondAttribute="leading" constant="14" id="Umf-7m-9cX"/>
+                    <constraint firstAttribute="trailing" secondItem="Qxk-Fl-8q7" secondAttribute="trailing" constant="15" id="T9I-Qm-IUv"/>
+                    <constraint firstItem="Qxk-Fl-8q7" firstAttribute="leading" secondItem="RfU-FG-vja" secondAttribute="leading" constant="15" id="Umf-7m-9cX"/>
                     <constraint firstAttribute="bottom" secondItem="Qxk-Fl-8q7" secondAttribute="bottom" constant="15" id="sJ9-L6-UPL"/>
                 </constraints>
             </tableViewCellContentView>
