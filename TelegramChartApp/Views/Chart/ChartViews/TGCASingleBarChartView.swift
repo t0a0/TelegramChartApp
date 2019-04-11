@@ -23,13 +23,23 @@ class TGCASingleBarChartView: TGCAChartView {
   }
   
   //MARK: - Annotations
+  
   private var chartAnnotationMaskColor = UIApplication.myDelegate.currentTheme.foregroundColor.withAlphaComponent(0.75).cgColor
   
-  override func addChartAnnotation(for index: Int) {
+  override func addChartAnnotation(_ chartAnnotation: ChartAnnotationProtocol) {
+    guard let chartAnnotation = chartAnnotation as? ChartAnnotation else {
+      return
+    }
+    addSubview(chartAnnotation.annotationView)
+    lineLayer.addSublayer(chartAnnotation.leftMask)
+    lineLayer.addSublayer(chartAnnotation.rightMask)
+  }
+  
+  override func generateChartAnnotation(for index: Int, with annotationView: TGCAChartAnnotationView) -> ChartAnnotationProtocol {
     let (leftPath, rightPath) = getPathsForChartAnnotation(at: index)
     let leftMask = filledShapeLayer(withPath: leftPath, color: chartAnnotationMaskColor)
     let rightMask = filledShapeLayer(withPath: rightPath, color: chartAnnotationMaskColor)
-
+    
     
     //TODO: THis is a workaround against visible borders
     leftMask.lineWidth = 0.5
@@ -37,27 +47,25 @@ class TGCASingleBarChartView: TGCAChartView {
     rightMask.lineWidth = 0.5
     rightMask.strokeColor = chartAnnotationMaskColor
     
-    lineLayer.addSublayer(leftMask)
-    lineLayer.addSublayer(rightMask)
+    annotationView.layer.zPosition = zPositions.Annotation.view.rawValue
     
-    currentChartAnnotation = ChartAnnotation(leftMask: leftMask, annotationView: TGCAChartAnnotationView(), rightMask: rightMask, displayedIndex: index)
+    return ChartAnnotation(leftMask: leftMask, annotationView: annotationView, rightMask: rightMask, displayedIndex: index)
   }
   
-  override func moveChartAnnotation(to index: Int, animated: Bool = false) {
+  override func performUpdatesForMovingChartAnnotation(to index: Int, with chartAnnotation: ChartAnnotationProtocol, animated: Bool) {
     guard let currentChartAnnotation = currentChartAnnotation as? ChartAnnotation else {
       return
     }
     let (leftPath, rightPath) = getPathsForChartAnnotation(at: index)
-
+    
     currentChartAnnotation.leftMask.path = leftPath
     currentChartAnnotation.rightMask.path = rightPath
-    currentChartAnnotation.updateDisplayedIndex(to: index)
   }
   
   override func removeChartAnnotation() {
-    if let annotation = currentChartAnnotation {
-      (currentChartAnnotation as? ChartAnnotation)?.leftMask.removeFromSuperlayer()
-      (currentChartAnnotation as? ChartAnnotation)?.rightMask.removeFromSuperlayer()
+    if let annotation = currentChartAnnotation as? ChartAnnotation {
+      annotation.leftMask.removeFromSuperlayer()
+      annotation.rightMask.removeFromSuperlayer()
       annotation.annotationView.removeFromSuperview()
       currentChartAnnotation = nil
     }

@@ -109,7 +109,7 @@ class TGCAChartAnnotationView: UIView {
   private var biggestObservedWidth: CGFloat = 0
   private var biggestObservedRightStackViewWidth: CGFloat = 0
   
-  func configure(with configuration: AnnotationViewConfiguration) -> CGSize {
+  func configure(with configuration: AnnotationViewConfiguration) {
     headerLabel.text = configuration.mode == .Date ? dateFormatter.string(from: configuration.date) : timeFormatter.string(from: configuration.date)
     disclosureImageView.isHidden = configuration.showsDisclosureIcon
     
@@ -175,15 +175,13 @@ class TGCAChartAnnotationView: UIView {
     showHideLabels(withCount: count)
 
     if superview != nil && bounds.size != newSize {
-      UIView.animate(withDuration: ANIMATION_DURATION) {
-        self.bounds.size = newSize
-        self.layoutIfNeeded()
+      UIView.animate(withDuration: ANIMATION_DURATION) { [weak self] in
+        self?.bounds.size = newSize
+        self?.layoutIfNeeded()
       }
     } else {
-      self.bounds.size = newSize
+      bounds.size = newSize
     }
-
-    return newSize
   }
 
   // MARK: - Helper methods

@@ -120,7 +120,7 @@ class TGCAChartView: UIView {
 
   var horizontalAxesDefaultYPositions: [CGFloat]!
   
-  var currentChartAnnotation: BaseChartAnnotation?
+  var currentChartAnnotation: ChartAnnotationProtocol?
   
   /// Guide labels that are currently shown
   var activeGuideLabels: [GuideLabel]!
@@ -741,67 +741,80 @@ class TGCAChartView: UIView {
   }
   
   // MARK: - Annotation
+  func getMaxPossibleLabelsCountForChartAnnotation() -> Int {
+    return chart.yVectors.count
+  }
   
-  func addChartAnnotation(for index: Int) {
+  func getChartAnnotationViewConfiguration(for index: Int) -> TGCAChartAnnotationView.AnnotationViewConfiguration {
+    let includedIndicies = (0..<chart.yVectors.count).filter{!hiddenDrawingIndicies.contains($0)}
+    var coloredValues: [TGCAChartAnnotationView.ColoredValue] = includedIndicies.map{
+      let yVector = chart.yVectors[$0]
+      return TGCAChartAnnotationView.ColoredValue(title: yVector.metaData.name, value: yVector.vector[index], color: yVector.metaData.color)
+    }
+    coloredValues.sort { (left, right) -> Bool in
+      return left.value >= right.value
+    }
+    return TGCAChartAnnotationView.AnnotationViewConfiguration(date: chart.datesVector[index], showsDisclosureIcon: true, mode: .Date, showsLeftColumn: false, coloredValues: coloredValues)
+  }
+  
+  func addChartAnnotation(_ chartAnnotation: ChartAnnotationProtocol) {
+    guard let chartAnnotation = chartAnnotation as? ChartAnnotation else {
+      return
+    }
+    
+    addSubview(chartAnnotation.annotationView)
+    layer.addSublayer(chartAnnotation.lineLayer)
+    chartAnnotation.circleLayers.forEach {
+      layer.addSublayer($0)
+    }
+  }
+  
+  func desiredOriginForChartAnnotationPlacing(chartAnnotation: ChartAnnotationProtocol) -> CGPoint {
+    let xPoint = drawings.xPositions[chartAnnotation.displayedIndex]
+    let annotationSize = chartAnnotation.annotationView.bounds.size
+    
+    let xPos = min(bounds.origin.x + bounds.width - annotationSize.width / 2, max(bounds.origin.x + annotationSize.width / 2, xPoint))
+    return CGPoint(x: xPos - annotationSize.width / 2, y: bounds.origin.y + 40.0)
+  }
+  
+  func generateChartAnnotation(for index: Int, with annotationView: TGCAChartAnnotationView) -> ChartAnnotationProtocol {
     let xPoint = drawings.xPositions[index]
     var circleLayers = [CAShapeLayer]()
-    
-    var coloredValues = [TGCAChartAnnotationView.ColoredValue]()
-    let date = chart.datesVector[index]
     
     for i in 0..<drawings.drawings.count {
       let drawing = drawings.drawings[i]
       let color = chart.yVectors[i].metaData.color
       let point = CGPoint(x: xPoint, y: drawing.yPositions[index])
-      
       let circle = bezierCircle(at: point, radius: ChartViewConstants.circlePointRadius)
       let circleShape = shapeLayer(withPath: circle.cgPath, color: color.cgColor, lineWidth: graphLineWidth, fillColor: circlePointFillColor)
       circleShape.zPosition = zPositions.Annotation.circleShape.rawValue
       circleLayers.append(circleShape)
       if !hiddenDrawingIndicies.contains(i) {
         circleShape.opacity = 1
-        
-        coloredValues.append(TGCAChartAnnotationView.ColoredValue(title: chart.yVectors[i].metaData.name, value: chart.yVectors[i].vector[index], color: color))
       } else {
         circleShape.opacity = 0
       }
     }
-    coloredValues.sort { (left, right) -> Bool in
-      return left.value >= right.value
-    }
     
-    let annotationView = TGCAChartAnnotationView(maxPossibleLabels: chart.yVectors.count)
-    let configuration = TGCAChartAnnotationView.AnnotationViewConfiguration(date: date, showsDisclosureIcon: true, mode: .Date, showsLeftColumn: false, coloredValues: coloredValues)
-    let annotationSize = annotationView.configure(with: configuration)
-    
-    let xPos = min(bounds.origin.x + bounds.width - annotationSize.width / 2, max(bounds.origin.x + annotationSize.width / 2, xPoint))
-    annotationView.frame.origin = CGPoint(x: xPos - annotationSize.width / 2, y: bounds.origin.y + 40.0)
-
     let line = bezierLine(from: CGPoint(x: xPoint, y: annotationView.frame.origin.y + annotationView.frame.height), to: CGPoint(x: xPoint, y: chartBoundsBottom))
     let lineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: ChartViewConstants.annotationLineWidth)
-    lineLayer.zPosition = zPositions.Annotation.lineShape.rawValue
-    layer.addSublayer(lineLayer)
-    for c in circleLayers {
-      layer.addSublayer(c)
-    }
-    annotationView.layer.zPosition = zPositions.Annotation.view.rawValue
-    addSubview(annotationView)
     
-    currentChartAnnotation = ChartAnnotation(lineLayer: lineLayer, annotationView: annotationView, circleLayers: circleLayers, displayedIndex: index)
+    lineLayer.zPosition = zPositions.Annotation.lineShape.rawValue
+    annotationView.layer.zPosition = zPositions.Annotation.view.rawValue
+    
+    return ChartAnnotation(lineLayer: lineLayer, annotationView: annotationView, circleLayers: circleLayers, displayedIndex: index)
   }
   
-  func moveChartAnnotation(to index: Int, animated: Bool = false) {
-    guard let annotation = currentChartAnnotation as? ChartAnnotation else {
+  func performUpdatesForMovingChartAnnotation(to index: Int, with chartAnnotation: ChartAnnotationProtocol, animated: Bool) {
+    guard let annotation = chartAnnotation as? ChartAnnotation else {
       return
     }
-    let xPoint = drawings.xPositions[index]
     
-    var coloredValues = [TGCAChartAnnotationView.ColoredValue]()
-    let date = chart.datesVector[index]
+    let xPoint = drawings.xPositions[index]
     
     for i in 0..<drawings.drawings.count {
       let drawing = drawings.drawings[i]
-
+      
       let point = CGPoint(x: xPoint, y: drawing.yPositions[index])
       let circle = bezierCircle(at: point, radius: ChartViewConstants.circlePointRadius)
       let circleLayer = annotation.circleLayers[i]
@@ -835,22 +848,31 @@ class TGCAChartView: UIView {
         circleLayer.opacity = hiddenDrawingIndicies.contains(i) ? 0 : 1
       }
       
-      if !hiddenDrawingIndicies.contains(i) {
-        coloredValues.append(TGCAChartAnnotationView.ColoredValue(title: chart.yVectors[i].metaData.name, value: chart.yVectors[i].vector[index], color: chart.yVectors[i].metaData.color))
-      }
     }
-    coloredValues.sort { (left, right) -> Bool in
-      return left.value >= right.value
-    }
-    let configuration = TGCAChartAnnotationView.AnnotationViewConfiguration(date: date, showsDisclosureIcon: true, mode: .Date, showsLeftColumn: false, coloredValues: coloredValues)
-    let annotationSize = annotation.annotationView.configure(with: configuration)
-    
-    let xPos = min(bounds.origin.x + bounds.width - annotationSize.width / 2, max(bounds.origin.x + annotationSize.width / 2, xPoint))
-    annotation.annotationView.frame.origin = CGPoint(x: xPos - annotationSize.width / 2, y: bounds.origin.y + 40.0)
     
     let line = bezierLine(from: CGPoint(x: xPoint, y: annotation.annotationView.frame.origin.y + annotation.annotationView.frame.height), to: CGPoint(x: xPoint, y: chartBoundsBottom))
-    (currentChartAnnotation as? ChartAnnotation)?.lineLayer.path = line.cgPath
-    (currentChartAnnotation as? ChartAnnotation)?.updateDisplayedIndex(to: index)
+    annotation.lineLayer.path = line.cgPath
+  }
+  
+  private func addChartAnnotation(for index: Int) {
+    let configuration = getChartAnnotationViewConfiguration(for: index)
+    let annotationView = TGCAChartAnnotationView(maxPossibleLabels: getMaxPossibleLabelsCountForChartAnnotation())
+    annotationView.configure(with: configuration)
+    let chartAnnotation = generateChartAnnotation(for: index, with: annotationView)
+    addChartAnnotation(chartAnnotation)
+    chartAnnotation.annotationView.frame.origin = desiredOriginForChartAnnotationPlacing(chartAnnotation: chartAnnotation)
+    currentChartAnnotation = chartAnnotation
+  }
+  
+  private func moveChartAnnotation(to index: Int, animated: Bool = false) {
+    guard let currentChartAnnotation = currentChartAnnotation else {
+      return
+    }
+    let configuration = getChartAnnotationViewConfiguration(for: index)
+    currentChartAnnotation.annotationView.configure(with: configuration)
+    performUpdatesForMovingChartAnnotation(to: index, with: currentChartAnnotation, animated: animated)
+    currentChartAnnotation.annotationView.frame.origin = desiredOriginForChartAnnotationPlacing(chartAnnotation: currentChartAnnotation)
+    currentChartAnnotation.updateDisplayedIndex(to: index)
   }
   
   // MARK: - Touches
@@ -1248,8 +1270,14 @@ extension TGCAChartView: ThemeChangeObserving {
   
 }
 
+protocol ChartAnnotationProtocol {
+  var displayedIndex: Int {get}
+  var annotationView: TGCAChartAnnotationView {get}
+  
+  func updateDisplayedIndex(to index: Int)
+}
 
-class BaseChartAnnotation {
+class BaseChartAnnotation: ChartAnnotationProtocol {
   private(set) var displayedIndex: Int
   let annotationView: TGCAChartAnnotationView
   

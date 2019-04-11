@@ -106,56 +106,50 @@ class TGCAPercentageChartView: TGCAChartView {
     }
   }
   
-  /*override func addChartAnnotation(for index: Int) {
-    let xPoint = drawings.xPositions[index]
-    var coloredValues = [(CGFloat, UIColor)]()
-    let date = chart.datesVector[index]
-    
-    let visibleDrawingIndexes = (0..<chart.yVectors.count).filter{!hiddenDrawingIndicies.contains($0)}
-    for i in visibleDrawingIndexes {
-      let yVector = chart.yVectors[i]
-      coloredValues.append((yVector.vector[index], yVector.metaData.color))
+  // MARK: - Annotation
+  
+  override func getChartAnnotationViewConfiguration(for index: Int) -> TGCAChartAnnotationView.AnnotationViewConfiguration {
+    let includedIndicies = (0..<chart.yVectors.count).filter{!hiddenDrawingIndicies.contains($0)}
+    var coloredValues: [TGCAChartAnnotationView.ColoredValue] = includedIndicies.map{
+      let yVector = chart.yVectors[$0]
+      return TGCAChartAnnotationView.ColoredValue(title: yVector.metaData.name, value: yVector.vector[index], color: yVector.metaData.color, prefix: "100%")
     }
-    
-    let annotationView = TGCAChartAnnotationView(frame: CGRect.zero)
-    let annotationSize = annotationView.configure(date: date, coloredValues: coloredValues)
-    let xPos = min(bounds.origin.x + bounds.width - annotationSize.width / 2, max(bounds.origin.x + annotationSize.width / 2, xPoint))
-    annotationView.center = CGPoint(x: xPos, y: bounds.origin.y + annotationSize.height / 2)
+    coloredValues.sort { (left, right) -> Bool in
+      return left.value >= right.value
+    }
+    return TGCAChartAnnotationView.AnnotationViewConfiguration(date: chart.datesVector[index], showsDisclosureIcon: true, mode: .Date, showsLeftColumn: true, coloredValues: coloredValues)
+  }
+  
+  override func addChartAnnotation(_ chartAnnotation: ChartAnnotationProtocol) {
+    guard let chartAnnotation = chartAnnotation as? ChartAnnotation else {
+      return
+    }
+    addSubview(chartAnnotation.annotationView)
+    layer.addSublayer(chartAnnotation.lineLayer)
+  }
+  
+  override func generateChartAnnotation(for index: Int, with annotationView: TGCAChartAnnotationView) -> ChartAnnotationProtocol {
+    let xPoint = drawings.xPositions[index]
     
     let line = bezierLine(from: CGPoint(x: xPoint, y: annotationView.frame.origin.y + annotationView.frame.height), to: CGPoint(x: xPoint, y: chartBoundsBottom))
     let lineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: ChartViewConstants.annotationLineWidth)
+    
     lineLayer.zPosition = zPositions.Annotation.lineShape.rawValue
-    layer.addSublayer(lineLayer)
     annotationView.layer.zPosition = zPositions.Annotation.view.rawValue
-    addSubview(annotationView)
-    currentChartAnnotation = ChartAnnotation(lineLayer: lineLayer, annotationView: annotationView, displayedIndex: index)
-
+    
+    return ChartAnnotation(lineLayer: lineLayer, annotationView: annotationView, displayedIndex: index)
   }
   
-  override func moveChartAnnotation(to index: Int, animated: Bool = false) {
-    guard let annotation = currentChartAnnotation as? ChartAnnotation else {
+  override func performUpdatesForMovingChartAnnotation(to index: Int, with chartAnnotation: ChartAnnotationProtocol, animated: Bool) {
+    guard let annotation = chartAnnotation as? ChartAnnotation else {
       return
     }
     let xPoint = drawings.xPositions[index]
     
-    var coloredValues = [(CGFloat, UIColor)]()
-    let date = chart.datesVector[index]
-    
-    let visibleDrawingIndexes = (0..<chart.yVectors.count).filter{!hiddenDrawingIndicies.contains($0)}
-    for i in visibleDrawingIndexes {
-      let yVector = chart.yVectors[i]
-      coloredValues.append((yVector.vector[index], yVector.metaData.color))
-    }
-    
-    let annotationSize = annotation.annotationView.configure(date: date, coloredValues: coloredValues)
-    let xPos = min(bounds.origin.x + bounds.width - annotationSize.width / 2, max(bounds.origin.x + annotationSize.width / 2, xPoint))
-    annotation.annotationView.center = CGPoint(x: xPos, y: bounds.origin.y + annotationSize.height / 2)
-    
     let line = bezierLine(from: CGPoint(x: xPoint, y: annotation.annotationView.frame.origin.y + annotation.annotationView.frame.height), to: CGPoint(x: xPoint, y: chartBoundsBottom))
-    (currentChartAnnotation as? ChartAnnotation)?.lineLayer.path = line.cgPath
-    (currentChartAnnotation as? ChartAnnotation)?.updateDisplayedIndex(to: index)
     
-  }*/
+    annotation.lineLayer.path = line.cgPath
+  }
   
   override func removeChartAnnotation() {
     if let annotation = currentChartAnnotation as? ChartAnnotation {
