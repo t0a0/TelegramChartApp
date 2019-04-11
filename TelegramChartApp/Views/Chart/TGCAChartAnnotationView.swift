@@ -31,7 +31,6 @@ class TGCAChartAnnotationView: UIView {
   @IBOutlet weak var rightStackViewWidthConstraint: NSLayoutConstraint!
   @IBOutlet weak var leftStackViewWidthConstraint: NSLayoutConstraint!
   @IBOutlet weak var headerStackViewHeightConstraint: NSLayoutConstraint!
-  @IBOutlet weak var disclosureImageWidthConstraint: NSLayoutConstraint!
   
   // MARK: - Formatters
   
@@ -113,11 +112,12 @@ class TGCAChartAnnotationView: UIView {
   
   func configure(with configuration: AnnotationViewConfiguration) {
     headerLabel.text = configuration.mode == .Date ? dateFormatter.string(from: configuration.date) : timeFormatter.string(from: configuration.date)
-    disclosureImageView.isHidden = configuration.showsDisclosureIcon
+    disclosureImageView.isHidden = !configuration.showsDisclosureIcon
     
     var headerWidth = headerLabel.sizeThatFits(CGSize(width: .greatestFiniteMagnitude, height: headerStackViewHeightConstraint.constant)).width
     if configuration.showsDisclosureIcon {
-      headerWidth += disclosureImageWidthConstraint.constant + headerStackView.spacing
+      //headerStackViewHeightConstraint because image view width is that
+      headerWidth += headerStackViewHeightConstraint.constant/2 + headerStackView.spacing
     }
     
     let count = configuration.coloredValues.count
@@ -298,9 +298,12 @@ extension TGCAChartAnnotationView: ThemeChangeObserving {
     let theme = UIApplication.myDelegate.currentTheme
     
     func applyChanges() {
+      disclosureImageView.tintColor = theme.annotationDisclosureIndicatorColor
+      disclosureImageView.backgroundColor = theme.annotationColor
+
       backgroundColor = theme.annotationColor
-      headerLabel.textColor = theme.annotationLabelColor
       
+      headerLabel.textColor = theme.annotationLabelColor
       leftArrangedLabels.forEach{
         $0.textColor = theme.annotationLabelColor
       }

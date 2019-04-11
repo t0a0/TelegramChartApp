@@ -16,7 +16,6 @@
                 <outlet property="columnsStackView" destination="4De-Zz-tXB" id="w6N-uT-87Z"/>
                 <outlet property="contentView" destination="iN0-l3-epB" id="zYq-vG-bhV"/>
                 <outlet property="disclosureImageView" destination="Jcc-zc-aJT" id="CYM-M2-gPr"/>
-                <outlet property="disclosureImageWidthConstraint" destination="qaG-8T-V04" id="xdl-Ce-apf"/>
                 <outlet property="headerLabel" destination="jhS-aw-4JB" id="4xy-fD-a2i"/>
                 <outlet property="headerStackView" destination="QrO-O4-rhi" id="isT-6D-le0"/>
                 <outlet property="headerStackViewHeightConstraint" destination="KMh-73-yJj" id="8tE-dx-W8I"/>
@@ -35,25 +34,25 @@
             <rect key="frame" x="0.0" y="0.0" width="321" height="176"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
-                <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="QrO-O4-rhi">
+                <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="QrO-O4-rhi">
                     <rect key="frame" x="10" y="8" width="301" height="20"/>
                     <subviews>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Dec 29" textAlignment="natural" lineBreakMode="wordWrap" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="jhS-aw-4JB">
-                            <rect key="frame" x="0.0" y="2" width="261" height="16"/>
+                            <rect key="frame" x="0.0" y="2" width="281" height="16"/>
                             <fontDescription key="fontDescription" type="boldSystem" pointSize="13"/>
                             <nil key="textColor"/>
                             <nil key="highlightedColor"/>
                         </label>
-                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="Jcc-zc-aJT">
-                            <rect key="frame" x="281" y="0.0" width="20" height="20"/>
+                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="disclosure_image" translatesAutoresizingMaskIntoConstraints="NO" id="Jcc-zc-aJT">
+                            <rect key="frame" x="291" y="5" width="10" height="10"/>
                             <constraints>
-                                <constraint firstAttribute="height" secondItem="Jcc-zc-aJT" secondAttribute="width" multiplier="1:1" id="ijq-se-mJN"/>
-                                <constraint firstAttribute="width" constant="20" id="qaG-8T-V04"/>
+                                <constraint firstAttribute="width" secondItem="Jcc-zc-aJT" secondAttribute="height" multiplier="1:1" id="ijq-se-mJN"/>
                             </constraints>
                         </imageView>
                     </subviews>
                     <constraints>
                         <constraint firstAttribute="height" constant="20" id="KMh-73-yJj"/>
+                        <constraint firstItem="Jcc-zc-aJT" firstAttribute="height" secondItem="QrO-O4-rhi" secondAttribute="height" multiplier="1:2" id="h6L-GI-eGT"/>
                     </constraints>
                 </stackView>
                 <stackView opaque="NO" contentMode="scaleToFill" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="4De-Zz-tXB">
@@ -91,4 +90,7 @@
             <point key="canvasLocation" x="-150" y="-40"/>
         </view>
     </objects>
+    <resources>
+        <image name="disclosure_image" width="80" height="80"/>
+    </resources>
 </document>
