@@ -220,7 +220,9 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
         
         cell.chartView?.transitionToUnderlyingChart(underlyingChart)
         cell.thumbnailChartView?.transitionToUnderlyingChart(underlyingChart)
+        return true
       }
+      return false
     }
 
 

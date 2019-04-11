@@ -11,8 +11,8 @@ import QuartzCore
 
 class TGCAChartView: UIView {
   
-  var onRangeChange: ((_ left: Date?, _ right: Date?)->())?
-  var onAnnotationClick: ((Date)->())?
+  var onRangeChange: ((_ left: Date?, _ right: Date?) -> ())?
+  var onAnnotationClick: ((_ date: Date) -> (Bool))?
   
   @IBOutlet var contentView: UIView!
   
@@ -111,7 +111,7 @@ class TGCAChartView: UIView {
   var chartBoundsRight: CGFloat = 0
   
   var chart: DataChart!
-  var underlyingChart: DataChart!
+  var underlyingChart: DataChart?
   var drawings: ChartDrawings!
   
   /// Contains indicies of the hidden charts
@@ -216,9 +216,16 @@ class TGCAChartView: UIView {
   
   func transitionToMainChart() {
     
+    
+    
+    
+    underlyingChart = nil
   }
   
   func transitionToUnderlyingChart(_ underlyingChart: DataChart) {
+    self.underlyingChart = underlyingChart
+    removeChartAnnotation()
+    configure(with: underlyingChart, hiddenIndicies: hiddenDrawingIndicies)
     
   }
   
@@ -240,7 +247,7 @@ class TGCAChartView: UIView {
     
     updateChart()
     
-    animateGuideLabelsChange(from: currentXIndexRange, to: newBounds, event: event)
+    animateGuideLabelsChange(to: newBounds, event: event)
   }
   
   func hideAll() {
@@ -520,7 +527,7 @@ class TGCAChartView: UIView {
     }
   }
   
-  private func animateGuideLabelsChange(from fromRange: ClosedRange<Int>, to toRange: ClosedRange<Int>, event: DisplayRangeChangeEvent) {
+  private func animateGuideLabelsChange(to toRange: ClosedRange<Int>, event: DisplayRangeChangeEvent) {
   
     if event != .Scrolled {
       let (spacing, leftover) = bestIndexSpacing(for: toRange.distance + 1)
@@ -907,8 +914,11 @@ class TGCAChartView: UIView {
     
     if let annotation = currentChartAnnotation {
       if annotation.annotationView.frame.contains(touchLocation) {
-        onAnnotationClick?(chart.datesVector[index])
-        removeChartAnnotation()
+        //TODO: DISMISS ANNOTATION ON LONG TAP
+        let handled = onAnnotationClick?(chart.datesVector[index]) ?? false
+        if !handled {
+          removeChartAnnotation()
+        }
         return
       } else {
         moveChartAnnotation(to: index)
