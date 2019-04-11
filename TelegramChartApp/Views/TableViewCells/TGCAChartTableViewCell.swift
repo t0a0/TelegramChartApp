@@ -32,6 +32,12 @@ class TGCAChartTableViewCell: UITableViewCell {
     thumbnailChartView?.layer.masksToBounds = true
     headerView?.zoomOutButton.setTitle("Zoom Out", for: .normal)
     
+    var fontSize: CGFloat = 14.0
+    print (UIScreen.main.bounds.width)
+    if UIScreen.main.bounds.width < 375 {
+      fontSize = 11.0
+    }
+    headerView?.label.font = UIFont.systemFont(ofSize: fontSize, weight: .medium)
     selectionStyle = .none
   }
 }
