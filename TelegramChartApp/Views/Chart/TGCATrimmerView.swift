@@ -229,13 +229,16 @@ class TGCATrimmerView: UIView {
   }
   
   private func deactivateShoulderGestureRecognizers() {
-    for shoulderView in [leftShoulderView, rightShoulderView] {
-      if let gestureRecognizers = shoulderView.gestureRecognizers {
-        for gesture in gestureRecognizers {
-          gesture.isEnabled = false
-        }
-      }
-    }
+    deactivateLeftShoulderGestureRecognizer()
+    deactivateRightShoulderGestureRecognizer()
+  }
+  
+  private func deactivateLeftShoulderGestureRecognizer() {
+    leftShoulderView.gestureRecognizers?.forEach{$0.isEnabled = false}
+  }
+  
+  private func deactivateRightShoulderGestureRecognizer() {
+    rightShoulderView.gestureRecognizers?.forEach{$0.isEnabled = false}
   }
   
   private func deactivateTrimmedAreaGestureRecognizers() {
@@ -247,13 +250,7 @@ class TGCATrimmerView: UIView {
   }
   
   private func reactivateGestureRecognizers() {
-    for view in [trimmedAreaView, leftShoulderView, rightShoulderView] {
-      if let gestureRecognizers = view.gestureRecognizers {
-        for gesture in gestureRecognizers {
-          gesture.isEnabled = true
-        }
-      }
-    }
+    [trimmedAreaView, leftShoulderView, rightShoulderView].forEach{$0.gestureRecognizers?.forEach{$0.isEnabled = true}}
   }
   
   @objc private func handlePanGesture(_ panGestureRecognizer: UIPanGestureRecognizer) {
@@ -265,9 +262,11 @@ class TGCATrimmerView: UIView {
     case .began:
       if isLeftGesture {
         deactivateTrimmedAreaGestureRecognizers()
+        deactivateRightShoulderGestureRecognizer()
         currentLeftConstraint = leftConstraint.constant
       } else if isRightGesture {
         deactivateTrimmedAreaGestureRecognizers()
+        deactivateLeftShoulderGestureRecognizer()
         currentRightConstraint = rightConstraint.constant
       } else {
         deactivateShoulderGestureRecognizers()
