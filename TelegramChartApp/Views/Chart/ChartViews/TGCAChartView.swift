@@ -222,10 +222,10 @@ class TGCAChartView: UIView {
     underlyingChart = nil
   }
   
-  func transitionToUnderlyingChart(_ underlyingChart: DataChart) {
+  func transitionToUnderlyingChart(_ underlyingChart: DataChart, displayRange: ClosedRange<CGFloat>? = nil) {
     self.underlyingChart = underlyingChart
     removeChartAnnotation()
-    configure(with: underlyingChart, hiddenIndicies: hiddenDrawingIndicies)
+    configure(with: underlyingChart, hiddenIndicies: hiddenDrawingIndicies, displayRange: displayRange)
     
   }
   

@@ -22,13 +22,14 @@ class TGCAChartDetailViewController: UIViewController {
     let chart: DataChart
     var underlyingChartContainer: ChartContainer?
 
-    private(set) var hiddenIndicies: Set<Int> = []
+    private(set) var hiddenIndicies: Set<Int>
     private(set) var trimRange: ClosedRange<CGFloat>
     
     
-    init(chart: DataChart) {
+    init(chart: DataChart, hiddenIndicies: Set<Int> = []) {
       self.chart = chart
       self.trimRange = 0.0...1.0
+      self.hiddenIndicies = hiddenIndicies
     }
     
     func updateTrimRange(to newRange: ClosedRange<CGFloat>) {
@@ -193,11 +194,15 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
     let chartContainer = chartContainers[section]
     
     cell.headerView.label.text = ""
-    cell.headerView.onZoomOut = {
+    cell.headerView.onZoomOut = { [weak self] in
       chartContainer.underlyingChartContainer = nil
       cell.headerView.zoomOutButton.isHidden = true
+      if let buttonsSetup = self?.getButtonsConfigurationFor(chartContainer: chartContainer, cell: cell, index: section) {
+        cell.chartFiltersHeightConstraint.constant = cell.chartFiltersView?.setupButtons(buttonsSetup) ?? 0
+      }
       cell.chartView.transitionToMainChart()
       cell.thumbnailChartView.transitionToMainChart()
+      cell.trimmerView?.setCurrentRange(chartContainer.trimRange, animated: true)
     }
     
     
@@ -215,11 +220,17 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
     
     cell.chartView?.onAnnotationClick = {[weak self] date in
       if let underlyingChart = self?.loadZoomedInJSONDataFor(chartIndex: section, date: date) {
-        chartContainer.underlyingChartContainer = ChartContainer(chart: underlyingChart)
+        let newContainer = ChartContainer(chart: underlyingChart, hiddenIndicies: chartContainer.hiddenIndicies)
+        chartContainer.underlyingChartContainer = newContainer
         cell.headerView.zoomOutButton.isHidden = false
+        if let buttonsSetup = self?.getButtonsConfigurationFor(chartContainer: newContainer, cell: cell, index: section) {
+           cell.chartFiltersHeightConstraint.constant = cell.chartFiltersView?.setupButtons(buttonsSetup) ?? 0
+        }
+       
         
-        cell.chartView?.transitionToUnderlyingChart(underlyingChart)
+        cell.chartView?.transitionToUnderlyingChart(underlyingChart, displayRange: newContainer.trimRange)
         cell.thumbnailChartView?.transitionToUnderlyingChart(underlyingChart)
+        cell.trimmerView?.setCurrentRange(newContainer.trimRange, animated: true)
         return true
       }
       return false

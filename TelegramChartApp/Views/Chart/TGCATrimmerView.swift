@@ -31,10 +31,22 @@ class TGCATrimmerView: UIView {
    */
   var onChange: ((_ newRange: ClosedRange<CGFloat>, _ event: DisplayRangeChangeEvent) -> ())?
   
-  func setCurrentRange(_ range: ClosedRange<CGFloat>, notify: Bool = false) {
-    leftConstraint?.constant = (range.lowerBound / (totalRange.upperBound - totalRange.lowerBound)) * frame.width
-    rightConstraint?.constant = -1 * (frame.width - (range.upperBound / (totalRange.upperBound - totalRange.lowerBound)) * frame.width)
-    layoutIfNeeded()
+  func setCurrentRange(_ range: ClosedRange<CGFloat>, notify: Bool = false, animated: Bool = false) {
+    
+    func changes() {
+      leftConstraint?.constant = (range.lowerBound / (totalRange.upperBound - totalRange.lowerBound)) * frame.width
+      rightConstraint?.constant = -1 * (frame.width - (range.upperBound / (totalRange.upperBound - totalRange.lowerBound)) * frame.width)
+      layoutIfNeeded()
+    }
+    
+    if animated {
+      UIView.animate(withDuration: TRIMMER_VIEW_ANIMATION_DURATION) {
+        changes()
+      }
+    } else {
+      changes()
+    }
+    
     if notify { notifyRangeChanged(event: .Reset) }
   }
   
