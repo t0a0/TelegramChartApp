@@ -173,6 +173,16 @@ class TGCAPercentageChartView: TGCAChartView {
     return chartPercentageYVectors
   }
   
+  // MARK: COnfiguration
+  
+  override func configureChartBounds() {
+    chartBounds = CGRect(x: bounds.origin.x,
+                         y: bounds.origin.y,
+                         width: bounds.width,
+                         height: bounds.height
+                          - (shouldDisplayAxesAndLabels ? ChartViewConstants.sizeForGuideLabels.height : 0))
+  }
+  
   // MARK: Private structs and classes
   
   private class ChartAnnotation: BaseChartAnnotation {

@@ -94,6 +94,16 @@ class TGCASingleBarChartView: TGCAChartView {
     return (leftPath, rightPath)
   }
   
+  //MARK: - Configuration
+  
+  override func configureChartBounds() {
+    chartBounds = CGRect(x: bounds.origin.x,
+                         y: bounds.origin.y,
+                         width: bounds.width,
+                         height: bounds.height
+                          - (shouldDisplayAxesAndLabels ? ChartViewConstants.sizeForGuideLabels.height : 0))
+  }
+  
   //MARK: - Classes and structs
   
   private class ChartAnnotation: BaseChartAnnotation {

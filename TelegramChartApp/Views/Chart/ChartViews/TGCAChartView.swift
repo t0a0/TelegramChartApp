@@ -475,7 +475,7 @@ class TGCAChartView: UIView {
     configureHorizontalAxesDefaultPositions()
   }
   
-  private func configureChartBounds() {
+  func configureChartBounds() {
     // We need to inset drawing so that if the edge points are selected, the circular point on the graph is fully visible in the view
     let inset = graphLineWidth + (canShowAnnotations ? ChartViewConstants.circlePointRadius : 0)
     chartBounds = CGRect(x: bounds.origin.x + inset,
