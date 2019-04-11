@@ -72,4 +72,25 @@ class TGCAStackedBarChartView: TGCASingleBarChartView {
     }
   }
 
+  override func getMaxPossibleLabelsCountForChartAnnotation() -> Int {
+    return chart.yVectors.count + 1
+  }
+  
+  override func getChartAnnotationViewConfiguration(for index: Int) -> TGCAChartAnnotationView.AnnotationViewConfiguration {
+    let includedIndicies = (0..<chart.yVectors.count).filter{!hiddenDrawingIndicies.contains($0)}
+    var summ: CGFloat = 0
+    var coloredValues: [TGCAChartAnnotationView.ColoredValue] = includedIndicies.map{
+      let yVector = chart.yVectors[$0]
+      summ += yVector.vector[index]
+      return TGCAChartAnnotationView.ColoredValue(title: yVector.metaData.name, value: yVector.vector[index], color: yVector.metaData.color)
+    }
+    coloredValues.sort { (left, right) -> Bool in
+      return left.value >= right.value
+    }
+    if includedIndicies.count > 1 {
+      coloredValues.append(TGCAChartAnnotationView.ColoredValue(title: "All", value: summ, color: nil))
+    }
+    return TGCAChartAnnotationView.AnnotationViewConfiguration(date: chart.datesVector[index], showsDisclosureIcon: true, mode: .Date, showsLeftColumn: false, coloredValues: coloredValues)
+  }
+
 }

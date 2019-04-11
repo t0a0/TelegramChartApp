@@ -108,6 +108,8 @@ class TGCAChartAnnotationView: UIView {
   
   private var biggestObservedWidth: CGFloat = 0
   private var biggestObservedRightStackViewWidth: CGFloat = 0
+  private var currentConfiguration: AnnotationViewConfiguration?
+  
   
   func configure(with configuration: AnnotationViewConfiguration) {
     headerLabel.text = configuration.mode == .Date ? dateFormatter.string(from: configuration.date) : timeFormatter.string(from: configuration.date)
@@ -130,7 +132,7 @@ class TGCAChartAnnotationView: UIView {
       let coloredValue = configuration.coloredValues[i]
       
       let rightLabel = rightArrangedLabels[i]
-      rightLabel.textColor = coloredValue.color
+      rightLabel.textColor = coloredValue.color ?? UIApplication.myDelegate.currentTheme.annotationLabelColor
       rightLabel.text = transformValueToString(coloredValue.value)
       let rightSize = rightLabel.sizeThatFits(CGSize(width: .greatestFiniteMagnitude, height: AnnotationViewConstants.heightForLabel))
       maxRightLabelWidth = max(rightSize.width, maxRightLabelWidth)
@@ -173,6 +175,7 @@ class TGCAChartAnnotationView: UIView {
     
     //IMPORTANT: should be before bounds change
     showHideLabels(withCount: count)
+    currentConfiguration = configuration
 
     if superview != nil && bounds.size != newSize {
       UIView.animate(withDuration: ANIMATION_DURATION) { [weak self] in
@@ -264,10 +267,10 @@ class TGCAChartAnnotationView: UIView {
   struct ColoredValue {
     let title: String
     let value: CGFloat
-    let color: UIColor
+    let color: UIColor?
     let prefix: String?
     
-    init(title: String, value: CGFloat, color: UIColor, prefix: String? = nil) {
+    init(title: String, value: CGFloat, color: UIColor?, prefix: String? = nil) {
       self.title = title
       self.value = value
       self.color = color
@@ -297,11 +300,20 @@ extension TGCAChartAnnotationView: ThemeChangeObserving {
     func applyChanges() {
       backgroundColor = theme.annotationColor
       headerLabel.textColor = theme.annotationLabelColor
+      
       leftArrangedLabels.forEach{
         $0.textColor = theme.annotationLabelColor
       }
       middleArrangedLabels.forEach{
         $0.textColor = theme.annotationLabelColor
+      }
+      
+      if let currentConfig = currentConfiguration {
+        for i in 0..<currentConfig.coloredValues.count {
+          if currentConfig.coloredValues[i].color == nil {
+            rightArrangedLabels[i].textColor = theme.annotationLabelColor
+          }
+        }
       }
     }
     
