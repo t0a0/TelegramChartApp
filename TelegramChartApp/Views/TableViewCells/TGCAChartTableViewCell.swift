@@ -33,7 +33,6 @@ class TGCAChartTableViewCell: UITableViewCell {
     headerView?.zoomOutButton.setTitle("Zoom Out", for: .normal)
     
     var fontSize: CGFloat = 14.0
-    print (UIScreen.main.bounds.width)
     if UIScreen.main.bounds.width < 375 {
       fontSize = 11.0
     }
