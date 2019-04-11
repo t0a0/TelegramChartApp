@@ -194,13 +194,13 @@ class TGCAChartAnnotationView: UIView {
   }
   
   private struct AnnotationViewConstants {
-    static let headerFont = UIFont.systemFont(ofSize: 15.0, weight: .bold)
-    static let leftFont = UIFont.systemFont(ofSize: 13.0, weight: .bold)
-    static let middleFont = UIFont.systemFont(ofSize: 13.0)
-    static let rightFont = UIFont.systemFont(ofSize: 13.0, weight: .bold)
+    static let headerFont = UIFont.systemFont(ofSize: 12.0, weight: .bold)
+    static let leftFont = UIFont.systemFont(ofSize: 11.0, weight: .bold)
+    static let middleFont = UIFont.systemFont(ofSize: 11.0)
+    static let rightFont = UIFont.systemFont(ofSize: 11.0, weight: .bold)
     static let labelSpacing: CGFloat = 2.0 //IF I CHANGE THIS -> ALSO CHANGE IN .XIB for stack views
     
-    static let heightForLabel: CGFloat = 16.0
+    static let heightForLabel: CGFloat = 13.0
   }
   
   private var leftArrangedLabels = [UILabel]()
