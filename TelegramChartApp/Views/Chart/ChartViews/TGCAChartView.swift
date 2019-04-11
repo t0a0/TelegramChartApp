@@ -111,6 +111,7 @@ class TGCAChartView: UIView {
   var chartBoundsRight: CGFloat = 0
   
   var chart: DataChart!
+  var underlyingChart: DataChart!
   var drawings: ChartDrawings!
   
   /// Contains indicies of the hidden charts
@@ -211,6 +212,14 @@ class TGCAChartView: UIView {
       addHorizontalAxes()
       addGuideLabels()
     }
+  }
+  
+  func transitionToMainChart() {
+    
+  }
+  
+  func transitionToUnderlyingChart(_ underlyingChart: DataChart) {
+    
   }
   
   /// Updates the diplayed X range. Accepted are subranges of 0...1.

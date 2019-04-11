@@ -18,10 +18,13 @@ class TGCAChartDetailViewController: UIViewController {
   
   @IBOutlet weak var tableView: UITableView!
     
-  private class ChartStruct {
+  private class ChartContainer {
     let chart: DataChart
+    var underlyingChartContainer: ChartContainer?
+
     private(set) var hiddenIndicies: Set<Int> = []
     private(set) var trimRange: ClosedRange<CGFloat>
+    
     
     init(chart: DataChart) {
       self.chart = chart
@@ -47,29 +50,22 @@ class TGCAChartDetailViewController: UIViewController {
     func showAll() {
       hiddenIndicies = []
     }
+    
+    
   }
   
-  private var charts: [ChartStruct]?
+  private let chartContainers = (1...5).map{TGCAJsonToChartService().parseJson(named: "overview", subDir: "contest/\($0)")!}.map{ChartContainer(chart: $0)}
   
-  override func awakeFromNib() {
+  /*override func awakeFromNib() {
     super.awakeFromNib()
-    
-    var charts = [DataChart]()
-    
-    for i in 1...5 {
-      if let chart = jsonToChartService.parseJson(named: "overview", subDir: "contest/\(i)") {
-        charts.append(chart)
-      }
-    }
-    self.charts = charts.map{ChartStruct(chart: $0)}
 
-//    if let charts = TGCAJsonToChartService().parseJson(named: "overview", subDir: "contest/4"){
-//    } else {
-//      let alert = UIAlertController(title: "Could not parse JSON", message: nil, preferredStyle: .alert)
-//      alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: nil))
-//      present(alert, animated: true, completion: nil)
-//    }
-  }
+    /*if let charts = TGCAJsonToChartService().parseJson(named: "overview", subDir: "contest/4"){
+    } else {
+      let alert = UIAlertController(title: "Could not parse JSON", message: nil, preferredStyle: .alert)
+      alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: nil))
+      present(alert, animated: true, completion: nil)
+    }*/
+  }*/
   
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -112,19 +108,56 @@ class TGCAChartDetailViewController: UIViewController {
     UIApplication.myDelegate.toggleTheme()
   }
   
-  func preloadJSONData(chartIndex: Int, date: Date) -> DataChart? {
+  func loadZoomedInJSONDataFor(chartIndex: Int, date: Date) -> DataChart? {
     let pc = dateToPathComponentsService .pathComponents(for: date)
     return jsonToChartService.parseJson(named: pc.fileName, subDir: "contest/\(chartIndex+1)/\(pc.folder)")
-//    if let chart = jsonToChartService.parseJson(named: pc.fileName, subDir: "contest/\(chartIndex+1)/\(pc.folder)") {
-//      print(chart)
-//    }
+  }
+  
+  private func getButtonsConfigurationFor(chartContainer: ChartContainer, cell: TGCAChartTableViewCell, index: Int) -> [TGCAFilterButton] {
+    
+    var buttons = [TGCAFilterButton]()
+    for i in 0..<chartContainer.chart.yVectors.count {
+      let yV = chartContainer.chart.yVectors[i]
+      
+      let button = TGCAFilterButton(type: .system)
+      let width = button.configure(checked: true, titleText: yV.metaData.name, color: yV.metaData.color)
+      button.frame.size = CGSize(width: width, height: TGCAFilterButton.buttonHeight)
+      
+      if chartContainer.hiddenIndicies.contains(i) {
+        button.uncheck()
+      }
+      
+      button.onTap = {
+        button.toggleChecked()
+        chartContainer.toggleHiden(index: i)
+        cell.chartView?.toggleHidden(at: i)
+        cell.thumbnailChartView?.toggleHidden(at: i)
+      }
+      
+      button.onLongTap = {
+        if cell.chartFiltersView?.isAnyButtonChecked ?? false {
+          cell.chartFiltersView?.uncheckAll()
+          cell.chartView?.hideAll()
+          cell.thumbnailChartView?.hideAll()
+          chartContainer.hideAll()
+        } else {
+          cell.chartFiltersView?.checkAll()
+          cell.chartView?.showAll()
+          cell.thumbnailChartView?.showAll()
+          chartContainer.showAll()
+        }
+      }
+      
+      buttons.append(button)
+    }
+    return buttons
   }
 }
 
 extension TGCAChartDetailViewController: UITableViewDataSource {
   
   func numberOfSections(in tableView: UITableView) -> Int {
-    return charts?.count ?? 0
+    return chartContainers.count
   }
   
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -133,7 +166,7 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     var cell: TGCAChartTableViewCell!
-    let chartType = charts![indexPath.section].chart.type
+    let chartType = chartContainers[indexPath.section].chart.type
     switch chartType {
     case .linear:
       cell = tableView.dequeueReusableCell(withIdentifier: TGCALinearChartTableViewCell.defaultReuseId) as! TGCALinearChartTableViewCell
@@ -157,72 +190,58 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
   
   func configureChartCell(_ cell: TGCAChartTableViewCell, section: Int) {
     
-    if let chart = charts?[section] {
-      cell.headerView.label.text = ""
-
-      var b = [TGCAFilterButton]()
-      
-      for i in 0..<chart.chart.yVectors.count {
-        let yV = chart.chart.yVectors[i]
-        let button = TGCAFilterButton(type: .system)
-        let width = button.configure(checked: true, titleText: yV.metaData.name, color: yV.metaData.color)
-        button.frame.size = CGSize(width: width, height: TGCAFilterButton.buttonHeight)
-        if chart.hiddenIndicies.contains(i) {
-          button.uncheck()
-        }
-        button.onTap = {
-          button.toggleChecked()
-          chart.toggleHiden(index: i)
-          cell.chartView?.toggleHidden(at: i)
-          cell.thumbnailChartView?.toggleHidden(at: i)
-        }
-        button.onLongTap = {
-          if cell.chartFiltersView?.isAnyButtonChecked ?? false {
-            cell.chartFiltersView?.uncheckAll()
-            cell.chartView?.hideAll()
-            cell.thumbnailChartView?.hideAll()
-            chart.hideAll()
-          } else {
-            cell.chartFiltersView?.checkAll()
-            cell.chartView?.showAll()
-            cell.thumbnailChartView?.showAll()
-            chart.showAll()
-          }
-        }
-        b.append(button)
+    let chartContainer = chartContainers[section]
+    
+    cell.headerView.label.text = ""
+    cell.headerView.onZoomOut = {
+      chartContainer.underlyingChartContainer = nil
+      cell.headerView.zoomOutButton.isHidden = true
+      cell.chartView.transitionToMainChart()
+      cell.thumbnailChartView.transitionToMainChart()
+    }
+    
+    
+    cell.chartFiltersHeightConstraint.constant = cell.chartFiltersView?.setupButtons(getButtonsConfigurationFor(chartContainer: chartContainer, cell: cell, index: section)) ?? 0
+    
+    
+    
+    cell.chartView?.onRangeChange = {[weak self] left, right in
+      guard let left = left else {
+        cell.headerView.label.text = ""
+        return
       }
-      cell.chartFiltersHeightConstraint.constant = cell.chartFiltersView?.setupButtons(b) ?? 0
-      
-      cell.chartView?.onRangeChange = {[weak self] left, right in
-        guard let left = left else {
-          cell.headerView.label.text = ""
-          return
-        }
-        cell.headerView.label.text = self?.dateRangeFormatter.prettyDateStringFrom(left: left, right: right)
-      }
-      
-      cell.chartView?.onAnnotationClick = {[weak self] date in
-        if let lul = self?.preloadJSONData(chartIndex: section, date: date) {
-          cell.chartView?.configure(with: lul, hiddenIndicies: [], displayRange: chart.trimRange)
-          cell.thumbnailChartView?.configure(with: lul, hiddenIndicies: [])
-        }
+      cell.headerView.label.text = self?.dateRangeFormatter.prettyDateStringFrom(left: left, right: right)
+    }
+    
+    cell.chartView?.onAnnotationClick = {[weak self] date in
+      if let underlyingChart = self?.loadZoomedInJSONDataFor(chartIndex: section, date: date) {
+        chartContainer.underlyingChartContainer = ChartContainer(chart: underlyingChart)
+        cell.headerView.zoomOutButton.isHidden = false
         
-      }
-      
-      cell.chartView?.configure(with: chart.chart, hiddenIndicies: chart.hiddenIndicies, displayRange: chart.trimRange)
-      cell.thumbnailChartView?.configure(with: chart.chart, hiddenIndicies: chart.hiddenIndicies)
-      cell.trimmerView?.setCurrentRange(chart.trimRange)
-      
-      cell.trimmerView?.onChange = {(newRange, event) in
-        if event == .Started {
-          cell.chartView?.isUserInteractionEnabled = false
-        } else if event == .Ended {
-          cell.chartView?.isUserInteractionEnabled = true
-        }
-        cell.chartView?.trimDisplayRange(to: newRange, with: event)
-        chart.updateTrimRange(to: newRange)
+        cell.chartView?.transitionToUnderlyingChart(underlyingChart)
+        cell.thumbnailChartView?.transitionToUnderlyingChart(underlyingChart)
       }
     }
+
+
+    cell.chartView?.configure(with: chartContainer.chart, hiddenIndicies: chartContainer.hiddenIndicies, displayRange: chartContainer.trimRange)
+    cell.thumbnailChartView?.configure(with: chartContainer.chart, hiddenIndicies: chartContainer.hiddenIndicies)
+    
+    //trim view config
+    cell.trimmerView?.setCurrentRange(chartContainer.trimRange)
+    
+    cell.trimmerView?.onChange = {(newRange, event) in
+      if event == .Started {
+        cell.chartView?.isUserInteractionEnabled = false
+      } else if event == .Ended {
+        cell.chartView?.isUserInteractionEnabled = true
+      }
+      cell.chartView?.trimDisplayRange(to: newRange, with: event)
+      chartContainer.updateTrimRange(to: newRange)
+    }
+    
+    
+    
     let theme = UIApplication.myDelegate.currentTheme
     cell.headerView.label.textColor = theme.mainTextColor
     cell.backgroundColor = theme.foregroundColor
@@ -233,10 +252,8 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
 extension TGCAChartDetailViewController: UITableViewDelegate {
   
   func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-    if let charts = charts {
-      if section < charts.count {
-        return (charts[section].chart.title ?? "Untitled chart").uppercased()
-      }
+    if section < chartContainers.count {
+      return (chartContainers[section].chart.title ?? "Untitled chart").uppercased()
     }
     return nil
   }
