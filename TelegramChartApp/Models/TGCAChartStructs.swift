@@ -30,7 +30,7 @@ struct DataChart {
   let xVector: ValueVector
   let datesVector: [Date]
   let showsAxisLabelsOnBothSides = true
-  let xPointsCount: Int
+  let normalizedXPositions: [CGFloat]
   
   init(yVectors: [ChartValueVector], xVector: ValueVector, type: DataChartType, title: String? = nil) {
     yVectors.forEach{
@@ -39,7 +39,7 @@ struct DataChart {
     
     self.yVectors = yVectors
     self.xVector = xVector
-    self.xPointsCount = xVector.count
+    self.normalizedXPositions = (0..<xVector.count).map{(CGFloat($0)/CGFloat(xVector.count))}
     self.title = title
     self.type = type
     self.datesVector = xVector.map{Date(timeIntervalSince1970: TimeInterval($0 / 1000.0))}

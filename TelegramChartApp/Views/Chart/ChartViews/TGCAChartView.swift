@@ -1040,7 +1040,7 @@ class TGCAChartView: UIView {
   }
   
   func getXVectorMappedToScrollView() -> ValueVector {
-    return (0..<chart.xPointsCount).map{(CGFloat($0)/CGFloat(chart.xPointsCount)) * scrollView.contentSize.width}
+    return chart.normalizedXPositions.map{$0 * scrollView.contentSize.width}
   }
   
   func mapToChartBoundsHeight(_ vector: ValueVector) -> ValueVector {
