@@ -62,6 +62,9 @@ class TGCAChartAnnotationView: UIView {
   
   private var maxPossibleLabels: Int = 0
   
+  var onTap: (()->())?
+  var onLongTap: (()->())?
+  
   // MARK: - Init
   
   init(maxPossibleLabels: Int) {
@@ -91,6 +94,7 @@ class TGCAChartAnnotationView: UIView {
     headerLabel.font = AnnotationViewConstants.headerFont
     applyCurrentTheme()
     layer.anchorPoint = CGPoint(x: 0.5, y: 0)
+    addGestureRecognizers()
   }
   
   override func didMoveToWindow() {
@@ -103,6 +107,24 @@ class TGCAChartAnnotationView: UIView {
     if newWindow == nil {
       unsubscribe()
     }
+  }
+  
+  // MARK: - Gestures
+  
+  func addGestureRecognizers() {
+    let tapGR = UITapGestureRecognizer(target: self, action: #selector(tapped(_:)))
+    addGestureRecognizer(tapGR)
+    let longTapGR = UILongPressGestureRecognizer(target: self, action: #selector(longTapped(_:)))
+    longTapGR.minimumPressDuration = 0.75
+    addGestureRecognizer(longTapGR)
+  }
+  
+  @objc func tapped(_ sender: UITapGestureRecognizer) {
+    onTap?()
+  }
+  
+  @objc func longTapped(_ sender: UITapGestureRecognizer) {
+    onLongTap?()
   }
   
   // MARK: - Configuration

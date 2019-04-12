@@ -900,6 +900,15 @@ class TGCAChartView: UIView {
     annotationView.configure(with: configuration)
     let chartAnnotation = generateChartAnnotation(for: index, with: annotationView)
     addChartAnnotation(chartAnnotation)
+    chartAnnotation.annotationView.onLongTap = { [weak self] in
+      self?.removeChartAnnotation()
+    }
+    chartAnnotation.annotationView.onTap = { [weak self] in
+      guard let strongSelf = self else {
+        return
+      }
+      _ = strongSelf.onAnnotationClick?(strongSelf.chart.datesVector[chartAnnotation.displayedIndex])
+    }
     chartAnnotation.annotationView.frame.origin = desiredOriginForChartAnnotationPlacing(chartAnnotation: chartAnnotation)
     currentChartAnnotation = chartAnnotation
   }
@@ -928,24 +937,16 @@ class TGCAChartView: UIView {
   override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
     guard let touch = touches.first,
       canShowAnnotations && hiddenDrawingIndicies.count != chart.yVectors.count,
-      scrollView.frame.contains(touch.location(in: self))
-      else {
+      scrollView.frame.contains(touch.location(in: self)),
+      !(currentChartAnnotation?.annotationView.frame.contains(touch.location(in: self)) ?? false)
+    else {
         return super.touchesMoved(touches, with: event)
     }
     
     let index = closestIndex(for: touch.location(in: scrollView))
     
-    if let annotation = currentChartAnnotation {
-      if annotation.annotationView.frame.contains(touch.location(in: self)) {
-        //TODO: DISMISS ANNOTATION ON LONG TAP
-        let handled = onAnnotationClick?(chart.datesVector[index]) ?? false
-        if !handled {
-          removeChartAnnotation()
-        }
-        return
-      } else {
-        moveChartAnnotation(to: index)
-      }
+    if currentChartAnnotation != nil {
+      moveChartAnnotation(to: index)
     } else {
       addChartAnnotation(for: index)
     }
@@ -954,7 +955,8 @@ class TGCAChartView: UIView {
   override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
     guard let touch = touches.first,
       let currentAnnotation = currentChartAnnotation,
-      scrollView.frame.contains(touch.location(in: self))
+      scrollView.frame.contains(touch.location(in: self)),
+      !(currentChartAnnotation?.annotationView.frame.contains(touch.location(in: self)) ?? false)
       else {
         return super.touchesMoved(touches, with: event)
     }
