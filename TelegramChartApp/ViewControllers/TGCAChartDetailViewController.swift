@@ -23,16 +23,16 @@ class TGCAChartDetailViewController: UIViewController {
     var underlyingChartContainer: ChartContainer?
 
     private(set) var hiddenIndicies: Set<Int>
-    private(set) var trimRange: ClosedRange<CGFloat>
+    private(set) var trimRange: CGFloatRangeInBounds
     
     
     init(chart: DataChart, hiddenIndicies: Set<Int> = []) {
       self.chart = chart
-      self.trimRange = 0.0...1.0
+      self.trimRange = CGFloatRangeInBounds.ZeroToOne
       self.hiddenIndicies = hiddenIndicies
     }
     
-    func updateTrimRange(to newRange: ClosedRange<CGFloat>) {
+    func updateTrimRange(to newRange: CGFloatRangeInBounds) {
       trimRange = newRange
     }
     

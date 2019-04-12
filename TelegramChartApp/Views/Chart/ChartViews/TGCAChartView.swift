@@ -208,7 +208,7 @@ class TGCAChartView: UIView {
   }
 
   /// Configures the view to display the chart.
-  func configure(with chart: DataChart, hiddenIndicies: Set<Int>, displayRange: ClosedRange<CGFloat>? = nil) {
+  func configure(with chart: DataChart, hiddenIndicies: Set<Int>, displayRange: CGFloatRangeInBounds? = nil) {
     scrollView.contentSize.width = scrollView.frame.width
     scrollView.contentOffset.x = 0
     reset()
@@ -238,7 +238,7 @@ class TGCAChartView: UIView {
     underlyingChart = nil
   }
   
-  func transitionToUnderlyingChart(_ underlyingChart: DataChart, displayRange: ClosedRange<CGFloat>? = nil) {
+  func transitionToUnderlyingChart(_ underlyingChart: DataChart, displayRange: CGFloatRangeInBounds? = nil) {
     self.underlyingChart = underlyingChart
     removeChartAnnotation()
     configure(with: underlyingChart, hiddenIndicies: hiddenDrawingIndicies, displayRange: displayRange)
@@ -246,14 +246,14 @@ class TGCAChartView: UIView {
   }
   
   /// Updates the diplayed X range. Accepted are subranges of 0...1.
-  func trimDisplayRange(to newRange: ClosedRange<CGFloat>, with event: DisplayRangeChangeEvent) {
+  func trimDisplayRange(to newRange: CGFloatRangeInBounds, with event: DisplayRangeChangeEvent) {
     if event == .Started { return }
     
     if event != .Scrolled {
-      scrollView.contentSize.width = scrollView.frame.width * (1.0 / (newRange.upperBound - newRange.lowerBound))
+      scrollView.contentSize.width = scrollView.frame.width * newRange.scale
     }
     
-    scrollView.contentOffset.x = scrollView.contentSize.width * newRange.lowerBound
+    scrollView.contentOffset.x = scrollView.contentSize.width * newRange.offset
 //      drawings.shapeLayers.forEach{
 //        $0.shapeLayer.anchorPoint = CGPoint(x: scrollView.contentOffset.x < scrollView.contentSize.width / 2 ? 1.0 : 0.0,
 //                                            y: 0.5)

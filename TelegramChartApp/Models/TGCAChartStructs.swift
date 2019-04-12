@@ -199,14 +199,8 @@ struct DataChart {
     return arrayNum.map{Int(($0 * 100 / sum).rounded())}
   }
   
-  /// Maps the value in range of 0...1 to an according index in the xVector
-  func translatedIndex(for xRangePosition: CGFloat) -> Int {
-    return Int(round(CGFloat(xVector.count - 1) * xRangePosition))
-  }
-  
-  /// Maps the subrange of 0...1 to an according Int range of indexes of the xVector
-  func translatedBounds(for xRange: ClosedRange<CGFloat>) -> ClosedRange<Int> {
-    return translatedIndex(for: xRange.lowerBound)...translatedIndex(for: xRange.upperBound)
+  func translatedBounds(for xRange: CGFloatRangeInBounds) -> ClosedRange<Int> {
+    return xRange.integerRange(withBounds: 0...(xVector.count-1))
   }
   
   func normalizedXVector(in xRange: ClosedRange<Int>) -> ValueVector {

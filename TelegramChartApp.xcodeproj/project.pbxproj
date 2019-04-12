@@ -41,6 +41,7 @@
 		167FCAD62234334A001CA7E5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 167FCAD52234334A001CA7E5 /* Assets.xcassets */; };
 		167FCAD92234334A001CA7E5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 167FCAD72234334A001CA7E5 /* LaunchScreen.storyboard */; };
 		167FCAFD22343523001CA7E5 /* TGCAChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167FCAFC22343523001CA7E5 /* TGCAChartView.swift */; };
+		1685C9D12260E493002D6AB3 /* CGFloatRangeInBounds.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1685C9D02260E493002D6AB3 /* CGFloatRangeInBounds.swift */; };
 		168DDC8622415EB300F51300 /* TGCAChartLabelFormatterService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 168DDC8522415EB300F51300 /* TGCAChartLabelFormatterService.swift */; };
 		168DDC88224198D500F51300 /* ClosedRange+Distance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 168DDC87224198D500F51300 /* ClosedRange+Distance.swift */; };
 		16A08AD3225FAEFC00EC11F2 /* TGCADateToPathComponentsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16A08AD2225FAEFC00EC11F2 /* TGCADateToPathComponentsService.swift */; };
@@ -93,6 +94,7 @@
 		167FCAD82234334A001CA7E5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		167FCADA2234334A001CA7E5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		167FCAFC22343523001CA7E5 /* TGCAChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartView.swift; sourceTree = "<group>"; };
+		1685C9D02260E493002D6AB3 /* CGFloatRangeInBounds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGFloatRangeInBounds.swift; sourceTree = "<group>"; };
 		168DDC8522415EB300F51300 /* TGCAChartLabelFormatterService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartLabelFormatterService.swift; sourceTree = "<group>"; };
 		168DDC87224198D500F51300 /* ClosedRange+Distance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ClosedRange+Distance.swift"; sourceTree = "<group>"; };
 		16A08AD2225FAEFC00EC11F2 /* TGCADateToPathComponentsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCADateToPathComponentsService.swift; sourceTree = "<group>"; };
@@ -158,6 +160,7 @@
 			children = (
 				165764592236F81400173E97 /* TGCAChartStructs.swift */,
 				1657646B223D1DDD00173E97 /* TGCAColorTheme.swift */,
+				1685C9D02260E493002D6AB3 /* CGFloatRangeInBounds.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -374,6 +377,7 @@
 				161CA5FE225A439300FFC1DF /* TGCASingleBarChartView.swift in Sources */,
 				168DDC8622415EB300F51300 /* TGCAChartLabelFormatterService.swift in Sources */,
 				16FAF467225ABBFD00EEADE8 /* TGCALinearChartWith2AxesTableViewCell.swift in Sources */,
+				1685C9D12260E493002D6AB3 /* CGFloatRangeInBounds.swift in Sources */,
 				165764582235D70700173E97 /* UIImage+Color.swift in Sources */,
 				168DDC88224198D500F51300 /* ClosedRange+Distance.swift in Sources */,
 				1657645E2237135000173E97 /* Constants.swift in Sources */,

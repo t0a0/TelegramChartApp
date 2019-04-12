@@ -59,7 +59,7 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
     return DoubleAxisYRangeChageResult(leftChanged: leftChanged, rightChanged: rightChanged)
   }
   
-  override func configure(with chart: DataChart, hiddenIndicies: Set<Int>, displayRange: ClosedRange<CGFloat>? = nil) {
+  override func configure(with chart: DataChart, hiddenIndicies: Set<Int>, displayRange: CGFloatRangeInBounds? = nil) {
     super.configure(with: chart, hiddenIndicies: hiddenIndicies, displayRange: displayRange)
     leftAxisLabelColor = chart.yVectors.first?.metaData.color.cgColor
     rightAxisLabelColor = chart.yVectors.last?.metaData.color.cgColor

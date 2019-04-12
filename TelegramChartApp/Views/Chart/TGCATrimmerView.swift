@@ -21,21 +21,21 @@ class TGCATrimmerView: UIView {
   static let borderWidth: CGFloat = 1.0
   static let shoulderWidth: CGFloat = 12.0
 
-  /**
-   Calls to notify that the trimmed area on trimmer view has changed.
-   
-   - Parameters:
-   - newRange: Min is 0...minimumRangeLength, max is (1 - minimumRangeLength)...1
-   - event: An event that triggered the change in display range
-   
-   */
-  var onChange: ((_ newRange: ClosedRange<CGFloat>, _ event: DisplayRangeChangeEvent) -> ())?
+  var onChange: ((_ newRange: CGFloatRangeInBounds, _ event: DisplayRangeChangeEvent) -> ())?
   
-  func setCurrentRange(_ range: ClosedRange<CGFloat>, notify: Bool = false, animated: Bool = false) {
+  func setCurrentRange(_ range: CGFloatRangeInBounds, notify: Bool = false, animated: Bool = false) {
     
     func changes() {
-      leftConstraint?.constant = (range.lowerBound / (totalRange.upperBound - totalRange.lowerBound)) * frame.width
-      rightConstraint?.constant = -1 * (frame.width - (range.upperBound / (totalRange.upperBound - totalRange.lowerBound)) * frame.width)
+      let curRange = currentRange
+      if range.bounds == curRange.bounds {
+        leftConstraint?.constant = curRange.range.lowerBound
+        rightConstraint?.constant = -1 * (curRange.bounds.upperBound - curRange.range.upperBound)
+      } else {
+        let mappedRange = range.mapTo(newBounds: curRange.bounds).range
+        leftConstraint?.constant = mappedRange.lowerBound
+        rightConstraint?.constant = -1 * (curRange.bounds.upperBound - mappedRange.upperBound)
+      }
+      
       layoutIfNeeded()
     }
     
@@ -52,7 +52,6 @@ class TGCATrimmerView: UIView {
   
   /// The minimum range allowed for the trimming. Between 0.0 and 1.0.
   private let minimumRangeLength: CGFloat = 0.2
-  private let totalRange = ZORange
   
   // MARK: - Subviews
   
@@ -77,11 +76,9 @@ class TGCATrimmerView: UIView {
     onChange?(currentRange, event)
   }
   
-  /// The current trimmed range. The left boundary is at which percentage the trim starts. The right boundary is at which percentage the trim ends. Possible values are subranges of 0.0...1.0.
-  var currentRange: ClosedRange<CGFloat> {
-    let left = startPosition * totalRange.upperBound / frame.width
-    let right = endPosition * totalRange.upperBound / frame.width
-    return left...right
+
+  private var currentRange: CGFloatRangeInBounds {
+    return CGFloatRangeInBounds(range: startPosition...endPosition, bounds: 0...bounds.width)
   }
   
   // MARK: - Init
@@ -330,6 +327,7 @@ class TGCATrimmerView: UIView {
       guard let lc = leftConstraint, let rc = rightConstraint else {
         return
       }
+      
       var widthChangeCoefficient = bounds.width / oldValue.width
       if widthChangeCoefficient == CGFloat.infinity { widthChangeCoefficient = 0.0}
       lc.constant = lc.constant * widthChangeCoefficient
@@ -339,12 +337,8 @@ class TGCATrimmerView: UIView {
   
   // MARK: - Helpers
   
-  private var translatedMinimumRangeLenth: CGFloat {
-    return minimumRangeLength * (totalRange.upperBound - totalRange.lowerBound) + totalRange.lowerBound
-  }
-  
   private var minimumDistanceBetweenShoulders: CGFloat {
-    return frame.width * translatedMinimumRangeLenth / totalRange.upperBound
+    return minimumRangeLength * bounds.width
   }
   
   private func resetHandleViewPosition() {
@@ -361,7 +355,7 @@ class TGCATrimmerView: UIView {
   
   /// The current end position of trimmed area in own coordinates.
   private var endPosition: CGFloat {
-    return frame.width + rightConstraint.constant
+    return bounds.width + rightConstraint.constant
   }
   
 }
