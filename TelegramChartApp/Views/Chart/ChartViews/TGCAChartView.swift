@@ -11,7 +11,6 @@ import QuartzCore
 
 class TGCAChartView: UIView {
   
-  var onRangeChange: ((_ left: Date?, _ right: Date?) -> ())?
   var onAnnotationClick: ((_ date: Date) -> (Bool))?
   
   @IBOutlet var contentView: UIView!
@@ -87,9 +86,7 @@ class TGCAChartView: UIView {
   override var bounds: CGRect {
     didSet {
       numOfGuideLabels = Int(bounds.width / ChartViewConstants.sizeForGuideLabels.width)
-      if chart != nil {
-        configure(with: chart, hiddenIndicies: hiddenDrawingIndicies)
-      }
+      configureWithUpdatedBounds()
     }
   }
   
@@ -145,23 +142,9 @@ class TGCAChartView: UIView {
   /// Guide labels that are currently in fading animation
   var transitioningGuideLabels: [GuideLabel]!
   
-  /// Range of X values that is curently diplayed
-  var currentXIndexRange: ClosedRange<Int>! {
-    didSet {
-      guard onRangeChange != nil else {
-        return
-      }
-      if currentXIndexRange == nil {
-        onRangeChange?(nil, nil)
-      } else {
-        let datesVector = chart.datesVector
-        onRangeChange?(datesVector[currentXIndexRange.lowerBound], datesVector[currentXIndexRange.upperBound])
-      }
-    }
-  }
-  
   /// Range between total min and max Y of currently visible charts
   private(set) var currentYValueRange: ClosedRange<CGFloat> = 0...0
+  private(set) var currentTrimRange: CGFloatRangeInBounds!
   
   private func updateCurrentYValueRange(with yRangeData: YRangeDataProtocol) -> YRangeChangeResult {
     guard let yRangeData = (yRangeData as? YRangeData), yRangeData.yRange != currentYValueRange else {
@@ -204,69 +187,72 @@ class TGCAChartView: UIView {
     removeChartAnnotation()
     currentYValueRange = 0...0
     hiddenDrawingIndicies = nil
-    currentXIndexRange = nil
+    currentTrimRange = nil
   }
 
+  private func configureWithUpdatedBounds() {
+    if let lastChart = chart,
+      let lastHiddenIndicies = hiddenDrawingIndicies,
+      let lastDisplayRange = currentTrimRange {
+      reset()
+      configure(with: lastChart, hiddenIndicies: lastHiddenIndicies, displayRange: lastDisplayRange)
+    } else {
+      scrollView.contentSize.width = bounds.width
+      scrollView.contentOffset.x = 0
+    }
+  }
+  
   /// Configures the view to display the chart.
-  func configure(with chart: DataChart, hiddenIndicies: Set<Int>, displayRange: CGFloatRangeInBounds? = nil) {
-    scrollView.contentSize.width = scrollView.frame.width
-    scrollView.contentOffset.x = 0
+  func configure(with chart: DataChart, hiddenIndicies: Set<Int>, displayRange: CGFloatRangeInBounds) {
     reset()
+    
+    currentTrimRange = displayRange
+    updateScrollView(with: displayRange, event: .Reset)
     configure()
     self.chart = chart
     hiddenDrawingIndicies = hiddenIndicies
-    
-    var curXRange = currentXIndexRange ?? 0...chart.xVector.count-1
-    if let dR = displayRange {
-      curXRange = chart.translatedBounds(for: dR)
-    }
-    currentXIndexRange = curXRange
     
     drawChart()
     
     if shouldDisplayAxesAndLabels  {
       addHorizontalAxes()
-      addGuideLabels()
+      addGuideLabels(for: chart.translatedBounds(for: displayRange))
     }
   }
   
   func transitionToMainChart() {
-    
-    
-    
-    
+
     underlyingChart = nil
   }
   
-  func transitionToUnderlyingChart(_ underlyingChart: DataChart, displayRange: CGFloatRangeInBounds? = nil) {
+  func transitionToUnderlyingChart(_ underlyingChart: DataChart, displayRange: CGFloatRangeInBounds) {
     self.underlyingChart = underlyingChart
     removeChartAnnotation()
     configure(with: underlyingChart, hiddenIndicies: hiddenDrawingIndicies, displayRange: displayRange)
     
   }
   
+  private func updateScrollView(with newRange: CGFloatRangeInBounds, event: DisplayRangeChangeEvent) {
+    if event != .Scrolled {
+      print(scrollView.frame.width)
+      scrollView.contentSize.width = scrollView.frame.width * newRange.scale
+    }
+    scrollView.contentOffset.x = scrollView.contentSize.width * newRange.offset
+  }
+  
   /// Updates the diplayed X range. Accepted are subranges of 0...1.
   func trimDisplayRange(to newRange: CGFloatRangeInBounds, with event: DisplayRangeChangeEvent) {
     if event == .Started { return }
     
-    if event != .Scrolled {
-      scrollView.contentSize.width = scrollView.frame.width * newRange.scale
-    }
-    
-    scrollView.contentOffset.x = scrollView.contentSize.width * newRange.offset
-//      drawings.shapeLayers.forEach{
-//        $0.shapeLayer.anchorPoint = CGPoint(x: scrollView.contentOffset.x < scrollView.contentSize.width / 2 ? 1.0 : 0.0,
-//                                            y: 0.5)
-//      }
-    
+    currentTrimRange = newRange
+    updateScrollView(with: newRange, event: event)
+  
     trimXDisplayRange(to: chart.translatedBounds(for: newRange), with: event)
   }
   
   private func trimXDisplayRange(to newRange: ClosedRange<Int>, with event: DisplayRangeChangeEvent) {
     
     removeChartAnnotation()
-    
-    currentXIndexRange = newRange
     
     if drawings.shapeLayers.first?.animation(forKey: ChartViewConstants.AnimationKeys.updateByTrimming) != nil && event == .Scrolled {
       return
@@ -530,9 +516,9 @@ class TGCAChartView: UIView {
   
   // MARK: - Guide Labels
   
-  func addGuideLabels() {
+  func addGuideLabels(for indexRange: ClosedRange<Int>) {
     
-    let (spacing, leftover) = bestIndexSpacing(for: currentXIndexRange.distance + 1)
+    let (spacing, leftover) = bestIndexSpacing(for: indexRange.distance + 1)
     lastLeftover = leftover
     lastSpacing = spacing
     var actualIndexes = [Int]()
@@ -819,9 +805,9 @@ class TGCAChartView: UIView {
     }
     
     addSubview(chartAnnotation.annotationView)
-    layer.addSublayer(chartAnnotation.lineLayer)
+    lineLayer.addSublayer(chartAnnotation.lineLayer)
     chartAnnotation.circleLayers.forEach {
-      layer.addSublayer($0)
+      lineLayer.addSublayer($0)
     }
   }
   
@@ -931,26 +917,26 @@ class TGCAChartView: UIView {
   
   // MARK: - Touches
   
-  override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
-    return bounds.contains(point) ? self : nil
-  }
-  
-  override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-    return bounds.contains(point)
-  }
+//  override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+//    return bounds.contains(point) ? self : nil
+//  }
+//
+//  override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+//    return bounds.contains(point)
+//  }
   
   override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-    guard canShowAnnotations && hiddenDrawingIndicies.count != chart.yVectors.count else {
-      return super.touchesBegan(touches, with: event)
-    }
-    guard let touchLocation = touches.first?.location(in: self), chartBounds.contains(touchLocation) else {
-      return super.touchesBegan(touches, with: event)
+    guard let touch = touches.first,
+      canShowAnnotations && hiddenDrawingIndicies.count != chart.yVectors.count,
+      scrollView.frame.contains(touch.location(in: self))
+      else {
+        return super.touchesMoved(touches, with: event)
     }
     
-    let index = closestIndex(for: touchLocation)
+    let index = closestIndex(for: touch.location(in: scrollView))
     
     if let annotation = currentChartAnnotation {
-      if annotation.annotationView.frame.contains(touchLocation) {
+      if annotation.annotationView.frame.contains(touch.location(in: self)) {
         //TODO: DISMISS ANNOTATION ON LONG TAP
         let handled = onAnnotationClick?(chart.datesVector[index]) ?? false
         if !handled {
@@ -966,20 +952,22 @@ class TGCAChartView: UIView {
   }
   
   override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-    guard let touchLocation = touches.first?.location(in: self), chartBounds.contains(touchLocation), let currentAnnotation = currentChartAnnotation else {
-      return
+    guard let touch = touches.first,
+      let currentAnnotation = currentChartAnnotation,
+      scrollView.frame.contains(touch.location(in: self))
+      else {
+        return super.touchesMoved(touches, with: event)
     }
-    
-    let index = closestIndex(for: touchLocation)
+
+    let index = closestIndex(for: touch.location(in: scrollView))
+
     if index != currentAnnotation.displayedIndex {
       moveChartAnnotation(to: index)
     }
   }
   
   func closestIndex(for touchLocation: CGPoint) -> Int {
-    let xPositionInChartBounds = touchLocation.x - chartBounds.origin.x
-    let translatedToDisplayRange = (CGFloat(currentXIndexRange.upperBound) - CGFloat(currentXIndexRange.lowerBound)) * (xPositionInChartBounds / chartBounds.width) + CGFloat(currentXIndexRange.lowerBound)
-    return Int(round(translatedToDisplayRange))
+    return min(chart.xVector.count-1, max(0, Int(round(touchLocation.x * CGFloat(chart.xVector.count-1) / scrollView.contentSize.width))))
   }
   
   // MARK: - Reset
@@ -1033,10 +1021,11 @@ class TGCAChartView: UIView {
     return points
   }
   
-  func getNormalizedYVectors() -> NormalizedYVectors{
+  func getNormalizedYVectors() -> NormalizedYVectors {
+    let translatedBounds = chart.translatedBounds(for: currentTrimRange)
     return valuesStartFromZero
-      ? chart.normalizedYVectorsFromZeroMinimum(in: currentXIndexRange, excludedIdxs: hiddenDrawingIndicies)
-      : chart.normalizedYVectorsFromLocalMinimum(in: currentXIndexRange, excludedIdxs: hiddenDrawingIndicies)
+      ? chart.normalizedYVectorsFromZeroMinimum(in: translatedBounds, excludedIdxs: hiddenDrawingIndicies)
+      : chart.normalizedYVectorsFromLocalMinimum(in: translatedBounds, excludedIdxs: hiddenDrawingIndicies)
   }
   
   func getXVectorMappedToScrollView() -> ValueVector {

@@ -35,14 +35,14 @@ struct CGFloatRangeInBounds {
     return CGFloatRangeInBounds(range: newLowerBound...newUpperBound, bounds: newBounds)
   }
   
-  func integer(forValueInRange valueInRange: CGFloat, integerBounds: ClosedRange<Int>) -> Int {
-    
-    let oldBoundsRange = bounds.upperBound - bounds.lowerBound
-    let newBoundsRange = CGFloat(integerBounds.upperBound - integerBounds.lowerBound)
-    
-    let newValue = (((range.lowerBound - bounds.lowerBound) * newBoundsRange) / oldBoundsRange) + CGFloat(integerBounds.lowerBound)
-    return Int(round(newValue))
-  }
+//  func integer(forValueInRange valueInRange: CGFloat, integerBounds: ClosedRange<Int>) -> Int {
+//    
+//    let oldBoundsRange = bounds.upperBound - bounds.lowerBound
+//    let newBoundsRange = CGFloat(integerBounds.upperBound - integerBounds.lowerBound)
+//    
+//    let newValue = (((range.lowerBound - bounds.lowerBound) * newBoundsRange) / oldBoundsRange) + CGFloat(integerBounds.lowerBound)
+//    return Int(round(newValue))
+//  }
   
   func integerRange(withBounds integerBounds: ClosedRange<Int>) -> ClosedRange<Int> {
     

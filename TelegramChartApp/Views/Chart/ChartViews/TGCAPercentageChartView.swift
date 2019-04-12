@@ -122,7 +122,7 @@ class TGCAPercentageChartView: TGCAChartView {
       return
     }
     addSubview(chartAnnotation.annotationView)
-    layer.addSublayer(chartAnnotation.lineLayer)
+    lineLayer.addSublayer(chartAnnotation.lineLayer)
   }
   
   override func generateChartAnnotation(for index: Int, with annotationView: TGCAChartAnnotationView) -> ChartAnnotationProtocol {

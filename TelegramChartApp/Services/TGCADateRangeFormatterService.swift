@@ -27,8 +27,8 @@ class TGCADateRangeFormatterService {
     return df
   }()
   
-  func prettyDateStringFrom(left: Date, right: Date?) -> String {
-    if let right = right {
+  func prettyDateStringFrom(left: Date, right: Date) -> String {
+    if left != right {
       return mediumDateFormatter.string(from: left) + " - " + mediumDateFormatter.string(from: right)
     }
     return fullDateFormatter.string(from: left)

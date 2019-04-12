@@ -59,7 +59,7 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
     return DoubleAxisYRangeChageResult(leftChanged: leftChanged, rightChanged: rightChanged)
   }
   
-  override func configure(with chart: DataChart, hiddenIndicies: Set<Int>, displayRange: CGFloatRangeInBounds? = nil) {
+  override func configure(with chart: DataChart, hiddenIndicies: Set<Int>, displayRange: CGFloatRangeInBounds) {
     super.configure(with: chart, hiddenIndicies: hiddenIndicies, displayRange: displayRange)
     leftAxisLabelColor = chart.yVectors.first?.metaData.color.cgColor
     rightAxisLabelColor = chart.yVectors.last?.metaData.color.cgColor
@@ -351,7 +351,8 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
   //MARK: - Helper Methods
   
   private func getSeparatelyNormalizedYVectors() -> SeparatlyNormalizedYVectors{
-    return chart.separatlyNormalizedYVectorsFromLocalMinimum(in: currentXIndexRange)
+    let translatedBounds = chart.translatedBounds(for: currentTrimRange)
+    return chart.separatlyNormalizedYVectorsFromLocalMinimum(in: translatedBounds)
   }
   
 }

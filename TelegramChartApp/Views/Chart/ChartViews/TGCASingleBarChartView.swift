@@ -21,6 +21,10 @@ class TGCASingleBarChartView: TGCAChartView {
     }
   }
   
+  override func getXVectorMappedToScrollView() -> ValueVector {
+    return chart.normalizedXPositions.map{$0 * scrollView.contentSize.width}
+  }
+  
   //MARK: - Annotations
   
   private var chartAnnotationMaskColor = UIApplication.myDelegate.currentTheme.foregroundColor.withAlphaComponent(0.75).cgColor

@@ -12,9 +12,11 @@ import UIKit
 class TGCAStackedBarChartView: TGCASingleBarChartView {
   
   override func getNormalizedYVectors() -> NormalizedYVectors {
+    let translatedBounds = chart.translatedBounds(for: currentTrimRange)
+
     return valuesStartFromZero
-      ? chart.normalizedStackedYVectorsFromZeroMinimum(in: currentXIndexRange, excludedIndicies: hiddenDrawingIndicies)
-      : chart.normalizedStackedYVectorsFromLocalMinimum(in: currentXIndexRange, excludedIndicies: hiddenDrawingIndicies)
+      ? chart.normalizedStackedYVectorsFromZeroMinimum(in: translatedBounds, excludedIndicies: hiddenDrawingIndicies)
+      : chart.normalizedStackedYVectorsFromLocalMinimum(in: translatedBounds, excludedIndicies: hiddenDrawingIndicies)
   }
   
   override func animateChartHide(at index: Int, originalHidden: Bool, newPaths: [CGPath]) {

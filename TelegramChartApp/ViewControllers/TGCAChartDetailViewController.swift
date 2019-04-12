@@ -193,7 +193,11 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
     
     let chartContainer = chartContainers[section]
     
-    cell.headerView.label.text = ""
+    let translatedBounds = chartContainer.chart.translatedBounds(for: chartContainer.trimRange)
+    let left = chartContainer.chart.datesVector[translatedBounds.lowerBound]
+    let right = chartContainer.chart.datesVector[translatedBounds.upperBound]
+    cell.headerView.label.text = dateRangeFormatter.prettyDateStringFrom(left: left, right: right)
+    
     cell.headerView.onZoomOut = { [weak self] in
       chartContainer.underlyingChartContainer = nil
       cell.headerView.zoomOutButton.isHidden = true
@@ -208,16 +212,6 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
     
     cell.chartFiltersHeightConstraint.constant = cell.chartFiltersView?.setupButtons(getButtonsConfigurationFor(chartContainer: chartContainer, cell: cell, index: section)) ?? 0
     
-    
-    
-    cell.chartView?.onRangeChange = {[weak self] left, right in
-      guard let left = left else {
-        cell.headerView.label.text = ""
-        return
-      }
-      cell.headerView.label.text = self?.dateRangeFormatter.prettyDateStringFrom(left: left, right: right)
-    }
-    
     cell.chartView?.onAnnotationClick = {[weak self] date in
       if let underlyingChart = self?.loadZoomedInJSONDataFor(chartIndex: section, date: date) {
         let newContainer = ChartContainer(chart: underlyingChart, hiddenIndicies: chartContainer.hiddenIndicies)
@@ -229,7 +223,7 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
        
         
         cell.chartView?.transitionToUnderlyingChart(underlyingChart, displayRange: newContainer.trimRange)
-        cell.thumbnailChartView?.transitionToUnderlyingChart(underlyingChart)
+        cell.thumbnailChartView?.transitionToUnderlyingChart(underlyingChart, displayRange: CGFloatRangeInBounds.ZeroToOne)
         cell.trimmerView?.setCurrentRange(newContainer.trimRange, animated: true)
         return true
       }
@@ -238,12 +232,12 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
 
 
     cell.chartView?.configure(with: chartContainer.chart, hiddenIndicies: chartContainer.hiddenIndicies, displayRange: chartContainer.trimRange)
-    cell.thumbnailChartView?.configure(with: chartContainer.chart, hiddenIndicies: chartContainer.hiddenIndicies)
+    cell.thumbnailChartView?.configure(with: chartContainer.chart, hiddenIndicies: chartContainer.hiddenIndicies, displayRange: CGFloatRangeInBounds.ZeroToOne)
     
     //trim view config
     cell.trimmerView?.setCurrentRange(chartContainer.trimRange)
     
-    cell.trimmerView?.onChange = {(newRange, event) in
+    cell.trimmerView?.onChange = {[weak self] (newRange, event) in
       if event == .Started {
         cell.chartView?.isUserInteractionEnabled = false
       } else if event == .Ended {
@@ -251,6 +245,12 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
       }
       cell.chartView?.trimDisplayRange(to: newRange, with: event)
       chartContainer.updateTrimRange(to: newRange)
+      
+      let translatedBounds = chartContainer.chart.translatedBounds(for: newRange)
+      let left = chartContainer.chart.datesVector[translatedBounds.lowerBound]
+      let right = chartContainer.chart.datesVector[translatedBounds.upperBound]
+      
+      cell.headerView.label.text = self?.dateRangeFormatter.prettyDateStringFrom(left: left, right: right)
     }
     
     
