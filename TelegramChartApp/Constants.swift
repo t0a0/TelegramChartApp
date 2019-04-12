@@ -15,6 +15,6 @@ let ZORange: ClosedRange<CGFloat> = 0.0...1.0
 
 let ANIMATION_DURATION: TimeInterval = 0.1
 let AXIS_ANIMATION_DURATION: TimeInterval = 0.25
-let CHART_PATH_ANIMATION_DURATION: TimeInterval = 0.1
+let CHART_PATH_ANIMATION_DURATION: TimeInterval = 0.25
 let CHART_FADE_ANIMATION_DURATION: TimeInterval = 0.25
 let TRIMMER_VIEW_ANIMATION_DURATION: TimeInterval = 0.25

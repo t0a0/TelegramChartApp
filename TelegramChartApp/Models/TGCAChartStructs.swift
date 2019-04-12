@@ -30,13 +30,16 @@ struct DataChart {
   let xVector: ValueVector
   let datesVector: [Date]
   let showsAxisLabelsOnBothSides = true
+  let xPointsCount: Int
   
   init(yVectors: [ChartValueVector], xVector: ValueVector, type: DataChartType, title: String? = nil) {
     yVectors.forEach{
       assert($0.vector.count == xVector.count, "Trying to init Chart with unmatching (X,Y) points count.")
     }
+    
     self.yVectors = yVectors
     self.xVector = xVector
+    self.xPointsCount = xVector.count
     self.title = title
     self.type = type
     self.datesVector = xVector.map{Date(timeIntervalSince1970: TimeInterval($0 / 1000.0))}

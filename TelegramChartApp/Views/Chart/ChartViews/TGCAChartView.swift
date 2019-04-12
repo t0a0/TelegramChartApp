@@ -31,8 +31,13 @@ class TGCAChartView: UIView {
     static let contentScaleForText = UIScreen.main.scale
     /// The axes are drawn from the bottom of the bounds to the top of the bounds, capped by this value.
     static let capHeightMultiplierForHorizontalAxes: CGFloat = 0.85
+    
+    struct AnimationKeys {
+      static let updateByTrimming = "updateByTrimming"
+    }
   }
-  
+  let scrollView = UIScrollView()
+
   let axisLayer = CALayer()
   let lineLayer = CALayer()
   let datesLayer = CALayer()
@@ -59,10 +64,20 @@ class TGCAChartView: UIView {
     axisLayer.zPosition = zPositions.Chart.axis.rawValue
     lineLayer.zPosition = zPositions.Chart.graph.rawValue
     datesLayer.zPosition = zPositions.Chart.dates.rawValue
-    for l in [axisLayer, lineLayer, datesLayer] {
+    for l in [axisLayer, datesLayer] {
       layer.addSublayer(l)
     }
 //    lineLayer.masksToBounds = true
+    scrollView.bounces = false
+    scrollView.isUserInteractionEnabled = false
+    scrollView.translatesAutoresizingMaskIntoConstraints = false
+
+    addSubview(scrollView)
+    scrollView.topAnchor.constraint(equalTo: topAnchor).isActive = true
+    scrollView.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
+    scrollView.leftAnchor.constraint(equalTo: leftAnchor).isActive = true
+    scrollView.rightAnchor.constraint(equalTo: rightAnchor).isActive = true
+    scrollView.layer.addSublayer(lineLayer)
 
   }
   
@@ -148,11 +163,11 @@ class TGCAChartView: UIView {
   /// Range between total min and max Y of currently visible charts
   private(set) var currentYValueRange: ClosedRange<CGFloat> = 0...0
   
-  private func updateCurrentYValueRange(with newRange: ClosedRange<CGFloat>) -> YRangeChangeResult {
-    guard newRange != currentYValueRange else {
+  private func updateCurrentYValueRange(with yRangeData: YRangeDataProtocol) -> YRangeChangeResult {
+    guard let yRangeData = (yRangeData as? YRangeData), yRangeData.yRange != currentYValueRange else {
       return YRangeChangeResult(didChange: false)
     }
-    currentYValueRange = newRange
+    currentYValueRange = yRangeData.yRange
     if horizontalAxes != nil {
       var animBlocks = [()->()]()
       var removalBlocks = [()->()]()
@@ -194,9 +209,10 @@ class TGCAChartView: UIView {
 
   /// Configures the view to display the chart.
   func configure(with chart: DataChart, hiddenIndicies: Set<Int>, displayRange: ClosedRange<CGFloat>? = nil) {
+    scrollView.contentSize.width = scrollView.frame.width
+    scrollView.contentOffset.x = 0
     reset()
     configure()
-
     self.chart = chart
     hiddenDrawingIndicies = hiddenIndicies
     
@@ -231,6 +247,18 @@ class TGCAChartView: UIView {
   
   /// Updates the diplayed X range. Accepted are subranges of 0...1.
   func trimDisplayRange(to newRange: ClosedRange<CGFloat>, with event: DisplayRangeChangeEvent) {
+    if event == .Started { return }
+    
+    if event != .Scrolled {
+      scrollView.contentSize.width = scrollView.frame.width * (1.0 / (newRange.upperBound - newRange.lowerBound))
+    }
+    
+    scrollView.contentOffset.x = scrollView.contentSize.width * newRange.lowerBound
+//      drawings.shapeLayers.forEach{
+//        $0.shapeLayer.anchorPoint = CGPoint(x: scrollView.contentOffset.x < scrollView.contentSize.width / 2 ? 1.0 : 0.0,
+//                                            y: 0.5)
+//      }
+    
     trimXDisplayRange(to: chart.translatedBounds(for: newRange), with: event)
   }
   
@@ -238,17 +266,14 @@ class TGCAChartView: UIView {
     
     removeChartAnnotation()
     
-    if currentXIndexRange == newRange {
-      if event == .Ended {
-        removeTransitioningGuideLabels()
-      }
+    currentXIndexRange = newRange
+    
+    if drawings.shapeLayers.first?.animation(forKey: ChartViewConstants.AnimationKeys.updateByTrimming) != nil && event == .Scrolled {
       return
     }
     
-    currentXIndexRange = newRange
-    
-    updateChart()
-    
+    updateChart(withEvent: event)
+
     animateGuideLabelsChange(to: newRange, event: event)
   }
   
@@ -300,26 +325,19 @@ class TGCAChartView: UIView {
   
   func prepareToDrawChart() { }
   
-  func getCurrentVectorData() -> VectorDataProtocol {
+  func getCurrentYVectorData() -> YVectorDataProtocol {
     let normalizedYVectors = getNormalizedYVectors()
     let yVectors = normalizedYVectors.vectors.map{mapToChartBoundsHeight($0)}
-    let xVector = mapToChartBoundsWidth(getNormalizedXVector())
-    let points = (0..<yVectors.count).map{
-      convertToPoints(xVector: xVector, yVector: yVectors[$0])
-    }
-    return VectorData(xVector: xVector, yVectors: yVectors, yRangeData: YRangeData(yRange: normalizedYVectors.yRange), points: points)
+    let yRangeData = YRangeData(yRange: normalizedYVectors.yRange)
+    return YVectorData(yVectors: yVectors, yRangeData: yRangeData)
   }
   
-  func updateYValueRange(with yRangeData: YRangeDataProtocol) -> YRangeChangeResultProtocol? {
-    guard let yRangeData = yRangeData as? YRangeData else {
-      return nil
-    }
-    return updateCurrentYValueRange(with: yRangeData.yRange)
+  func updateYValueRange(with yRangeData: YRangeDataProtocol) -> YRangeChangeResultProtocol {
+    return updateCurrentYValueRange(with: yRangeData)
   }
   
-  func getPathsToDraw(with vectorData: VectorDataProtocol) -> [CGPath] {
-    let vectorData = vectorData as! VectorData
-    return vectorData.points.map{bezierLine(withPoints: $0).cgPath}
+  func getPathsToDraw(with points: [[CGPoint]]) -> [CGPath] {
+    return points.map{bezierLine(withPoints: $0).cgPath}
   }
   
   func getShapeLayersToDraw(for paths: [CGPath]) -> [CAShapeLayer] {
@@ -334,60 +352,52 @@ class TGCAChartView: UIView {
     }
   }
   
-  func animateChartUpdate(withYChangeResult yChangeResult: YRangeChangeResultProtocol?, paths: [CGPath]) {
-    let didYChange = (yChangeResult as? YRangeChangeResult)?.didChange ?? false
+  func animateChartUpdate(withYChangeResult yChangeResult: YRangeChangeResultProtocol?, paths: [CGPath], event: DisplayRangeChangeEvent) {
+    //should not get scaled event here
     
-    for i in 0..<drawings.drawings.count {
-      let drawing = drawings.drawings[i]
-      if let oldAnim = drawing.shapeLayer.animation(forKey: "pathAnimation") {
-        drawing.shapeLayer.removeAnimation(forKey: "pathAnimation")
-        let pathAnimation = CABasicAnimation(keyPath: "path")
-        pathAnimation.fromValue = drawing.shapeLayer.presentation()?.value(forKey: "path") ?? drawing.shapeLayer.path
-        drawing.shapeLayer.path = paths[i]
-        pathAnimation.toValue = drawing.shapeLayer.path
-        pathAnimation.duration = CHART_PATH_ANIMATION_DURATION
-        if !didYChange {
-          pathAnimation.beginTime = oldAnim.beginTime
-        } else {
-          pathAnimation.beginTime = CACurrentMediaTime()
-        }
-        drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
-      } else {
-        if didYChange  {
-          let pathAnimation = CABasicAnimation(keyPath: "path")
-          pathAnimation.fromValue = drawing.shapeLayer.path
-          drawing.shapeLayer.path = paths[i]
-          pathAnimation.toValue = drawing.shapeLayer.path
-          pathAnimation.duration = CHART_PATH_ANIMATION_DURATION
-          pathAnimation.beginTime = CACurrentMediaTime()
-          drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
-        } else {
-          drawing.shapeLayer.path = paths[i]
-        }
+    let didYChange = yChangeResult?.didChange ?? false
+    
+    if event == .Ended {
+      drawings.shapeLayers.forEach{
+        $0.removeAnimation(forKey: ChartViewConstants.AnimationKeys.updateByTrimming)
       }
     }
     
+    for i in 0..<drawings.shapeLayers.count {
+      let shapeLayer = drawings.shapeLayers[i]
+      if didYChange || event == .Ended {
+        let pathAnimation = CABasicAnimation(keyPath: "path")
+        pathAnimation.fromValue = shapeLayer.path
+        shapeLayer.path = paths[i]
+        pathAnimation.toValue = shapeLayer.path
+        pathAnimation.duration = CHART_PATH_ANIMATION_DURATION
+        pathAnimation.timingFunction = CAMediaTimingFunction(name: .linear)
+        shapeLayer.add(pathAnimation, forKey: ChartViewConstants.AnimationKeys.updateByTrimming)
+      } else {
+        shapeLayer.path = paths[i]
+      }
+    }
   }
   
   func prepareToUpdateChartByHiding() {}
   
   func animateChartHide(at index: Int, originalHidden: Bool, newPaths: [CGPath]) {
-    for i in 0..<drawings.drawings.count {
-      let drawing = drawings.drawings[i]
+    for i in 0..<drawings.shapeLayers.count {
+      let shapeLayer = drawings.shapeLayers[i]
       
       var oldPath: Any?
-      if let _ = drawing.shapeLayer.animation(forKey: "pathAnimation") {
-        oldPath = drawing.shapeLayer.presentation()?.value(forKey: "path")
-        drawing.shapeLayer.removeAnimation(forKey: "pathAnimation")
+      if let _ = shapeLayer.animation(forKey: ChartViewConstants.AnimationKeys.updateByTrimming) {
+        oldPath = shapeLayer.presentation()?.value(forKey: "path")
+        shapeLayer.removeAnimation(forKey: ChartViewConstants.AnimationKeys.updateByTrimming)
       }
       
       let positionChangeBlock = {
         let pathAnimation = CABasicAnimation(keyPath: "path")
-        pathAnimation.fromValue = oldPath ?? drawing.shapeLayer.path
-        drawing.shapeLayer.path = newPaths[i]
-        pathAnimation.toValue = drawing.shapeLayer.path
+        pathAnimation.fromValue = oldPath ?? shapeLayer.path
+        shapeLayer.path = newPaths[i]
+        pathAnimation.toValue = shapeLayer.path
         pathAnimation.duration = CHART_PATH_ANIMATION_DURATION
-        drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
+        shapeLayer.add(pathAnimation, forKey: ChartViewConstants.AnimationKeys.updateByTrimming)
       }
       
       if animatesPositionOnHide {
@@ -397,74 +407,96 @@ class TGCAChartView: UIView {
           positionChangeBlock()
         }
         if (originalHidden && i == index) {
-          drawing.shapeLayer.path = newPaths[i]
+          shapeLayer.path = newPaths[i]
         }
       }
       
       if i == index {
         var oldOpacity: Any?
-        if let _ = drawing.shapeLayer.animation(forKey: "opacityAnimation") {
-          oldOpacity = drawing.shapeLayer.presentation()?.value(forKey: "opacity")
-          drawing.shapeLayer.removeAnimation(forKey: "opacityAnimation")
+        if let _ = shapeLayer.animation(forKey: "opacityAnimation") {
+          oldOpacity = shapeLayer.presentation()?.value(forKey: "opacity")
+          shapeLayer.removeAnimation(forKey: "opacityAnimation")
         }
         let opacityAnimation = CABasicAnimation(keyPath: "opacity")
-        opacityAnimation.fromValue = oldOpacity ?? drawing.shapeLayer.opacity
-        drawing.shapeLayer.opacity = originalHidden ? 1 : 0
-        opacityAnimation.toValue = drawing.shapeLayer.opacity
+        opacityAnimation.fromValue = oldOpacity ?? shapeLayer.opacity
+        shapeLayer.opacity = originalHidden ? 1 : 0
+        opacityAnimation.toValue = shapeLayer.opacity
         opacityAnimation.duration = CHART_FADE_ANIMATION_DURATION
-        drawing.shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
+        shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
       }
     }
   }
   
   //MARK: - Chart
   
+  private func points(fromXvector xVector: ValueVector, yVectors: [ValueVector]) -> [[CGPoint]] {
+    return (0..<yVectors.count).map{
+      convertToPoints(xVector: xVector, yVector: yVectors[$0])
+    }
+  }
+  
   private func drawChart() {
     prepareToDrawChart()
-    let vectorData = getCurrentVectorData()
-    _ = updateYValueRange(with: vectorData.yRangeData)
-    let pathsToDraw = getPathsToDraw(with: vectorData)
+    let xVector = getXVectorMappedToScrollView()
+    let yVectorData = getCurrentYVectorData()
+    _ = updateYValueRange(with: yVectorData.yRangeData)
+    
+    let pathsToDraw = getPathsToDraw(with: points(fromXvector: xVector, yVectors: yVectorData.yVectors))
     let shapesToDraw = getShapeLayersToDraw(for: pathsToDraw)
 
-    var draws = [Drawing]()
+    var shapeLayers = [CAShapeLayer]()
     for i in 0..<shapesToDraw.count {
-      let shape = shapesToDraw[i]
+      let shapeLayer = shapesToDraw[i]
       if hiddenDrawingIndicies.contains(i) {
-        shape.opacity = 0
+        shapeLayer.opacity = 0
       }
-      draws.append(Drawing(shapeLayer: shape, yPositions: vectorData.yVectors[i]))
+      shapeLayers.append(shapeLayer)
     }
-    drawings = ChartDrawings(drawings: draws, xPositions: vectorData.xVector)
+    
+    drawings = ChartDrawings(shapeLayers: shapeLayers, xPositions: xVector, yVectorData: yVectorData)
     
     addShapeSublayers(shapesToDraw)
   }
   
-  private func updateChart() {
-    let vectorData = getCurrentVectorData()
-    let yChangeResult = updateYValueRange(with: vectorData.yRangeData)
-    let pathsToDraw = getPathsToDraw(with: vectorData)
-
-    animateChartUpdate(withYChangeResult: yChangeResult, paths: pathsToDraw)
+  private func updateChart(withEvent event: DisplayRangeChangeEvent) {
+    let xVector = event == .Scrolled ? drawings.xPositions : getXVectorMappedToScrollView()
     
-    for i in 0..<drawings.drawings.count {
-      let drawing = drawings.drawings[i]
-      drawing.yPositions = vectorData.yVectors[i]
+    let yVectorData = event == .Scaled ? drawings.yVectorData : getCurrentYVectorData()
+    
+    let pathsToDraw = getPathsToDraw(with: points(fromXvector: xVector, yVectors: yVectorData.yVectors))
+
+    let yChangeResult = updateYValueRange(with: yVectorData.yRangeData)
+    
+    if event == .Reset {
+      (0..<drawings.shapeLayers.count).forEach{
+        drawings.shapeLayers[$0].removeAnimation(forKey: ChartViewConstants.AnimationKeys.updateByTrimming)
+        drawings.shapeLayers[$0].path = pathsToDraw[$0]
+      }
+    } else if event == .Scaled {
+      (0..<drawings.shapeLayers.count).forEach{
+        drawings.shapeLayers[$0].path = pathsToDraw[$0]
+      }
+    } else {
+      animateChartUpdate(withYChangeResult: yChangeResult, paths: pathsToDraw, event: event)
     }
-    drawings.xPositions = vectorData.xVector
+    
+    drawings.yVectorData = yVectorData
+    drawings.xPositions = xVector
   }
   
   private func updateChartByHiding(at index: Int, originalHidden: Bool) {
     prepareToUpdateChartByHiding()
-    let vectorData = getCurrentVectorData()
-    _ = updateYValueRange(with: vectorData.yRangeData)
-    let pathsToDraw = getPathsToDraw(with: vectorData)
+    let xVector = getXVectorMappedToScrollView()
+    let yVectorData = getCurrentYVectorData()
+    
+    let pathsToDraw = getPathsToDraw(with: points(fromXvector: xVector, yVectors: yVectorData.yVectors))
+
+    _ = updateYValueRange(with: yVectorData.yRangeData)
     
     animateChartHide(at: index, originalHidden: originalHidden, newPaths: pathsToDraw)
     
-    for i in 0..<drawings.drawings.count {
-      let drawing = drawings.drawings[i]
-      drawing.yPositions = vectorData.yVectors[i]
-    }
+    drawings.yVectorData = yVectorData
+
   }
   
   // MARK: - Configuration
@@ -530,7 +562,9 @@ class TGCAChartView: UIView {
   }
   
   private func animateGuideLabelsChange(to toRange: ClosedRange<Int>, event: DisplayRangeChangeEvent) {
-  
+    if event == .Ended {
+      removeTransitioningGuideLabels()
+    }
     if event != .Scrolled {
       let (spacing, leftover) = bestIndexSpacing(for: toRange.distance + 1)
       lastLeftover = leftover
@@ -800,10 +834,9 @@ class TGCAChartView: UIView {
     let xPoint = drawings.xPositions[index]
     var circleLayers = [CAShapeLayer]()
     
-    for i in 0..<drawings.drawings.count {
-      let drawing = drawings.drawings[i]
+    for i in 0..<drawings.yVectorData.yVectors.count {
       let color = chart.yVectors[i].metaData.color
-      let point = CGPoint(x: xPoint, y: drawing.yPositions[index])
+      let point = CGPoint(x: xPoint, y: drawings.yVectorData.yVectors[i][index])
       let circle = bezierCircle(at: point, radius: ChartViewConstants.circlePointRadius)
       let circleShape = shapeLayer(withPath: circle.cgPath, color: color.cgColor, lineWidth: graphLineWidth, fillColor: circlePointFillColor)
       circleShape.zPosition = zPositions.Annotation.circleShape.rawValue
@@ -831,10 +864,9 @@ class TGCAChartView: UIView {
     
     let xPoint = drawings.xPositions[index]
     
-    for i in 0..<drawings.drawings.count {
-      let drawing = drawings.drawings[i]
+    for i in 0..<drawings.yVectorData.yVectors.count {
       
-      let point = CGPoint(x: xPoint, y: drawing.yPositions[index])
+      let point = CGPoint(x: xPoint, y: drawings.yVectorData.yVectors[i][index])
       let circle = bezierCircle(at: point, radius: ChartViewConstants.circlePointRadius)
       let circleLayer = annotation.circleLayers[i]
       
@@ -950,7 +982,7 @@ class TGCAChartView: UIView {
   // MARK: - Reset
   
   func removeDrawings() {
-    drawings?.drawings.forEach{$0.shapeLayer.removeFromSuperlayer()}
+    drawings?.shapeLayers.forEach{$0.removeFromSuperlayer()}
     drawings = nil
   }
   
@@ -1004,12 +1036,8 @@ class TGCAChartView: UIView {
       : chart.normalizedYVectorsFromLocalMinimum(in: currentXIndexRange, excludedIdxs: hiddenDrawingIndicies)
   }
   
-  func getNormalizedXVector() -> ValueVector {
-    return chart.normalizedXVector(in: currentXIndexRange)
-  }
-  
-  func mapToChartBoundsWidth(_ vector: ValueVector) -> ValueVector {
-    return vector.map{$0 * chartBoundsRight + chartBounds.origin.x}
+  func getXVectorMappedToScrollView() -> ValueVector {
+    return (0..<chart.xPointsCount).map{(CGFloat($0)/CGFloat(chart.xPointsCount)) * scrollView.contentSize.width}
   }
   
   func mapToChartBoundsHeight(_ vector: ValueVector) -> ValueVector {
@@ -1149,14 +1177,12 @@ class TGCAChartView: UIView {
   
   // MARK: - Structs and typealiases
   
-  struct VectorData: VectorDataProtocol {
-    let xVector: ValueVector
+  struct YVectorData: YVectorDataProtocol {
     let yVectors: [ValueVector]
     let yRangeData: YRangeDataProtocol
-    let points: [[CGPoint]]
   }
   
-  struct YRangeData: YRangeDataProtocol {
+  private struct YRangeData: YRangeDataProtocol {
     let yRange: ClosedRange<CGFloat>
   }
   
@@ -1187,22 +1213,14 @@ class TGCAChartView: UIView {
   }
   
   class ChartDrawings {
-    let drawings: [Drawing]
+    let shapeLayers: [CAShapeLayer]
     var xPositions: [CGFloat]
-    
-    init(drawings: [Drawing], xPositions: [CGFloat]) {
-      self.drawings = drawings
+    var yVectorData: YVectorDataProtocol
+
+    init(shapeLayers: [CAShapeLayer], xPositions: [CGFloat], yVectorData: YVectorDataProtocol) {
+      self.shapeLayers = shapeLayers
       self.xPositions = xPositions
-    }
-  }
-  
-  class Drawing {
-    let shapeLayer: CAShapeLayer
-    var yPositions: [CGFloat]
-    
-    init(shapeLayer: CAShapeLayer, yPositions: [CGFloat]) {
-      self.shapeLayer = shapeLayer
-      self.yPositions = yPositions
+      self.yVectorData = yVectorData
     }
   }
   
@@ -1315,12 +1333,12 @@ class BaseChartAnnotation: ChartAnnotationProtocol {
 
 }
 
-protocol VectorDataProtocol {
-  var xVector: ValueVector {get}
+protocol YVectorDataProtocol {
   var yVectors: [ValueVector] {get}
-  var points: [[CGPoint]] {get}
   var yRangeData: YRangeDataProtocol {get}
 }
 
 protocol YRangeDataProtocol {}
-protocol YRangeChangeResultProtocol {}
+protocol YRangeChangeResultProtocol {
+  var didChange: Bool {get}
+}

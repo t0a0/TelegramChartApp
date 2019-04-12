@@ -15,14 +15,19 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
   private var leftYValueRange: ClosedRange<CGFloat> = 0...0
   private var rightYValueRange: ClosedRange<CGFloat> = 0...0
   
-  private func updateCurrentYValueRanges(left: ClosedRange<CGFloat>, right: ClosedRange<CGFloat>) -> DoubleAxisYRangeChageResult {
-    let leftChanged = leftYValueRange != left
-    let rightChanged = rightYValueRange != right
+  private func updateCurrentYValueRanges(with yRangeData: YRangeDataProtocol) -> DoubleAxisYRangeChageResult {
+    guard let yRangeData = (yRangeData as? DoubleAxisYRangeData) else {
+      return DoubleAxisYRangeChageResult(leftChanged: false, rightChanged: false)
+    }
+    
+    let leftChanged = yRangeData.leftYRange != leftYValueRange
+    let rightChanged = yRangeData.rightYRange != rightYValueRange
     if !leftChanged && !rightChanged {
       return DoubleAxisYRangeChageResult(leftChanged: false, rightChanged: false)
     }
-    leftYValueRange = left
-    rightYValueRange = right
+    
+    leftYValueRange = yRangeData.leftYRange
+    rightYValueRange = yRangeData.rightYRange
     if horizontalAxes != nil {
       var animBlocks = [()->()]()
       var removalBlocks = [()->()]()
@@ -60,56 +65,15 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
     rightAxisLabelColor = chart.yVectors.last?.metaData.color.cgColor
   }
   
-  override func getCurrentVectorData() -> VectorDataProtocol {
+  override func getCurrentYVectorData() -> YVectorDataProtocol {
     let normalizedYVectors = getSeparatelyNormalizedYVectors()
     let yVectors = normalizedYVectors.map{mapToChartBoundsHeight($0.vector)}
-    let xVector = mapToChartBoundsWidth(getNormalizedXVector())
-    let points = (0..<yVectors.count).map{
-      convertToPoints(xVector: xVector, yVector: yVectors[$0])
-    }
-    return VectorData(xVector: xVector, yVectors: yVectors, yRangeData: DoubleAxisYRangeData(leftYRange: normalizedYVectors.first!.yRange, rightYRange: normalizedYVectors.last!.yRange), points: points)
+
+    return YVectorData(yVectors: yVectors, yRangeData: DoubleAxisYRangeData(leftYRange: normalizedYVectors.first!.yRange, rightYRange: normalizedYVectors.last!.yRange))
   }
 
-  override func updateYValueRange(with yRangeData: YRangeDataProtocol) -> YRangeChangeResultProtocol? {
-    guard let yRangeData = yRangeData as? DoubleAxisYRangeData else {
-      return nil
-    }
-    return updateCurrentYValueRanges(left: yRangeData.leftYRange, right: yRangeData.rightYRange)
-  }
-  
-  override func animateChartUpdate(withYChangeResult yChangeResult: YRangeChangeResultProtocol?, paths: [CGPath]) {
-    let leftChanged = (yChangeResult as? DoubleAxisYRangeChageResult)?.leftChanged ?? false
-    let rightChanged = (yChangeResult as? DoubleAxisYRangeChageResult)?.rightChanged ?? false
-    
-    for i in 0..<drawings.drawings.count {
-      let drawing = drawings.drawings[i]
-      if let oldAnim = drawing.shapeLayer.animation(forKey: "pathAnimation") {
-        drawing.shapeLayer.removeAnimation(forKey: "pathAnimation")
-        let pathAnimation = CABasicAnimation(keyPath: "path")
-        pathAnimation.fromValue = drawing.shapeLayer.presentation()?.value(forKey: "path") ?? drawing.shapeLayer.path
-        drawing.shapeLayer.path = paths[i]
-        pathAnimation.toValue = drawing.shapeLayer.path
-        pathAnimation.duration = CHART_PATH_ANIMATION_DURATION
-        if (i == 0 && !leftChanged) || (i == 1 && !rightChanged){
-          pathAnimation.beginTime = oldAnim.beginTime
-        } else {
-          pathAnimation.beginTime = CACurrentMediaTime()
-        }
-        drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
-      } else {
-        if (i == 0 && leftChanged) || (i == 1 && rightChanged) {
-          let pathAnimation = CABasicAnimation(keyPath: "path")
-          pathAnimation.fromValue = drawing.shapeLayer.path
-          drawing.shapeLayer.path = paths[i]
-          pathAnimation.toValue = drawing.shapeLayer.path
-          pathAnimation.duration = CHART_PATH_ANIMATION_DURATION
-          pathAnimation.beginTime = CACurrentMediaTime()
-          drawing.shapeLayer.add(pathAnimation, forKey: "pathAnimation")
-        } else {
-          drawing.shapeLayer.path = paths[i]
-        }
-      }
-    }
+  override func updateYValueRange(with yRangeData: YRangeDataProtocol) -> YRangeChangeResultProtocol {
+    return updateCurrentYValueRanges(with: yRangeData)
   }
   
   //MARK: - Axes
@@ -378,6 +342,10 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
   private struct DoubleAxisYRangeChageResult: YRangeChangeResultProtocol {
     let leftChanged: Bool
     let rightChanged: Bool
+    
+    var didChange: Bool {
+      return leftChanged || rightChanged
+    }
   }
   
   //MARK: - Helper Methods

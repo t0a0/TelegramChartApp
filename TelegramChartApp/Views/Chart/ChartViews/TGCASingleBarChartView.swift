@@ -11,9 +11,8 @@ import UIKit
 
 class TGCASingleBarChartView: TGCAChartView {
   
-  override func getPathsToDraw(with vectorData: VectorDataProtocol) -> [CGPath] {
-    let vectorData = vectorData as! VectorData
-    return vectorData.points.map{squareBezierArea(topPoints: $0, bottom: chartBoundsBottom).cgPath}
+  override func getPathsToDraw(with points: [[CGPoint]]) -> [CGPath] {
+    return points.map{squareBezierArea(topPoints: $0, bottom: chartBoundsBottom).cgPath}
   }
   
   override func getShapeLayersToDraw(for paths: [CGPath]) -> [CAShapeLayer] {
@@ -74,7 +73,7 @@ class TGCASingleBarChartView: TGCAChartView {
   
   private func getPathsForChartAnnotation(at index: Int) -> (leftPath: CGPath, rightPath: CGPath) {
     let nonHiddenMaximumIndex = (0..<chart.yVectors.count).filter{!hiddenDrawingIndicies.contains($0)}.sorted().max()!
-    let yPositions = drawings.drawings[nonHiddenMaximumIndex].yPositions
+    let yPositions = drawings.yVectorData.yVectors[nonHiddenMaximumIndex]
     let xPositions = drawings.xPositions
     
     var rightPath = CGPath(rect: CGRect.zero, transform: nil)
