@@ -359,6 +359,9 @@ class TGCAChartView: UIView {
     
     if event == .Ended {
       drawings.shapeLayers.forEach{
+        if let presPath = $0.presentation()?.value(forKey: "path") {
+          $0.path = (presPath as! CGPath)
+        }
         $0.removeAnimation(forKey: ChartViewConstants.AnimationKeys.updateByTrimming)
       }
     }
