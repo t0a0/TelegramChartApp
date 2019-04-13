@@ -9,7 +9,7 @@
 import UIKit
 import QuartzCore
 
-class TGCAChartView: UIView {
+class TGCAChartView: UIView, ThemeChangeObserving {
   
   var onAnnotationClick: ((_ date: Date) -> (Bool))?
   
@@ -1297,9 +1297,7 @@ class TGCAChartView: UIView {
     let indexInChart: Int
   }
   
-}
-
-extension TGCAChartView: ThemeChangeObserving {
+  // MARK: - THeme
   
   override func didMoveToWindow() {
     if window != nil {
@@ -1317,28 +1315,28 @@ extension TGCAChartView: ThemeChangeObserving {
     applyCurrentTheme(animated: true)
   }
   
+  func applyChanges() {
+    //annotation
+    (currentChartAnnotation as? ChartAnnotation)?.circleLayers.forEach{$0.fillColor = circlePointFillColor}
+    (currentChartAnnotation as? ChartAnnotation)?.lineLayer.strokeColor = axisColor
+    
+    //axis
+    horizontalAxes?.forEach{
+      $0.lineLayer.strokeColor = axisColor
+      $0.labelLayer.foregroundColor = axisLabelColor
+    }
+    
+    //guide labels
+    activeGuideLabels?.forEach{$0.textLayer.foregroundColor = axisLabelColor}
+    transitioningGuideLabels?.forEach{$0.textLayer.foregroundColor = axisLabelColor}
+  }
+  
   func applyCurrentTheme(animated: Bool = false) {
     let theme = UIApplication.myDelegate.currentTheme
     
     axisColor = theme.axisColor.cgColor
     axisLabelColor = theme.axisLabelColor.cgColor
     circlePointFillColor = theme.foregroundColor.cgColor
-    
-    func applyChanges() {      
-      //annotation
-      (currentChartAnnotation as? ChartAnnotation)?.circleLayers.forEach{$0.fillColor = circlePointFillColor}
-      (currentChartAnnotation as? ChartAnnotation)?.lineLayer.strokeColor = axisColor
-      
-      //axis
-      horizontalAxes?.forEach{
-        $0.lineLayer.strokeColor = axisColor
-        $0.labelLayer.foregroundColor = axisLabelColor
-      }
-      
-      //guide labels
-      activeGuideLabels?.forEach{$0.textLayer.foregroundColor = axisLabelColor}
-      transitioningGuideLabels?.forEach{$0.textLayer.foregroundColor = axisLabelColor}
-    }
     
     if animated {
       CATransaction.begin()

@@ -33,7 +33,7 @@ class TGCASingleBarChartView: TGCAChartView {
   
   //MARK: - Annotations
   
-  private var chartAnnotationMaskColor = UIApplication.myDelegate.currentTheme.foregroundColor.withAlphaComponent(0.75).cgColor
+  private var chartAnnotationMaskColor = UIColor.black.cgColor
 
   override func addChartAnnotation(_ chartAnnotation: ChartAnnotationProtocol) {
     guard let chartAnnotation = chartAnnotation as? ChartAnnotation else {
@@ -149,6 +149,21 @@ class TGCASingleBarChartView: TGCAChartView {
       super.init(annotationView: annotationView, displayedIndex: displayedIndex)
     }
 
+  }
+  
+  override func applyChanges() {
+    (currentChartAnnotation as? ChartAnnotation)?.leftMask.fillColor = chartAnnotationMaskColor
+    (currentChartAnnotation as? ChartAnnotation)?.rightMask.fillColor = chartAnnotationMaskColor
+    (currentChartAnnotation as? ChartAnnotation)?.leftMask.strokeColor = chartAnnotationMaskColor
+    (currentChartAnnotation as? ChartAnnotation)?.rightMask.strokeColor = chartAnnotationMaskColor
+    super.applyChanges()
+  }
+  
+  override func applyCurrentTheme(animated: Bool = false) {
+    let theme = UIApplication.myDelegate.currentTheme
+    chartAnnotationMaskColor = theme.chartMaskColor.cgColor
+
+    super.applyCurrentTheme()
   }
   
 }
