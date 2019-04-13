@@ -9,6 +9,7 @@
 import Foundation
 import UIKit
 
+
 class TGCAChartDetailViewController: UIViewController {
   
   let SECTION_HEADER_HEIGHT: CGFloat = 50.0
@@ -18,42 +19,7 @@ class TGCAChartDetailViewController: UIViewController {
   
   @IBOutlet weak var tableView: UITableView!
     
-  private class ChartContainer {
-    let chart: DataChart
-    var underlyingChartContainer: ChartContainer?
-
-    private(set) var hiddenIndicies: Set<Int>
-    private(set) var trimRange: CGFloatRangeInBounds
-    
-    
-    init(chart: DataChart, hiddenIndicies: Set<Int> = []) {
-      self.chart = chart
-      self.trimRange = CGFloatRangeInBounds.ZeroToOne
-      self.hiddenIndicies = hiddenIndicies
-    }
-    
-    func updateTrimRange(to newRange: CGFloatRangeInBounds) {
-      trimRange = newRange
-    }
-    
-    func toggleHiden(index: Int) {
-      if hiddenIndicies.contains(index) {
-        hiddenIndicies.remove(index)
-      } else {
-        hiddenIndicies.insert(index)
-      }
-    }
-    
-    func hideAll() {
-      hiddenIndicies = Set(0..<chart.yVectors.count)
-    }
-    
-    func showAll() {
-      hiddenIndicies = []
-    }
-    
-    
-  }
+  
   
   private let chartContainers = (1...5).map{TGCAJsonToChartService().parseJson(named: "overview", subDir: "contest/\($0)")!}.map{ChartContainer(chart: $0)}
   
@@ -104,12 +70,7 @@ class TGCAChartDetailViewController: UIViewController {
   }
   
   func registerCells() {
-    tableView.register(UINib(nibName: "TGCALinearChartTableViewCell", bundle: nil), forCellReuseIdentifier: TGCALinearChartTableViewCell.defaultReuseId)
-    tableView.register(UINib(nibName: "TGCASingleBarChartTableViewCell", bundle: nil), forCellReuseIdentifier: TGCASingleBarChartTableViewCell.defaultReuseId)
-    tableView.register(UINib(nibName: "TGCAStackedBarChartTableViewCell", bundle: nil), forCellReuseIdentifier: TGCAStackedBarChartTableViewCell.defaultReuseId)
-    tableView.register(UINib(nibName: "TGCAPercentageChartTableViewCell", bundle: nil), forCellReuseIdentifier: TGCAPercentageChartTableViewCell.defaultReuseId)
-    tableView.register(UINib(nibName: "TGCALinearChartWith2AxesTableViewCell", bundle: nil), forCellReuseIdentifier: TGCALinearChartWith2AxesTableViewCell.defaultReuseId)
-
+    tableView.register(UINib(nibName: "TGCAChartTableViewCell", bundle: nil), forCellReuseIdentifier: TGCAChartTableViewCell.defaultReuseIdd)
   }
   
   deinit {
@@ -177,20 +138,8 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
   }
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    var cell: TGCAChartTableViewCell!
-    let chartType = chartContainers[indexPath.section].chart.type
-    switch chartType {
-    case .linear:
-      cell = tableView.dequeueReusableCell(withIdentifier: TGCALinearChartTableViewCell.defaultReuseId) as! TGCALinearChartTableViewCell
-    case .linearWith2Axes:
-      cell = tableView.dequeueReusableCell(withIdentifier: TGCALinearChartWith2AxesTableViewCell.defaultReuseId) as! TGCALinearChartWith2AxesTableViewCell
-    case .percentage:
-      cell = tableView.dequeueReusableCell(withIdentifier: TGCAPercentageChartTableViewCell.defaultReuseId) as! TGCAPercentageChartTableViewCell
-    case .singleBar:
-      cell = tableView.dequeueReusableCell(withIdentifier: TGCASingleBarChartTableViewCell.defaultReuseId) as! TGCASingleBarChartTableViewCell
-    case .stackedBar:
-      cell = tableView.dequeueReusableCell(withIdentifier: TGCAStackedBarChartTableViewCell.defaultReuseId) as! TGCAStackedBarChartTableViewCell
-    }
+    let cell = tableView.dequeueReusableCell(withIdentifier: TGCAChartTableViewCell.defaultReuseIdd) as! TGCAChartTableViewCell
+    cell.configure(with: chartContainers[indexPath.section])
     configureChartCell(cell, section: indexPath.section)
     return cell
   }
@@ -329,6 +278,43 @@ extension TGCAChartDetailViewController: ThemeChangeObserving {
     } else {
       applyChanges()
     }
+  }
+  
+}
+
+
+class ChartContainer {
+  let chart: DataChart
+  var underlyingChartContainer: ChartContainer?
+  
+  private(set) var hiddenIndicies: Set<Int>
+  private(set) var trimRange: CGFloatRangeInBounds
+  
+  
+  init(chart: DataChart, hiddenIndicies: Set<Int> = []) {
+    self.chart = chart
+    self.trimRange = CGFloatRangeInBounds.ZeroToOne
+    self.hiddenIndicies = hiddenIndicies
+  }
+  
+  func updateTrimRange(to newRange: CGFloatRangeInBounds) {
+    trimRange = newRange
+  }
+  
+  func toggleHiden(index: Int) {
+    if hiddenIndicies.contains(index) {
+      hiddenIndicies.remove(index)
+    } else {
+      hiddenIndicies.insert(index)
+    }
+  }
+  
+  func hideAll() {
+    hiddenIndicies = Set(0..<chart.yVectors.count)
+  }
+  
+  func showAll() {
+    hiddenIndicies = []
   }
   
 }

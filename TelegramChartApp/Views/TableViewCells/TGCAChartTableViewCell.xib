@@ -28,13 +28,13 @@
                                     <constraint firstAttribute="height" constant="20" id="I6E-lo-DKx"/>
                                 </constraints>
                             </view>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="w3S-ey-A4O" customClass="TGCAChartView" customModule="TelegramChartApp" customModuleProvider="target">
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="w3S-ey-A4O">
                                 <rect key="frame" x="0.0" y="30" width="290" height="200.5"/>
                             </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hq7-6g-Yxo" customClass="TGCATrimmerView" customModule="TelegramChartApp" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="240.5" width="290" height="42"/>
                                 <subviews>
-                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="tH2-ne-gyz" customClass="TGCAChartView" customModule="TelegramChartApp" customModuleProvider="target">
+                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="tH2-ne-gyz">
                                         <rect key="frame" x="0.0" y="1" width="290" height="40"/>
                                     </view>
                                 </subviews>
@@ -66,6 +66,8 @@
             <connections>
                 <outlet property="chartFiltersHeightConstraint" destination="YuX-WM-Bs5" id="wAV-Fi-cXr"/>
                 <outlet property="chartFiltersView" destination="kgU-u0-6KS" id="EVW-aX-fXd"/>
+                <outlet property="containerForChartView" destination="w3S-ey-A4O" id="qwZ-Xc-UAM"/>
+                <outlet property="containerForThumbailChartView" destination="tH2-ne-gyz" id="J6S-yJ-Hcs"/>
                 <outlet property="headerView" destination="mxJ-0T-KrO" id="Mfl-iP-zal"/>
                 <outlet property="trimmerView" destination="hq7-6g-Yxo" id="kiU-Wa-U5P"/>
             </connections>

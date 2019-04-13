@@ -44,16 +44,6 @@
 		168DDC8622415EB300F51300 /* TGCAChartLabelFormatterService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 168DDC8522415EB300F51300 /* TGCAChartLabelFormatterService.swift */; };
 		168DDC88224198D500F51300 /* ClosedRange+Distance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 168DDC87224198D500F51300 /* ClosedRange+Distance.swift */; };
 		16A08AD3225FAEFC00EC11F2 /* TGCADateToPathComponentsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16A08AD2225FAEFC00EC11F2 /* TGCADateToPathComponentsService.swift */; };
-		16FAF463225ABBCA00EEADE8 /* TGCAPercentageChartTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16FAF461225ABBCA00EEADE8 /* TGCAPercentageChartTableViewCell.swift */; };
-		16FAF464225ABBCA00EEADE8 /* TGCAPercentageChartTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 16FAF462225ABBCA00EEADE8 /* TGCAPercentageChartTableViewCell.xib */; };
-		16FAF467225ABBFD00EEADE8 /* TGCALinearChartWith2AxesTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16FAF465225ABBFD00EEADE8 /* TGCALinearChartWith2AxesTableViewCell.swift */; };
-		16FAF468225ABBFD00EEADE8 /* TGCALinearChartWith2AxesTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 16FAF466225ABBFD00EEADE8 /* TGCALinearChartWith2AxesTableViewCell.xib */; };
-		16FAF46B225ABC1200EEADE8 /* TGCAStackedBarChartTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16FAF469225ABC1200EEADE8 /* TGCAStackedBarChartTableViewCell.swift */; };
-		16FAF46C225ABC1200EEADE8 /* TGCAStackedBarChartTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 16FAF46A225ABC1200EEADE8 /* TGCAStackedBarChartTableViewCell.xib */; };
-		16FAF46F225ABC2600EEADE8 /* TGCASingleBarChartTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16FAF46D225ABC2600EEADE8 /* TGCASingleBarChartTableViewCell.swift */; };
-		16FAF470225ABC2600EEADE8 /* TGCASingleBarChartTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 16FAF46E225ABC2600EEADE8 /* TGCASingleBarChartTableViewCell.xib */; };
-		16FAF473225ABC3A00EEADE8 /* TGCALinearChartTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16FAF471225ABC3A00EEADE8 /* TGCALinearChartTableViewCell.swift */; };
-		16FAF474225ABC3A00EEADE8 /* TGCALinearChartTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 16FAF472225ABC3A00EEADE8 /* TGCALinearChartTableViewCell.xib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -96,16 +86,6 @@
 		168DDC8522415EB300F51300 /* TGCAChartLabelFormatterService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartLabelFormatterService.swift; sourceTree = "<group>"; };
 		168DDC87224198D500F51300 /* ClosedRange+Distance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ClosedRange+Distance.swift"; sourceTree = "<group>"; };
 		16A08AD2225FAEFC00EC11F2 /* TGCADateToPathComponentsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCADateToPathComponentsService.swift; sourceTree = "<group>"; };
-		16FAF461225ABBCA00EEADE8 /* TGCAPercentageChartTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAPercentageChartTableViewCell.swift; sourceTree = "<group>"; };
-		16FAF462225ABBCA00EEADE8 /* TGCAPercentageChartTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TGCAPercentageChartTableViewCell.xib; sourceTree = "<group>"; };
-		16FAF465225ABBFD00EEADE8 /* TGCALinearChartWith2AxesTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCALinearChartWith2AxesTableViewCell.swift; sourceTree = "<group>"; };
-		16FAF466225ABBFD00EEADE8 /* TGCALinearChartWith2AxesTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TGCALinearChartWith2AxesTableViewCell.xib; sourceTree = "<group>"; };
-		16FAF469225ABC1200EEADE8 /* TGCAStackedBarChartTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAStackedBarChartTableViewCell.swift; sourceTree = "<group>"; };
-		16FAF46A225ABC1200EEADE8 /* TGCAStackedBarChartTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TGCAStackedBarChartTableViewCell.xib; sourceTree = "<group>"; };
-		16FAF46D225ABC2600EEADE8 /* TGCASingleBarChartTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCASingleBarChartTableViewCell.swift; sourceTree = "<group>"; };
-		16FAF46E225ABC2600EEADE8 /* TGCASingleBarChartTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TGCASingleBarChartTableViewCell.xib; sourceTree = "<group>"; };
-		16FAF471225ABC3A00EEADE8 /* TGCALinearChartTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCALinearChartTableViewCell.swift; sourceTree = "<group>"; };
-		16FAF472225ABC3A00EEADE8 /* TGCALinearChartTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TGCALinearChartTableViewCell.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -222,16 +202,6 @@
 			children = (
 				1657643422343B5B00173E97 /* TGCAChartTableViewCell.swift */,
 				1657643522343B5B00173E97 /* TGCAChartTableViewCell.xib */,
-				16FAF461225ABBCA00EEADE8 /* TGCAPercentageChartTableViewCell.swift */,
-				16FAF462225ABBCA00EEADE8 /* TGCAPercentageChartTableViewCell.xib */,
-				16FAF465225ABBFD00EEADE8 /* TGCALinearChartWith2AxesTableViewCell.swift */,
-				16FAF466225ABBFD00EEADE8 /* TGCALinearChartWith2AxesTableViewCell.xib */,
-				16FAF469225ABC1200EEADE8 /* TGCAStackedBarChartTableViewCell.swift */,
-				16FAF46A225ABC1200EEADE8 /* TGCAStackedBarChartTableViewCell.xib */,
-				16FAF46D225ABC2600EEADE8 /* TGCASingleBarChartTableViewCell.swift */,
-				16FAF46E225ABC2600EEADE8 /* TGCASingleBarChartTableViewCell.xib */,
-				16FAF471225ABC3A00EEADE8 /* TGCALinearChartTableViewCell.swift */,
-				16FAF472225ABC3A00EEADE8 /* TGCALinearChartTableViewCell.xib */,
 			);
 			path = TableViewCells;
 			sourceTree = "<group>";
@@ -331,18 +301,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				1666F56E225AAABF00D205C0 /* contest in Resources */,
-				16FAF470225ABC2600EEADE8 /* TGCASingleBarChartTableViewCell.xib in Resources */,
 				167FCAD92234334A001CA7E5 /* LaunchScreen.storyboard in Resources */,
 				167FCAD62234334A001CA7E5 /* Assets.xcassets in Resources */,
 				16576474223E640D00173E97 /* TGCAChartAnnotationView.xib in Resources */,
 				1657643722343B5B00173E97 /* TGCAChartTableViewCell.xib in Resources */,
 				161CA5F62259544000FFC1DF /* TGCAChartHeaderView.xib in Resources */,
-				16FAF464225ABBCA00EEADE8 /* TGCAPercentageChartTableViewCell.xib in Resources */,
 				1657644622354E1600173E97 /* chart_data.json in Resources */,
-				16FAF46C225ABC1200EEADE8 /* TGCAStackedBarChartTableViewCell.xib in Resources */,
 				167FCAD422343348001CA7E5 /* Main.storyboard in Resources */,
-				16FAF474225ABC3A00EEADE8 /* TGCALinearChartTableViewCell.xib in Resources */,
-				16FAF468225ABBFD00EEADE8 /* TGCALinearChartWith2AxesTableViewCell.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -366,19 +331,15 @@
 				165764562235C77100173E97 /* TGCAChartDetailViewController.swift in Sources */,
 				16A08AD3225FAEFC00EC11F2 /* TGCADateToPathComponentsService.swift in Sources */,
 				167FCACF22343348001CA7E5 /* AppDelegate.swift in Sources */,
-				16FAF463225ABBCA00EEADE8 /* TGCAPercentageChartTableViewCell.swift in Sources */,
 				161CA5F822595E4400FFC1DF /* TGCAFilterButton.swift in Sources */,
 				161CA604225A465000FFC1DF /* TGCALinearChartView.swift in Sources */,
 				16576470223D287F00173E97 /* Protocols.swift in Sources */,
 				161CA5FE225A439300FFC1DF /* TGCASingleBarChartView.swift in Sources */,
 				168DDC8622415EB300F51300 /* TGCAChartLabelFormatterService.swift in Sources */,
-				16FAF467225ABBFD00EEADE8 /* TGCALinearChartWith2AxesTableViewCell.swift in Sources */,
 				1685C9D12260E493002D6AB3 /* CGFloatRangeInBounds.swift in Sources */,
 				165764582235D70700173E97 /* UIImage+Color.swift in Sources */,
 				168DDC88224198D500F51300 /* ClosedRange+Distance.swift in Sources */,
 				1657645E2237135000173E97 /* Constants.swift in Sources */,
-				16FAF46B225ABC1200EEADE8 /* TGCAStackedBarChartTableViewCell.swift in Sources */,
-				16FAF473225ABC3A00EEADE8 /* TGCALinearChartTableViewCell.swift in Sources */,
 				167FCAFD22343523001CA7E5 /* TGCAChartView.swift in Sources */,
 				161CA5FC225A417100FFC1DF /* TGCALinearChartWithTwoYAxisView.swift in Sources */,
 				1675C881225E5B0600233523 /* UIViewExtensions.swift in Sources */,
@@ -386,7 +347,6 @@
 				1657646E223D27E600173E97 /* TGCANavigationController.swift in Sources */,
 				1657644922354F4100173E97 /* UIColor+Hex.swift in Sources */,
 				161CA602225A43B700FFC1DF /* TGCAPercentageChartView.swift in Sources */,
-				16FAF46F225ABC2600EEADE8 /* TGCASingleBarChartTableViewCell.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
