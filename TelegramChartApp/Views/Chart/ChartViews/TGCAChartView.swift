@@ -268,39 +268,35 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   }
   
   func hideAll() {
-    //TODO: optimize and hide labels and axis
-    for i in 0..<chart.yVectors.count {
-      if !hiddenDrawingIndicies.contains(i) {
-        toggleHidden(at: i)
-      }
-    }
+    toggleHidden(at: Set((0..<chart.yVectors.count).filter{!hiddenDrawingIndicies.contains($0)}))
   }
   
   func showAll() {
-    //TODO: optimize and hide labels and axis
-    for i in hiddenDrawingIndicies {
-      toggleHidden(at: i)
-    }
+    toggleHidden(at: hiddenDrawingIndicies)
   }
   
   /// Hides or shows the graph with identifier.
   func toggleHidden(identifier: String) {
     if let index = chart.indexOfChartValueVector(withId: identifier) {
-      toggleHidden(at: index)
+      toggleHidden(at: [index])
     }
   }
   
   /// Hides or shows the graph at index.
-  func toggleHidden(at index: Int) {
-    
-    let originalHidden = hiddenDrawingIndicies.contains(index)
-    if originalHidden {
-      hiddenDrawingIndicies.remove(index)
-    } else {
-      hiddenDrawingIndicies.insert(index)
+  func toggleHidden(at indexes: Set<Int>) {
+    var originalHiddens = Set<Int>()
+    for index in indexes {
+      let originalHidden = hiddenDrawingIndicies.contains(index)
+      if originalHidden {
+        hiddenDrawingIndicies.remove(index)
+        originalHiddens.insert(index)
+      } else {
+        hiddenDrawingIndicies.insert(index)
+      }
     }
+   
     
-    updateChartByHiding(at: index, originalHidden: originalHidden)
+    updateChartByHiding(at: indexes, originalHiddens: originalHiddens)
     
     if let annotation = currentChartAnnotation {
       if hiddenDrawingIndicies.count == chart.yVectors.count {
@@ -374,7 +370,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   
   func prepareToUpdateChartByHiding() {}
   
-  func animateChartHide(at index: Int, originalHidden: Bool, newPaths: [CGPath]) {
+  func animateChartHide(at indexes: Set<Int>, originalHiddens: Set<Int>, newPaths: [CGPath]) {
     for i in 0..<drawings.shapeLayers.count {
       let shapeLayer = drawings.shapeLayers[i]
       
@@ -396,15 +392,15 @@ class TGCAChartView: UIView, ThemeChangeObserving {
       if animatesPositionOnHide {
         positionChangeBlock()
       } else {
-        if !hiddenDrawingIndicies.contains(i) && !(originalHidden && i == index) {
+        if !hiddenDrawingIndicies.contains(i) && !(originalHiddens.contains(i) && indexes.contains(i)) {
           positionChangeBlock()
         }
-        if (originalHidden && i == index) {
+        if (originalHiddens.contains(i) && indexes.contains(i)) {
           shapeLayer.path = newPaths[i]
         }
       }
       
-      if i == index {
+      if indexes.contains(i) {
         var oldOpacity: Any?
         if let _ = shapeLayer.animation(forKey: "opacityAnimation") {
           oldOpacity = shapeLayer.presentation()?.value(forKey: "opacity")
@@ -412,7 +408,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
         }
         let opacityAnimation = CABasicAnimation(keyPath: "opacity")
         opacityAnimation.fromValue = oldOpacity ?? shapeLayer.opacity
-        shapeLayer.opacity = originalHidden ? 1 : 0
+        shapeLayer.opacity = originalHiddens.contains(i) ? 1 : 0
         opacityAnimation.toValue = shapeLayer.opacity
         opacityAnimation.duration = CHART_FADE_ANIMATION_DURATION
         shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
@@ -477,7 +473,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     drawings.xPositions = xVector
   }
   
-  private func updateChartByHiding(at index: Int, originalHidden: Bool) {
+  private func updateChartByHiding(at indexes: Set<Int>, originalHiddens: Set<Int>) {
     prepareToUpdateChartByHiding()
     let xVector = getXVectorMappedToScrollView()
     let yVectorData = getCurrentYVectorData()
@@ -486,7 +482,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
 
     _ = updateYValueRange(with: yVectorData.yRangeData)
     
-    animateChartHide(at: index, originalHidden: originalHidden, newPaths: pathsToDraw)
+    animateChartHide(at: indexes, originalHiddens: originalHiddens, newPaths: pathsToDraw)
     
     drawings.yVectorData = yVectorData
 

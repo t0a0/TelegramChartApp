@@ -51,7 +51,7 @@ class TGCAPercentageChartView: TGCAChartView {
     }
   }
   
-  override func animateChartHide(at index: Int, originalHidden: Bool, newPaths: [CGPath]) {
+  override func animateChartHide(at indexes: Set<Int>, originalHiddens: Set<Int>, newPaths: [CGPath]) {
     for i in 0..<drawings.shapeLayers.count {
       let shapeLayer = drawings.shapeLayers[i]
       
@@ -73,15 +73,15 @@ class TGCAPercentageChartView: TGCAChartView {
       if animatesPositionOnHide {
         positionChangeBlock()
       } else {
-        if !hiddenDrawingIndicies.contains(i) && !(originalHidden && i == index) {
+        if !hiddenDrawingIndicies.contains(i) && !(originalHiddens.contains(i) && indexes.contains(i)) {
           positionChangeBlock()
         }
-        if (originalHidden && i == index) {
+        if (originalHiddens.contains(i) && indexes.contains(i)) {
           shapeLayer.path = newPaths[i]
         }
       }
       
-      if i == index {
+      if indexes.contains(i) {
         var oldOpacity: Any?
         if let _ = shapeLayer.animation(forKey: "opacityAnimation") {
           oldOpacity = shapeLayer.presentation()?.value(forKey: "opacity")
@@ -89,11 +89,11 @@ class TGCAPercentageChartView: TGCAChartView {
           shapeLayer.removeAnimation(forKey: "opacityAnimation")
         }
         let opacityAnimation = CAKeyframeAnimation(keyPath: "opacity")
-        let targetOpacity: Float = originalHidden ? 1 : 0
+        let targetOpacity: Float = originalHiddens.contains(i) ? 1 : 0
         
         opacityAnimation.values = [oldOpacity ?? shapeLayer.opacity, targetOpacity]
         shapeLayer.opacity = targetOpacity
-        opacityAnimation.keyTimes = (!animatesPositionOnHide || hiddenDrawingIndicies.count == chart.yVectors.count || (hiddenDrawingIndicies.count == chart.yVectors.count - 1 && originalHidden)) ? [0.0, 1.0] : (originalHidden ? [0.0, 0.25] : [0.75, 1.0])
+        opacityAnimation.keyTimes = (!animatesPositionOnHide || hiddenDrawingIndicies.count == chart.yVectors.count || (hiddenDrawingIndicies.count == chart.yVectors.count - 1 && originalHiddens.contains(i))) ? [0.0, 1.0] : (originalHiddens.contains(i) ? [0.0, 0.25] : [0.75, 1.0])
         opacityAnimation.duration = CHART_FADE_ANIMATION_DURATION
         shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
       }

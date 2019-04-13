@@ -142,8 +142,8 @@ class TGCAChartDetailViewController: UIViewController {
       button.onTap = {
         button.toggleChecked()
         chartContainer.toggleHiden(index: i)
-        cell.chartView?.toggleHidden(at: i)
-        cell.thumbnailChartView?.toggleHidden(at: i)
+        cell.chartView?.toggleHidden(at: [i])
+        cell.thumbnailChartView?.toggleHidden(at: [i])
       }
       
       button.onLongTap = {
