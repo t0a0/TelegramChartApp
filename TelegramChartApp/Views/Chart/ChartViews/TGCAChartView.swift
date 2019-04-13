@@ -13,9 +13,8 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   
   var onAnnotationClick: ((_ date: Date) -> (Bool))?
   
-  @IBOutlet var contentView: UIView!
-  
   struct ChartViewConstants {
+    static let scrollViewPadding: CGFloat = 15.0
     static let axisLineWidth: CGFloat = 0.5
     static let annotationLineWidth: CGFloat = 1.0
     static let sizeForGuideLabels = CGSize(width: 60.0, height: 20.0)
@@ -50,11 +49,8 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   }
   
   func commonInit () {
-    Bundle.main.loadNibNamed("TGCAChartView", owner: self, options: nil)
-    addSubview(contentView)
-    contentView.frame = self.bounds
-    contentView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
     isMultipleTouchEnabled = false
+    isUserInteractionEnabled = true
     applyCurrentTheme()
     axisLayer.zPosition = zPositions.Chart.axis.rawValue
     lineLayer.zPosition = zPositions.Chart.graph.rawValue
@@ -62,29 +58,20 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     for l in [axisLayer, datesLayer] {
       layer.addSublayer(l)
     }
+    
 //    lineLayer.masksToBounds = true
     scrollView.bounces = false
+    scrollView.isScrollEnabled = false
     scrollView.isUserInteractionEnabled = false
-    scrollView.translatesAutoresizingMaskIntoConstraints = false
-
-    addSubview(scrollView)
-    scrollView.topAnchor.constraint(equalTo: topAnchor).isActive = true
-    scrollView.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
-    scrollView.leftAnchor.constraint(equalTo: leftAnchor).isActive = true
-    scrollView.rightAnchor.constraint(equalTo: rightAnchor).isActive = true
+    
     scrollView.layer.addSublayer(lineLayer)
+    addSubview(scrollView)
 
   }
+  
+ 
   
   // MARK: - Variables
-  
-  /// Need to redraw the chart when the bounds did change.
-  override var bounds: CGRect {
-    didSet {
-      numOfGuideLabels = Int(bounds.width / ChartViewConstants.sizeForGuideLabels.width)
-      configureWithUpdatedBounds()
-    }
-  }
   
   /// Service that knows how to format values for Y axes and dates for X axis.
   let chartLabelFormatterService = TGCAChartLabelFormatterService()
@@ -176,44 +163,62 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   // MARK: - Public functions
   
   func reset() {
-    chart = nil
+    CATransaction.begin()
+    CATransaction.setDisableActions(true)
     removeDrawings()
     removeHorizontalAxes()
     removeGuideLabels()
     removeChartAnnotation()
-    currentYValueRange = 0...0
-    hiddenDrawingIndicies = nil
-    currentTrimRange = nil
+    CATransaction.commit()
+//    currentYValueRange = 0...0
+//    hiddenDrawingIndicies = nil
+//    currentTrimRange = nil
   }
-
-  private func configureWithUpdatedBounds() {
-    if let lastChart = chart,
-      let lastHiddenIndicies = hiddenDrawingIndicies,
-      let lastDisplayRange = currentTrimRange {
-      reset()
-      configure(with: lastChart, hiddenIndicies: lastHiddenIndicies, displayRange: lastDisplayRange)
-    } else {
-      scrollView.contentSize.width = bounds.width
-      scrollView.contentOffset.x = 0
+  
+  func resetAxesAndLabels() {
+    CATransaction.begin()
+    CATransaction.setDisableActions(true)
+    removeHorizontalAxes()
+    removeGuideLabels()
+    CATransaction.commit()
+  }
+  
+  override func layoutSubviews() {
+    
+    scrollView.frame = CGRect(x: 0, y: 0, width: self.frame.size.width, height: self.frame.size.height)
+    numOfGuideLabels = Int(scrollView.frame.width / ChartViewConstants.sizeForGuideLabels.width)
+    if chart != nil {
+//      lineLayer.frame = CGRect(origin: CGPoint.zero, size: scrollView.contentSize)
+      configure()
+      if drawings != nil {
+        resetAxesAndLabels()
+        addAxesAndLabelsIfNeeded()
+        trimDisplayRange(to: currentTrimRange, with: .Reset)
+      } else {
+        updateScrollView(with: currentTrimRange, event: .Reset)
+        drawChart()
+        addAxesAndLabelsIfNeeded()
+      }
+      
+    }
+    
+  }
+  
+  func addAxesAndLabelsIfNeeded() {
+    if shouldDisplayAxesAndLabels  {
+      CATransaction.begin()
+      CATransaction.setDisableActions(true)
+      addHorizontalAxes()
+      addGuideLabels(for: chart.translatedBounds(for: currentTrimRange))
+      CATransaction.commit()
     }
   }
   
   /// Configures the view to display the chart.
   func configure(with chart: DataChart, hiddenIndicies: Set<Int>, displayRange: CGFloatRangeInBounds) {
-    reset()
-    
-    currentTrimRange = displayRange
-    updateScrollView(with: displayRange, event: .Reset)
-    configure()
     self.chart = chart
+    currentTrimRange = displayRange
     hiddenDrawingIndicies = hiddenIndicies
-    
-    drawChart()
-    
-    if shouldDisplayAxesAndLabels  {
-      addHorizontalAxes()
-      addGuideLabels(for: chart.translatedBounds(for: displayRange))
-    }
   }
   
   func transitionToMainChart() {
@@ -230,7 +235,6 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   
   private func updateScrollView(with newRange: CGFloatRangeInBounds, event: DisplayRangeChangeEvent) {
     if event != .Scrolled {
-      print(scrollView.frame.width)
       scrollView.contentSize.width = scrollView.frame.width * newRange.scale
     }
     scrollView.contentOffset.x = scrollView.contentSize.width * newRange.offset
@@ -238,7 +242,10 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   
   /// Updates the diplayed X range. Accepted are subranges of 0...1.
   func trimDisplayRange(to newRange: CGFloatRangeInBounds, with event: DisplayRangeChangeEvent) {
-    if event == .Started { return }
+    if event == .Started {
+      removeChartAnnotation()
+      return
+    }
     
     currentTrimRange = newRange
     updateScrollView(with: newRange, event: event)
@@ -248,7 +255,6 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   
   private func trimXDisplayRange(to newRange: ClosedRange<Int>, with event: DisplayRangeChangeEvent) {
     
-    removeChartAnnotation()
     
     if drawings.shapeLayers.first?.animation(forKey: ChartViewConstants.AnimationKeys.updateByTrimming) != nil && event == .Scrolled {
       return
@@ -256,7 +262,9 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     
     updateChart(withEvent: event)
 
-    animateGuideLabelsChange(to: newRange, event: event)
+    if shouldDisplayAxesAndLabels {
+      animateGuideLabelsChange(to: newRange, event: event)
+    }
   }
   
   func hideAll() {
@@ -936,7 +944,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
       scrollView.frame.contains(touch.location(in: self)),
       !(currentChartAnnotation?.annotationView.frame.contains(touch.location(in: self)) ?? false)
     else {
-        return super.touchesMoved(touches, with: event)
+        return super.touchesBegan(touches, with: event)
     }
     
     let index = closestIndex(for: touch.location(in: scrollView))
@@ -1001,14 +1009,10 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   func removeChartAnnotation() {
     if let annotation = currentChartAnnotation as? ChartAnnotation {
       annotation.annotationView.removeFromSuperview()
-      
-      CATransaction.begin()
-      CATransaction.setDisableActions(true)
       annotation.lineLayer.removeFromSuperlayer()
       for layer in annotation.circleLayers {
         layer.removeFromSuperlayer()
       }
-      CATransaction.commit()
       currentChartAnnotation = nil
     }
   }

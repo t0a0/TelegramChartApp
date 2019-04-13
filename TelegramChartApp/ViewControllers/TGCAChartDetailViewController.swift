@@ -82,14 +82,25 @@ class TGCAChartDetailViewController: UIViewController {
     subscribe()
     
   }
-  override func didRotate(from fromInterfaceOrientation: UIInterfaceOrientation) {
-    if let indexPaths = tableView.indexPathsForVisibleRows {
-      tableView.reloadRows(at: indexPaths, with: .none)
-    }
-  }
   
   override func willRotate(to toInterfaceOrientation: UIInterfaceOrientation, duration: TimeInterval) {
     navigationController?.setNavigationBarHidden(toInterfaceOrientation == .landscapeLeft || toInterfaceOrientation == .landscapeRight, animated: true)
+  }
+  
+  var visibleRows: [IndexPath]?
+  
+  override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
+    coordinator.animate(alongsideTransition: { context in
+      // Save the visible row position
+      self.visibleRows = self.tableView.indexPathsForVisibleRows
+      context.viewController(forKey: UITransitionContextViewControllerKey.from)
+    }, completion: { context in
+      // Scroll to the saved position prior to screen rotate
+      guard let visibleRow = self.visibleRows?.first else {
+        return
+      }
+      self.tableView.scrollToRow(at: visibleRow, at: .middle, animated: true)
+    })
   }
   
   func registerCells() {

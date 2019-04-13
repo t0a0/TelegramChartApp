@@ -150,10 +150,7 @@ class TGCAPercentageChartView: TGCAChartView {
   
   override func removeChartAnnotation() {
     if let annotation = currentChartAnnotation as? ChartAnnotation {
-      CATransaction.begin()
-      CATransaction.setDisableActions(true)
       annotation.lineLayer.removeFromSuperlayer()
-      CATransaction.commit()
       annotation.annotationView.removeFromSuperview()
       currentChartAnnotation = nil
     }

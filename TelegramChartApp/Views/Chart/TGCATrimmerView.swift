@@ -327,11 +327,12 @@ class TGCATrimmerView: UIView {
       guard let lc = leftConstraint, let rc = rightConstraint else {
         return
       }
-      
+
       var widthChangeCoefficient = bounds.width / oldValue.width
       if widthChangeCoefficient == CGFloat.infinity { widthChangeCoefficient = 0.0}
-      lc.constant = lc.constant * widthChangeCoefficient
-      rc.constant = rc.constant * widthChangeCoefficient
+      lc.constant = round(lc.constant * widthChangeCoefficient)
+      rc.constant = round(rc.constant * widthChangeCoefficient)
+      layoutIfNeeded()
     }
   }
   
