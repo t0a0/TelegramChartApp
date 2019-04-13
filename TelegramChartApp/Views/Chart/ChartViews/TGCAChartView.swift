@@ -15,10 +15,6 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   
   @IBOutlet var contentView: UIView!
   
-  var axisColor = UIColor.gray.cgColor
-  var axisLabelColor = UIColor.black.cgColor
-  var circlePointFillColor = UIColor.white.cgColor
-  
   struct ChartViewConstants {
     static let axisLineWidth: CGFloat = 0.5
     static let annotationLineWidth: CGFloat = 1.0
@@ -645,7 +641,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     
     var labels = [GuideLabel]()
     for i in 0..<xIndexes.count {
-      let textL = textLayer(origin: CGPoint(x: drawings.xPositions[xIndexes[i]], y: chartBoundsBottom + 5/* + heightForGuideLabels / 2*/), text: strings[i], color: axisLabelColor)
+      let textL = textLayer(origin: CGPoint(x: drawings.xPositions[xIndexes[i]], y: chartBoundsBottom + 5/* + heightForGuideLabels / 2*/), text: strings[i], color: axisXLabelColor)
       labels.append(GuideLabel(textLayer: textL, indexInChart: xIndexes[i]))
     }
     return labels
@@ -679,7 +675,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
       let line = bezierLine(from: CGPoint(x: bounds.origin.x, y: 0), to: CGPoint(x: boundsRight, y: 0))
       let lineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: ChartViewConstants.axisLineWidth)
       lineLayer.position.y = position
-      let labelLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: texts[i], color: axisLabelColor)
+      let labelLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: texts[i], color: axisYLabelColor)
       labelLayer.alignmentMode = .left
       axisLayer.addSublayer(lineLayer)
       axisLayer.addSublayer(labelLayer)
@@ -714,7 +710,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
       let ax = horizontalAxes[0]
       let position = horizontalAxesDefaultYPositions[0]
       let oldTextLayerTargetPosition = CGPoint(x: ax.labelLayer.position.x, y: ax.labelLayer.position.y + diffs[0])
-      let newTextLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: texts[0], color: axisLabelColor)
+      let newTextLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: texts[0], color: axisYLabelColor)
       newTextLayer.opacity = 0
       axisLayer.addSublayer(newTextLayer)
       let oldTextPos = newTextLayer.position
@@ -746,7 +742,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
       
       let line = bezierLine(from: CGPoint(x: bounds.origin.x, y: 0), to: CGPoint(x: boundsRight, y: 0))
       let newLineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: ChartViewConstants.axisLineWidth)
-      let newTextLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: texts[i], color: axisLabelColor)
+      let newTextLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: texts[i], color: axisYLabelColor)
       newTextLayer.opacity = 0
       newLineLayer.opacity = 0
       axisLayer.addSublayer(newLineLayer)
@@ -1299,6 +1295,11 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   
   // MARK: - THeme
   
+  var axisColor = UIColor.gray.cgColor
+  var axisXLabelColor = UIColor.black.cgColor
+  var axisYLabelColor = UIColor.black.cgColor
+  var circlePointFillColor = UIColor.white.cgColor
+  
   override func didMoveToWindow() {
     if window != nil {
       subscribe()
@@ -1315,6 +1316,15 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     applyCurrentTheme(animated: true)
   }
   
+  func applyColors() {
+    let theme = UIApplication.myDelegate.currentTheme
+    
+    axisColor = theme.axisColor.cgColor
+    axisXLabelColor = theme.axisLabelColor.cgColor
+    axisYLabelColor = theme.axisLabelColor.cgColor
+    circlePointFillColor = theme.foregroundColor.cgColor
+  }
+  
   func applyChanges() {
     //annotation
     (currentChartAnnotation as? ChartAnnotation)?.circleLayers.forEach{$0.fillColor = circlePointFillColor}
@@ -1323,20 +1333,16 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     //axis
     horizontalAxes?.forEach{
       $0.lineLayer.strokeColor = axisColor
-      $0.labelLayer.foregroundColor = axisLabelColor
+      $0.labelLayer.foregroundColor = axisYLabelColor
     }
     
     //guide labels
-    activeGuideLabels?.forEach{$0.textLayer.foregroundColor = axisLabelColor}
-    transitioningGuideLabels?.forEach{$0.textLayer.foregroundColor = axisLabelColor}
+    activeGuideLabels?.forEach{$0.textLayer.foregroundColor = axisXLabelColor}
+    transitioningGuideLabels?.forEach{$0.textLayer.foregroundColor = axisXLabelColor}
   }
   
   func applyCurrentTheme(animated: Bool = false) {
-    let theme = UIApplication.myDelegate.currentTheme
-    
-    axisColor = theme.axisColor.cgColor
-    axisLabelColor = theme.axisLabelColor.cgColor
-    circlePointFillColor = theme.foregroundColor.cgColor
+    applyColors()
     
     if animated {
       CATransaction.begin()

@@ -33,7 +33,6 @@ class TGCASingleBarChartView: TGCAChartView {
   
   //MARK: - Annotations
   
-  private var chartAnnotationMaskColor = UIColor.black.cgColor
 
   override func addChartAnnotation(_ chartAnnotation: ChartAnnotationProtocol) {
     guard let chartAnnotation = chartAnnotation as? ChartAnnotation else {
@@ -151,19 +150,25 @@ class TGCASingleBarChartView: TGCAChartView {
 
   }
   
+  //MARK: Theme
+  
+  private var chartAnnotationMaskColor = UIColor.black.cgColor
+
+  override func applyColors() {
+    super.applyColors()
+    let theme = UIApplication.myDelegate.currentTheme
+    chartAnnotationMaskColor = theme.chartMaskColor.cgColor
+    axisXLabelColor = theme.xAxisLabelColorForFilledCharts.cgColor
+    axisYLabelColor = theme.yAxisLabelColorForFilledCharts.cgColor
+    axisColor = theme.axisColorForFilledCharts.cgColor
+  }
+  
   override func applyChanges() {
     (currentChartAnnotation as? ChartAnnotation)?.leftMask.fillColor = chartAnnotationMaskColor
     (currentChartAnnotation as? ChartAnnotation)?.rightMask.fillColor = chartAnnotationMaskColor
     (currentChartAnnotation as? ChartAnnotation)?.leftMask.strokeColor = chartAnnotationMaskColor
     (currentChartAnnotation as? ChartAnnotation)?.rightMask.strokeColor = chartAnnotationMaskColor
     super.applyChanges()
-  }
-  
-  override func applyCurrentTheme(animated: Bool = false) {
-    let theme = UIApplication.myDelegate.currentTheme
-    chartAnnotationMaskColor = theme.chartMaskColor.cgColor
-
-    super.applyCurrentTheme()
   }
   
 }

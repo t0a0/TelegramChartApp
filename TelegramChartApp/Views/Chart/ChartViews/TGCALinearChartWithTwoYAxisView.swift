@@ -306,6 +306,15 @@ class TGCALinearChartWithTwoYAxisView: TGCAChartView {
     horizontalAxes = nil
   }
   
+  //MARK: Theme
+  
+  override func applyChanges() {
+    super.applyChanges()
+    horizontalAxes?.forEach{
+      $0.lineLayer.strokeColor = axisColor
+    }
+  }
+  
   //MARK: - Private classes and structs
   
   private class HorizontalAxis {

@@ -186,6 +186,21 @@ class TGCAPercentageChartView: TGCAChartView {
     let didChange: Bool = false
   }
   
+  //MARK: Theme
+  
+  override func applyColors() {
+    super.applyColors()
+    let theme = UIApplication.myDelegate.currentTheme
+    axisXLabelColor = theme.xAxisLabelColorForFilledCharts.cgColor
+    axisYLabelColor = theme.yAxisLabelColorForFilledCharts.cgColor
+    axisColor = theme.axisColorForFilledCharts.cgColor
+  }
+  
+  override func applyChanges() {
+    (currentChartAnnotation as? ChartAnnotation)?.lineLayer.strokeColor = axisColor
+    super.applyChanges()
+  }
+  
   private class ChartAnnotation: BaseChartAnnotation {
     let lineLayer: CAShapeLayer
     
