@@ -79,22 +79,7 @@ class TGCASingleBarChartView: TGCAChartView {
     let nonHiddenMaximumIndex = (0..<chart.yVectors.count).filter{!hiddenDrawingIndicies.contains($0)}.sorted().max()!
     let yPositions = drawings.yVectorData.yVectors[nonHiddenMaximumIndex]
     let xPositions = drawings.xPositions
-    
-    var rightPath = CGPath(rect: CGRect.zero, transform: nil)
-    
-    if index != xPositions.count - 1 {
-      let rightYvector = Array(yPositions[(index+1)..<yPositions.count])
-      let rightXvector = Array(xPositions[(index+1)..<yPositions.count])
-      let rightPoints = convertToPoints(xVector: rightXvector, yVector: rightYvector)
-      rightPath = squareBezierArea(topPoints: rightPoints, bottom: chartBoundsBottom).cgPath
-    }
-    
-    let leftYvector = Array(yPositions[0...index])
-    let leftXvector = Array(xPositions[0...index])
-    let leftPoints = convertToPoints(xVector: leftXvector, yVector: leftYvector)
-    let leftPath = squareBezierArea(topPoints: leftPoints, bottom: chartBoundsBottom).cgPath
-    
-    return (leftPath, rightPath)
+    return squareBezierMaskAreas(topPoints: convertToPoints(xVector: xPositions, yVector: yPositions), bottom: chartBoundsBottom, visibleIdx: index)
   }
   
   //MARK: - Configuration

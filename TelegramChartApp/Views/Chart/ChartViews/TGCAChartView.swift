@@ -1062,18 +1062,6 @@ class TGCAChartView: UIView {
     return line
   }
   
-  func squareBezierLine(withPoints points: [CGPoint]) -> UIBezierPath {
-    let line = UIBezierPath()
-    let firstPoint = points[0]
-    line.move(to: firstPoint)
-    for i in 1..<points.count {
-      let nextPoint = points[i]
-      line.addLine(to: CGPoint(x: nextPoint.x, y: line.currentPoint.y))
-      line.addLine(to: CGPoint(x: line.currentPoint.x, y: nextPoint.y))
-    }
-    return line
-  }
-  
   func bezierLine(from fromPoint: CGPoint, to toPoint: CGPoint) -> UIBezierPath {
     let line = UIBezierPath()
     line.move(to: fromPoint)
@@ -1087,20 +1075,75 @@ class TGCAChartView: UIView {
   }
   
   func squareBezierArea(topPoints: [CGPoint], bottom: CGFloat) -> UIBezierPath {
+    let additionalSpacingNeeded = topPoints.last!.x / CGFloat(topPoints.count)
+    let decrement = additionalSpacingNeeded / CGFloat(topPoints.count)
+
     let line = UIBezierPath()
     var curY = bottom
     let firstPoint = topPoints.first!
     line.move(to: CGPoint(x: firstPoint.x, y: curY))
     line.addLine(to: CGPoint(x: firstPoint.x, y: firstPoint.y))
     curY = firstPoint.y
-    for tp in topPoints[1..<topPoints.count] {
-      line.addLine(to: CGPoint(x: tp.x, y: curY))
-      line.addLine(to: CGPoint(x: tp.x, y: tp.y))
+    for i in 1..<topPoints.count {
+      let tp = topPoints[i]
+      let d =  tp.x - (decrement*CGFloat(i))
+      line.addLine(to: CGPoint(x: d, y: curY))
+      line.addLine(to: CGPoint(x: d, y: tp.y))
       curY = tp.y
     }
+    line.addLine(to: topPoints.last!)
     line.addLine(to: CGPoint(x: line.currentPoint.x, y: bottom))
     line.close()
     return line
+  }
+  
+  func squareBezierMaskAreas(topPoints: [CGPoint], bottom: CGFloat, visibleIdx: Int) -> (leftPath: CGPath, rightPath: CGPath) {
+    let additionalSpacingNeeded = topPoints.last!.x / CGFloat(topPoints.count)
+    let decrement = additionalSpacingNeeded / CGFloat(topPoints.count)
+    
+    let leftLine = UIBezierPath()
+    
+    if visibleIdx != 0 {
+      let firstPoint = topPoints.first!
+      leftLine.move(to: CGPoint(x: firstPoint.x, y: bottom))
+      leftLine.addLine(to: CGPoint(x: firstPoint.x, y: firstPoint.y))
+      var curY = firstPoint.y
+      for i in 1..<visibleIdx {
+        let tp = topPoints[i]
+        let d =  tp.x - (decrement*CGFloat(i))
+        leftLine.addLine(to: CGPoint(x: d, y: curY))
+        leftLine.addLine(to: CGPoint(x: d, y: tp.y))
+        curY = tp.y
+      }
+      let a = topPoints[visibleIdx]
+      leftLine.addLine(to: CGPoint(x: a.x - (decrement*CGFloat(visibleIdx)), y: curY))
+      leftLine.addLine(to: CGPoint(x: leftLine.currentPoint.x, y: bottom))
+      leftLine.close()
+    }
+    
+    
+    let rightLine = UIBezierPath()
+    
+    if visibleIdx != topPoints.count - 1 {
+      let firstRightPoint = topPoints[visibleIdx+1]
+      let c = firstRightPoint.x - (decrement*CGFloat(visibleIdx+1))
+      rightLine.move(to: CGPoint(x: c, y: bottom))
+      rightLine.addLine(to: CGPoint(x: c, y: firstRightPoint.y))
+      var curY = firstRightPoint.y
+      for i in (visibleIdx+1)..<topPoints.count {
+        let tp = topPoints[i]
+        let d =  tp.x - (decrement*CGFloat(i))
+        rightLine.addLine(to: CGPoint(x: d, y: curY))
+        rightLine.addLine(to: CGPoint(x: d, y: tp.y))
+        curY = tp.y
+      }
+      rightLine.addLine(to: topPoints.last!)
+      rightLine.addLine(to: CGPoint(x: rightLine.currentPoint.x, y: bottom))
+      rightLine.close()
+    }
+    
+    
+    return (leftLine.cgPath, rightLine.cgPath)
   }
   
   func bezierArea(topPoints: [CGPoint], bottom: CGFloat) -> UIBezierPath {
