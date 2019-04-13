@@ -11,6 +11,12 @@ import UIKit
 
 class TGCASingleBarChartView: TGCAChartView {
   
+  struct BarChartViewConstants {
+    struct AnimationKeys {
+      static let maskAnim = "maskAnim"
+    }
+  }
+  
   override func getPathsToDraw(with points: [[CGPoint]]) -> [CGPath] {
     return points.map{squareBezierArea(topPoints: $0, bottom: chartBoundsBottom).cgPath}
   }
@@ -28,7 +34,7 @@ class TGCASingleBarChartView: TGCAChartView {
   //MARK: - Annotations
   
   private var chartAnnotationMaskColor = UIApplication.myDelegate.currentTheme.foregroundColor.withAlphaComponent(0.75).cgColor
-  
+
   override func addChartAnnotation(_ chartAnnotation: ChartAnnotationProtocol) {
     guard let chartAnnotation = chartAnnotation as? ChartAnnotation else {
       return
@@ -61,8 +67,43 @@ class TGCASingleBarChartView: TGCAChartView {
     }
     let (leftPath, rightPath) = getPathsForChartAnnotation(at: index)
     
-    currentChartAnnotation.leftMask.path = leftPath
-    currentChartAnnotation.rightMask.path = rightPath
+    if animated {
+      var oldLeftPath: Any?
+      if let _ = currentChartAnnotation.leftMask.animation(forKey: BarChartViewConstants.AnimationKeys.maskAnim) {
+        oldLeftPath = currentChartAnnotation.leftMask.presentation()?.value(forKey: "path")
+        currentChartAnnotation.leftMask.removeAnimation(forKey: BarChartViewConstants.AnimationKeys.maskAnim)
+      }
+      
+      let leftPathAnim = CABasicAnimation(keyPath: "path")
+      leftPathAnim.fromValue = oldLeftPath ?? currentChartAnnotation.leftMask.path
+      currentChartAnnotation.leftMask.path = leftPath
+      leftPathAnim.toValue = currentChartAnnotation.leftMask.path
+      
+      
+      
+      var oldRightPath: Any?
+      if let _ = currentChartAnnotation.rightMask.animation(forKey: BarChartViewConstants.AnimationKeys.maskAnim) {
+        oldRightPath = currentChartAnnotation.rightMask.presentation()?.value(forKey: "path")
+        currentChartAnnotation.rightMask.removeAnimation(forKey: BarChartViewConstants.AnimationKeys.maskAnim)
+      }
+      
+      let rightPathAnim = CABasicAnimation(keyPath: "path")
+      rightPathAnim.fromValue = oldRightPath ?? currentChartAnnotation.rightMask.path
+      currentChartAnnotation.rightMask.path = rightPath
+      rightPathAnim.toValue = currentChartAnnotation.rightMask.path
+      
+     
+      leftPathAnim.duration = CHART_PATH_ANIMATION_DURATION
+      rightPathAnim.duration = CHART_PATH_ANIMATION_DURATION
+      
+      currentChartAnnotation.leftMask.add(leftPathAnim, forKey: BarChartViewConstants.AnimationKeys.maskAnim)
+      currentChartAnnotation.rightMask.add(rightPathAnim, forKey: BarChartViewConstants.AnimationKeys.maskAnim)
+
+    } else {
+      currentChartAnnotation.leftMask.path = leftPath
+      currentChartAnnotation.rightMask.path = rightPath
+    }
+
   }
   
   override func removeChartAnnotation() {

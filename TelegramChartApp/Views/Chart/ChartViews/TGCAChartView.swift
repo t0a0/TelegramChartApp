@@ -879,7 +879,7 @@ class TGCAChartView: UIView {
         opacityAnim.toValue = circleLayer.opacity
         
         let grp = CAAnimationGroup()
-        grp.duration = ANIMATION_DURATION
+        grp.duration = CHART_PATH_ANIMATION_DURATION
         grp.animations = [pathAnim, opacityAnim]
         circleLayer.add(grp, forKey: "circleGrpAnimation")
         
