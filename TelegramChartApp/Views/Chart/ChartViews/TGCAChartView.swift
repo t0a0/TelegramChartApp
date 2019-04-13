@@ -1004,11 +1004,15 @@ class TGCAChartView: UIView {
   
   func removeChartAnnotation() {
     if let annotation = currentChartAnnotation as? ChartAnnotation {
-      annotation.lineLayer.removeFromSuperlayer()
       annotation.annotationView.removeFromSuperview()
+      
+      CATransaction.begin()
+      CATransaction.setDisableActions(true)
+      annotation.lineLayer.removeFromSuperlayer()
       for layer in annotation.circleLayers {
         layer.removeFromSuperlayer()
       }
+      CATransaction.commit()
       currentChartAnnotation = nil
     }
   }
