@@ -100,6 +100,68 @@ class TGCAPercentageChartView: TGCAChartView {
     }
   }
   
+  // MARK: - Axes
+  
+  private var horizontalAxes: [PercentageHorizontalAxis]!
+  
+  private class PercentageHorizontalAxis {
+    private(set) var lineLayer: CAShapeLayer
+    private(set) var labelLayer: CATextLayer
+    private(set) var value: CGFloat
+    
+    init(lineLayer: CAShapeLayer, labelLayer: CATextLayer, value: CGFloat) {
+      self.lineLayer = lineLayer
+      self.labelLayer = labelLayer
+      self.value = value
+    }
+    
+    func update(labelLayer: CATextLayer, value: CGFloat) {
+      self.labelLayer = labelLayer
+      self.value = value
+    }
+    
+    func update(lineLayer: CAShapeLayer, labelLayer: CATextLayer, value: CGFloat) {
+      self.lineLayer = lineLayer
+      update(labelLayer: labelLayer, value: value)
+    }
+  }
+  
+  override func addHorizontalAxes() {
+    let boundsRight = bounds.origin.x + bounds.width
+
+    
+    let values: [CGFloat] = [0, 25, 50, 75, 100]
+    let texts = values.map{chartLabelFormatterService.prettyValueString(from: $0)}
+
+    let spacing = chartBounds.height / CGFloat(values.count-1)
+    
+    let positions = (0..<values.count).map{chartBoundsBottom - (CGFloat($0) * spacing)}
+
+    
+    var newAxis = [PercentageHorizontalAxis]()
+    
+    for i in 0..<positions.count {
+      let position = positions[i]
+      let line = bezierLine(from: CGPoint(x: bounds.origin.x, y: 0), to: CGPoint(x: boundsRight, y: 0))
+      let lineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: ChartViewConstants.axisLineWidth)
+      lineLayer.position.y = position
+      let labelLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: texts[i], color: axisYLabelColor)
+      labelLayer.alignmentMode = .left
+      axisLayer.addSublayer(lineLayer)
+      axisLayer.addSublayer(labelLayer)
+      newAxis.append(PercentageHorizontalAxis(lineLayer: lineLayer, labelLayer: labelLayer, value: values[i]))
+    }
+    horizontalAxes = newAxis
+  }
+  
+  override func removeHorizontalAxes() {
+    horizontalAxes?.forEach{
+      $0.labelLayer.removeFromSuperlayer()
+      $0.lineLayer.removeFromSuperlayer()
+    }
+    horizontalAxes = nil
+  }
+  
   // MARK: - Annotation
   
   override func getChartAnnotationViewConfiguration(for index: Int) -> TGCAChartAnnotationView.AnnotationViewConfiguration {
@@ -196,6 +258,10 @@ class TGCAPercentageChartView: TGCAChartView {
   override func applyChanges() {
     (currentChartAnnotation as? ChartAnnotation)?.lineLayer.strokeColor = axisColor
     super.applyChanges()
+    horizontalAxes?.forEach{
+      $0.lineLayer.strokeColor = axisColor
+      $0.labelLayer.foregroundColor = axisYLabelColor
+    }
   }
   
   private class ChartAnnotation: BaseChartAnnotation {

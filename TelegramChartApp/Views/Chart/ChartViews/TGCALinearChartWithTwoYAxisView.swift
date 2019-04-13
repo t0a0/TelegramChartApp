@@ -10,7 +10,7 @@ import Foundation
 import UIKit
 
 
-class TGCALinearChartWithTwoYAxisView: TGCAChartView {
+class TGCALinearChartWithTwoYAxisView: TGCALinearChartView {
   
   private var leftYValueRange: ClosedRange<CGFloat> = 0...0
   private var rightYValueRange: ClosedRange<CGFloat> = 0...0
