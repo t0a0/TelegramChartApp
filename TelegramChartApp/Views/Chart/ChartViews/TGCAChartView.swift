@@ -908,7 +908,9 @@ class TGCAChartView: UIView, ThemeChangeObserving {
       guard let strongSelf = self else {
         return
       }
-      _ = strongSelf.onAnnotationClick?(strongSelf.chart.datesVector[chartAnnotation.displayedIndex])
+      strongSelf.onAnnotationClick?(strongSelf.chart.datesVector[chartAnnotation.displayedIndex]) ?? false
+      strongSelf.removeChartAnnotation()
+
     }
     chartAnnotation.annotationView.frame.origin = desiredOriginForChartAnnotationPlacing(chartAnnotation: chartAnnotation)
     currentChartAnnotation = chartAnnotation
