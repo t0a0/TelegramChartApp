@@ -165,6 +165,7 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
     let right = chartContainer.chart.datesVector[translatedBounds.upperBound]
     
     cell.headerView.label.text = dateRangeFormatter.prettyDateStringFrom(left: left, right: right)
+    cell.headerView.label.textAlignment = isUnderlying ? .right : .center
     cell.headerView.zoomOutButton.isHidden = !isUnderlying
     
     cell.headerView.onZoomOut = { [weak self] in
