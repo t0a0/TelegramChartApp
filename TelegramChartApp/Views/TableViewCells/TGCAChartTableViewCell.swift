@@ -36,7 +36,7 @@ class TGCAChartTableViewCell: UITableViewCell {
     selectionStyle = .none
   }
   
-  func configure(with chartContainer: ChartContainer) {
+  func configure(for chartType: DataChartType) {
     
     containerForThumbailChartView.subviews.forEach{
       $0.removeFromSuperview()
@@ -46,9 +46,12 @@ class TGCAChartTableViewCell: UITableViewCell {
       $0.removeFromSuperview()
     }
     
+    chartView = nil
+    thumbnailChartView = nil
+    
     var view: TGCAChartView!
     var thumbnailView: TGCAChartView!
-    switch chartContainer.chart.type {
+    switch chartType {
     case .linear:
       view = TGCALinearChartView(frame: containerForChartView.bounds)
       thumbnailView = TGCALinearChartView(frame: containerForThumbailChartView.bounds)
@@ -66,23 +69,26 @@ class TGCAChartTableViewCell: UITableViewCell {
       thumbnailView = TGCAStackedBarChartView(frame: containerForThumbailChartView.bounds)
     }
     
-    setupChartView(with: view)
+    setupChartView(with: view, type: chartType)
     setupThumbnailChartView(with: thumbnailView)
-    
-    containerForChartView.addSubview(view)
-    containerForThumbailChartView.addSubview(thumbnailView)
-    
-
-//    view.configure(with: chartContainer.chart, hiddenIndicies: chartContainer.hiddenIndicies, displayRange: chartContainer.trimRange)
-//    thumbnailView.configure(with: chartContainer.chart, hiddenIndicies: chartContainer.hiddenIndicies, displayRange: CGFloatRangeInBounds.ZeroToOne)
     
   }
   
-  private func setupChartView(with view: TGCAChartView) {
+  //MARK: Transition
+  
+  func transition(to newType: DataChartType) {
+    configure(for: newType)
+  }
+  
+  //MARK: Setup
+  
+  private func setupChartView(with view: TGCAChartView, type: DataChartType) {
     chartView = view
     chartView.graphLineWidth = 2.0
     chartView.shouldDisplayAxesAndLabels = true
     chartView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
+    chartView.valuesStartFromZero = type != .linear && type != .linearWith2Axes
+    containerForChartView.addSubview(chartView)
   }
   
   private func setupThumbnailChartView(with view: TGCAChartView) {
@@ -95,6 +101,8 @@ class TGCAChartTableViewCell: UITableViewCell {
     thumbnailChartView.layer.cornerRadius = TGCATrimmerView.shoulderWidth * 0.75
     thumbnailChartView.layer.masksToBounds = true
     thumbnailChartView.autoresizingMask  = [.flexibleHeight, .flexibleWidth]
+    containerForThumbailChartView.addSubview(thumbnailChartView)
+
   }
   
 }

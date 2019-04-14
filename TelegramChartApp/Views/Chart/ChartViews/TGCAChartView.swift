@@ -88,6 +88,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   
   var canShowAnnotations = true
   
+  var isUnderlying = false
   
   /// Number of horizontal axes that should be shown on screen. Doesnt include zero axis
   let numOfHorizontalAxes = 6
@@ -106,7 +107,6 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   var chartBoundsRight: CGFloat = 0
   
   var chart: DataChart!
-  var underlyingChart: DataChart?
   var drawings: ChartDrawings!
   
   /// Contains indicies of the hidden charts
@@ -219,18 +219,6 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     self.chart = chart
     currentTrimRange = displayRange
     hiddenDrawingIndicies = hiddenIndicies
-  }
-  
-  func transitionToMainChart() {
-
-    underlyingChart = nil
-  }
-  
-  func transitionToUnderlyingChart(_ underlyingChart: DataChart, displayRange: CGFloatRangeInBounds) {
-    self.underlyingChart = underlyingChart
-    removeChartAnnotation()
-    configure(with: underlyingChart, hiddenIndicies: hiddenDrawingIndicies, displayRange: displayRange)
-    
   }
   
   private func updateScrollView(with newRange: CGFloatRangeInBounds, event: DisplayRangeChangeEvent) {

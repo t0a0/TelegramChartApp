@@ -139,7 +139,7 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueReusableCell(withIdentifier: TGCAChartTableViewCell.defaultReuseIdd) as! TGCAChartTableViewCell
-    cell.configure(with: chartContainers[indexPath.section])
+    cell.configure(for: chartContainers[indexPath.section].chart.type)
     configureChartCell(cell, section: indexPath.section)
     return cell
   }
@@ -150,23 +150,35 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
   
   
   func configureChartCell(_ cell: TGCAChartTableViewCell, section: Int) {
+    var isUnderlying = false
+    var chartContainer: ChartContainer
     
-    let chartContainer = chartContainers[section]
+    if let underlying = chartContainers[section].underlyingChartContainer {
+      chartContainer = underlying
+      isUnderlying = true
+    } else {
+      chartContainer = chartContainers[section]
+    }
     
     let translatedBounds = chartContainer.chart.translatedBounds(for: chartContainer.trimRange)
     let left = chartContainer.chart.datesVector[translatedBounds.lowerBound]
     let right = chartContainer.chart.datesVector[translatedBounds.upperBound]
+    
     cell.headerView.label.text = dateRangeFormatter.prettyDateStringFrom(left: left, right: right)
+    cell.headerView.zoomOutButton.isHidden = !isUnderlying
     
     cell.headerView.onZoomOut = { [weak self] in
-      chartContainer.underlyingChartContainer = nil
+      guard let parentChartContainer = chartContainer.parentChartContainer else {
+        return
+      }
+      parentChartContainer.setUnderlyingChartContainer(nil)
       cell.headerView.zoomOutButton.isHidden = true
-      if let buttonsSetup = self?.getButtonsConfigurationFor(chartContainer: chartContainer, cell: cell, index: section) {
+      if let buttonsSetup = self?.getButtonsConfigurationFor(chartContainer: parentChartContainer, cell: cell, index: section) {
         cell.chartFiltersHeightConstraint.constant = cell.chartFiltersView?.setupButtons(buttonsSetup) ?? 0
       }
-      cell.chartView.transitionToMainChart()
-      cell.thumbnailChartView.transitionToMainChart()
-      cell.trimmerView?.setCurrentRange(chartContainer.trimRange, animated: true)
+      
+      cell.transition(to: parentChartContainer.chart.type)
+      self?.configureChartCell(cell, section: section)
     }
     
     
@@ -175,16 +187,14 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
     cell.chartView?.onAnnotationClick = {[weak self] date in
       if let underlyingChart = self?.loadZoomedInJSONDataFor(chartIndex: section, date: date) {
         let newContainer = ChartContainer(chart: underlyingChart, hiddenIndicies: chartContainer.hiddenIndicies)
-        chartContainer.underlyingChartContainer = newContainer
+        chartContainer.setUnderlyingChartContainer(newContainer)
         cell.headerView.zoomOutButton.isHidden = false
         if let buttonsSetup = self?.getButtonsConfigurationFor(chartContainer: newContainer, cell: cell, index: section) {
            cell.chartFiltersHeightConstraint.constant = cell.chartFiltersView?.setupButtons(buttonsSetup) ?? 0
         }
        
-        
-        cell.chartView?.transitionToUnderlyingChart(underlyingChart, displayRange: newContainer.trimRange)
-        cell.thumbnailChartView?.transitionToUnderlyingChart(underlyingChart, displayRange: CGFloatRangeInBounds.ZeroToOne)
-        cell.trimmerView?.setCurrentRange(newContainer.trimRange, animated: true)
+        cell.transition(to: newContainer.chart.type)
+        self?.configureChartCell(cell, section: section)
         return true
       }
       return false
@@ -212,8 +222,6 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
       
       cell.headerView.label.text = self?.dateRangeFormatter.prettyDateStringFrom(left: left, right: right)
     }
-    
-    
     
     let theme = UIApplication.myDelegate.currentTheme
     cell.headerView.label.textColor = theme.mainTextColor
@@ -285,7 +293,8 @@ extension TGCAChartDetailViewController: ThemeChangeObserving {
 
 class ChartContainer {
   let chart: DataChart
-  var underlyingChartContainer: ChartContainer?
+  private(set) var underlyingChartContainer: ChartContainer?
+  private(set) var parentChartContainer: ChartContainer?
   
   private(set) var hiddenIndicies: Set<Int>
   private(set) var trimRange: CGFloatRangeInBounds
@@ -315,6 +324,15 @@ class ChartContainer {
   
   func showAll() {
     hiddenIndicies = []
+  }
+  
+  func setUnderlyingChartContainer(_ underlyingChartContainer: ChartContainer?) {
+    self.underlyingChartContainer = underlyingChartContainer
+    self.underlyingChartContainer?.setParentChartContainer(self)
+  }
+  
+  func setParentChartContainer(_ parentChartContainer: ChartContainer) {
+    self.parentChartContainer = parentChartContainer
   }
   
 }
