@@ -149,7 +149,7 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
   }
   
   
-  func configureChartCell(_ cell: TGCAChartTableViewCell, section: Int) {
+  func configureChartCell(_ cell: TGCAChartTableViewCell, section: Int, animateTrimmer: Bool = false) {
     var isUnderlying = false
     var chartContainer: ChartContainer
     
@@ -179,7 +179,7 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
       }
       
       cell.transition(to: parentChartContainer.chart.type)
-      self?.configureChartCell(cell, section: section)
+      self?.configureChartCell(cell, section: section, animateTrimmer: true)
     }
     
     
@@ -198,7 +198,7 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
         }
        
         cell.transition(to: newContainer.chart.type)
-        self?.configureChartCell(cell, section: section)
+        self?.configureChartCell(cell, section: section, animateTrimmer: true)
         return true
       }
       return false
@@ -210,7 +210,7 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
     cell.thumbnailChartView?.configure(with: chartContainer.chart, hiddenIndicies: chartContainer.hiddenIndicies, displayRange: CGFloatRangeInBounds.ZeroToOne)
     
     //trim view config
-    cell.trimmerView?.setCurrentRange(chartContainer.trimRange)
+    cell.trimmerView?.setCurrentRange(chartContainer.trimRange, animated: animateTrimmer)
     
     cell.trimmerView?.onChange = {[weak self] (newRange, event) in
       if event == .Started {

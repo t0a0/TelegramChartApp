@@ -27,7 +27,7 @@ class TGCATrimmerView: UIView {
     
     func changes() {
       let curRange = currentRange
-      if range.bounds == curRange.bounds {
+      if range.bounds == curRange.bounds && range.range == curRange.range {
         leftConstraint?.constant = curRange.range.lowerBound
         rightConstraint?.constant = -1 * (curRange.bounds.upperBound - curRange.range.upperBound)
       } else {
