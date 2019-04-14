@@ -175,7 +175,7 @@ class TGCAPercentageChartView: TGCAChartView {
     coloredValues.sort { (left, right) -> Bool in
       return left.value >= right.value
     }
-    return TGCAChartAnnotationView.AnnotationViewConfiguration(date: chart.datesVector[index], showsDisclosureIcon: true, mode: .Date, showsLeftColumn: true, coloredValues: coloredValues)
+    return TGCAChartAnnotationView.AnnotationViewConfiguration(date: chart.datesVector[index], showsDisclosureIcon: true, mode: isUnderlying ? .Time : .Date, showsLeftColumn: true, coloredValues: coloredValues)
   }
   
   override func addChartAnnotation(_ chartAnnotation: ChartAnnotationProtocol) {

@@ -92,7 +92,7 @@ class TGCAStackedBarChartView: TGCASingleBarChartView {
     if includedIndicies.count > 1 {
       coloredValues.append(TGCAChartAnnotationView.ColoredValue(title: "All", value: summ, color: nil))
     }
-    return TGCAChartAnnotationView.AnnotationViewConfiguration(date: chart.datesVector[index], showsDisclosureIcon: isUnderlying, mode: .Date, showsLeftColumn: false, coloredValues: coloredValues)
+    return TGCAChartAnnotationView.AnnotationViewConfiguration(date: chart.datesVector[index], showsDisclosureIcon: isUnderlying, mode: isUnderlying ? .Time : .Date, showsLeftColumn: false, coloredValues: coloredValues)
   }
 
 }
