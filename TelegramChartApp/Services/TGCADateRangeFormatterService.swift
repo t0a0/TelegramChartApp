@@ -10,9 +10,7 @@ import Foundation
 import UIKit
 
 class TGCADateRangeFormatterService {
-  
-  private static let ONE_DAY: TimeInterval = 24*60*60
-  
+    
   private lazy var fullDateFormatter: DateFormatter = {
     let df = DateFormatter()
     df.locale = Locale(identifier: "en_US")
@@ -29,9 +27,16 @@ class TGCADateRangeFormatterService {
     return df
   }()
   
+  private lazy var calendar: Calendar = {
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.locale = Locale(identifier: "en_US")
+    calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+    return calendar
+  }()
+  
   func prettyDateStringFrom(left: Date, right: Date) -> String {
     
-    if right.timeIntervalSince(left) > TGCADateRangeFormatterService.ONE_DAY {
+    if !calendar.isDate(left, inSameDayAs: right) {
       return mediumDateFormatter.string(from: left) + " - " + mediumDateFormatter.string(from: right)
     }
     return fullDateFormatter.string(from: left)
