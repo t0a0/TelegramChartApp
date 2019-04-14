@@ -22,7 +22,7 @@ class TGCAPercentageChartView: TGCAChartView {
   }
   
   override func getCurrentYVectorData() -> YVectorDataProtocol {
-    return YVectorData(yVectors: getPercentageYVectors().map{mapToChartBoundsHeight($0)}, yRangeData: PercentageYRangeData())
+    return YVectorData(yVectors: getPercentageYVectors().map{mapToLineLayerHeight($0)}, yRangeData: PercentageYRangeData())
   }
   
   override func updateYValueRange(with yRangeData: YRangeDataProtocol) -> YRangeChangeResultProtocol {
@@ -127,8 +127,6 @@ class TGCAPercentageChartView: TGCAChartView {
   }
   
   override func addHorizontalAxes() {
-    let boundsRight = bounds.origin.x + bounds.width
-
     
     let values: [CGFloat] = [0, 25, 50, 75, 100]
     let texts = values.map{chartLabelFormatterService.prettyValueString(from: $0)}
@@ -142,13 +140,14 @@ class TGCAPercentageChartView: TGCAChartView {
     
     for i in 0..<positions.count {
       let position = positions[i]
-      let line = bezierLine(from: CGPoint(x: bounds.origin.x, y: 0), to: CGPoint(x: boundsRight, y: 0))
+      let line = bezierLine(from: CGPoint(x: axisLayer.frame.origin.x, y: 0), to: CGPoint(x: axisLayer.frame.origin.x + axisLayer.frame.width, y: 0))
       let lineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: ChartViewConstants.axisLineWidth)
       lineLayer.position.y = position
-      let labelLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: texts[i], color: axisYLabelColor)
+      let labelLayer = textLayer(origin: CGPoint(x: axisLayer.frame.origin.x, y: position - 20), text: texts[i], color: axisYLabelColor)
       labelLayer.alignmentMode = .left
-      axisLayer.addSublayer(lineLayer)
-      axisLayer.addSublayer(labelLayer)
+      //here i add not to axis layer because its gonna be clipped otherwise
+      layer.addSublayer(lineLayer)
+      layer.addSublayer(labelLayer)
       newAxis.append(PercentageHorizontalAxis(lineLayer: lineLayer, labelLayer: labelLayer, value: values[i]))
     }
     horizontalAxes = newAxis

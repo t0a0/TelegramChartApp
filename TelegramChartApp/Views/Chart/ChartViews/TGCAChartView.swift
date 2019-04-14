@@ -78,6 +78,8 @@ class TGCAChartView: UIView, ThemeChangeObserving {
       layer.addSublayer(l)
     }
     
+    axisLayer.masksToBounds = true
+    
     scrollView.bounces = false
     scrollView.isScrollEnabled = false
     scrollView.isUserInteractionEnabled = false
@@ -87,16 +89,6 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     scrollView.layer.addSublayer(lineBackgroundLayer)
     addSubview(scrollView)
 
-  }
-  
-  func setChartConfiguration(_ configuration: ChartConfiguration) {
-    self.chartConfiguration = configuration
-  }
-  
-  private(set) var chartConfiguration = ChartConfiguration.Default {
-    didSet {
-     layoutSubviews()
-    }
   }
   
   // MARK: - Variables
@@ -326,7 +318,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   
   func getCurrentYVectorData() -> YVectorDataProtocol {
     let normalizedYVectors = getNormalizedYVectors()
-    let yVectors = normalizedYVectors.vectors.map{mapToChartBoundsHeight($0)}
+    let yVectors = normalizedYVectors.vectors.map{mapToLineLayerHeight($0)}
     let yRangeData = YRangeData(yRange: normalizedYVectors.yRange)
     return YVectorData(yVectors: yVectors, yRangeData: yRangeData)
   }
@@ -439,7 +431,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   
   private func drawChart() {
     prepareToDrawChart()
-    let xVector = getXVectorMappedToScrollView()
+    let xVector = getXVectorMappedToLineLayerWidth()
     let yVectorData = getCurrentYVectorData()
     _ = updateYValueRange(with: yVectorData.yRangeData)
     
@@ -461,7 +453,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   }
   
   private func updateChart(withEvent event: DisplayRangeChangeEvent) {
-    let xVector = event == .Scrolled ? drawings.xPositions : getXVectorMappedToScrollView()
+    let xVector = event == .Scrolled ? drawings.xPositions : getXVectorMappedToLineLayerWidth()
     
     let yVectorData = event == .Scaled ? drawings.yVectorData : getCurrentYVectorData()
     
@@ -488,7 +480,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   
   private func updateChartByHiding(at indexes: Set<Int>, originalHiddens: Set<Int>) {
     prepareToUpdateChartByHiding()
-    let xVector = getXVectorMappedToScrollView()
+    let xVector = getXVectorMappedToLineLayerWidth()
     let yVectorData = getCurrentYVectorData()
     
     let pathsToDraw = getPathsToDraw(with: points(fromXvector: xVector, yVectors: yVectorData.yVectors))
@@ -502,6 +494,17 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   }
   
   // MARK: - Configuration
+  
+  func setChartConfiguration(_ configuration: ChartConfiguration) {
+    self.chartConfiguration = configuration
+  }
+  
+  private(set) var chartConfiguration = ChartConfiguration.Default {
+    didSet {
+      layoutSubviews()
+    }
+  }
+  
   //lower bound is like origin.y, upperbound is height
   var chartHeightBounds: ClosedRange<CGFloat> = ZORange
   var horizontalAxesSpacing: CGFloat!
@@ -708,8 +711,6 @@ class TGCAChartView: UIView, ThemeChangeObserving {
 
   func addHorizontalAxes() {
     
-    let boundsRight = bounds.origin.x + bounds.width
-    
     let values = valuesForAxes()
     let texts = values.map{chartLabelFormatterService.prettyValueString(from: $0)}
     
@@ -717,10 +718,10 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     
     for i in 0..<horizontalAxesDefaultYPositions.count {
       let position = horizontalAxesDefaultYPositions[i]
-      let line = bezierLine(from: CGPoint(x: bounds.origin.x, y: 0), to: CGPoint(x: boundsRight, y: 0))
-      let lineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: ChartViewConstants.axisLineWidth)
+      let line = bezierLine(from: CGPoint.zero, to: CGPoint(x: axisLayer.frame.width, y: 0))
+      let lineLayer = axisLineShapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: ChartViewConstants.axisLineWidth)
       lineLayer.position.y = position
-      let labelLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: texts[i], color: axisYLabelColor)
+      let labelLayer = textLayer(origin: CGPoint(x: 0, y: position - 20), text: texts[i], color: axisYLabelColor)
       labelLayer.alignmentMode = .left
       axisLayer.addSublayer(lineLayer)
       axisLayer.addSublayer(labelLayer)
@@ -730,8 +731,6 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   }
   
   func updateHorizontalAxes() -> AxisAnimationBlocks{
-    let boundsRight = bounds.origin.x + bounds.width
-
     let values = valuesForAxes()
     let texts = values.map{chartLabelFormatterService.prettyValueString(from: $0)}
   
@@ -755,7 +754,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
       let ax = horizontalAxes[0]
       let position = horizontalAxesDefaultYPositions[0]
       let oldTextLayerTargetPosition = CGPoint(x: ax.labelLayer.position.x, y: ax.labelLayer.position.y + diffs[0])
-      let newTextLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: texts[0], color: axisYLabelColor)
+      let newTextLayer = textLayer(origin: CGPoint(x: 0, y: position - 20), text: texts[0], color: axisYLabelColor)
       newTextLayer.opacity = 0
       axisLayer.addSublayer(newTextLayer)
       let oldTextPos = newTextLayer.position
@@ -785,9 +784,9 @@ class TGCAChartView: UIView, ThemeChangeObserving {
       let oldLineLayerTargetPosition = CGPoint(x: ax.lineLayer.position.x, y: ax.lineLayer.position.y + diffs[i])
       let oldTextLayerTargetPosition = CGPoint(x: ax.labelLayer.position.x, y: ax.labelLayer.position.y + diffs[i])
       
-      let line = bezierLine(from: CGPoint(x: bounds.origin.x, y: 0), to: CGPoint(x: boundsRight, y: 0))
-      let newLineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: ChartViewConstants.axisLineWidth)
-      let newTextLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: texts[i], color: axisYLabelColor)
+      let line = bezierLine(from: CGPoint.zero, to: CGPoint(x: axisLayer.frame.width, y: 0))
+      let newLineLayer = axisLineShapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: ChartViewConstants.axisLineWidth)
+      let newTextLayer = textLayer(origin: CGPoint(x: 0, y: position - 20), text: texts[i], color: axisYLabelColor)
       newTextLayer.opacity = 0
       newLineLayer.opacity = 0
       axisLayer.addSublayer(newLineLayer)
@@ -1071,11 +1070,11 @@ class TGCAChartView: UIView, ThemeChangeObserving {
       : chart.normalizedYVectorsFromLocalMinimum(in: translatedBounds, excludedIdxs: hiddenDrawingIndicies)
   }
   
-  func getXVectorMappedToScrollView() -> ValueVector {
+  private func getXVectorMappedToLineLayerWidth() -> ValueVector {
     return chart.normalizedXPositions.map{$0 * lineLayer.frame.width}
   }
   
-  func mapToChartBoundsHeight(_ vector: ValueVector) -> ValueVector {
+  func mapToLineLayerHeight(_ vector: ValueVector) -> ValueVector {
     return vector.map{lineLayer.frame.height - ($0 * lineLayer.frame.height)}
   }
   
@@ -1208,7 +1207,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     return path
   }
   
-  func shapeLayer(withPath path: CGPath, color: CGColor, lineWidth: CGFloat = 2, fillColor: CGColor? = nil) -> CAShapeLayer{
+  func shapeLayer(withPath path: CGPath, color: CGColor, lineWidth: CGFloat = 2, fillColor: CGColor? = nil) -> CAShapeLayer {
     let shapeLayer = CAShapeLayer()
     shapeLayer.path = path
     shapeLayer.strokeColor = color
@@ -1216,6 +1215,18 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     shapeLayer.lineJoin = .round
     shapeLayer.lineCap = .round
     shapeLayer.fillColor = fillColor
+    shapeLayer.contentsScale = ChartViewConstants.contentScaleForShapes
+    return shapeLayer
+  }
+  
+  func axisLineShapeLayer(withPath path: CGPath, color: CGColor, lineWidth: CGFloat) -> CAShapeLayer {
+    let shapeLayer = CAShapeLayer()
+    shapeLayer.path = path
+    shapeLayer.strokeColor = color
+    shapeLayer.lineWidth = lineWidth
+    shapeLayer.lineJoin = .miter
+    shapeLayer.lineCap = .butt
+    shapeLayer.fillColor = nil
     shapeLayer.contentsScale = ChartViewConstants.contentScaleForShapes
     return shapeLayer
   }

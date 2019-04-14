@@ -67,7 +67,7 @@ class TGCALinearChartWithTwoYAxisView: TGCALinearChartView {
   
   override func getCurrentYVectorData() -> YVectorDataProtocol {
     let normalizedYVectors = getSeparatelyNormalizedYVectors()
-    let yVectors = normalizedYVectors.map{mapToChartBoundsHeight($0.vector)}
+    let yVectors = normalizedYVectors.map{mapToLineLayerHeight($0.vector)}
 
     return YVectorData(yVectors: yVectors, yRangeData: DoubleAxisYRangeData(leftYRange: normalizedYVectors.first!.yRange, rightYRange: normalizedYVectors.last!.yRange))
   }
@@ -105,8 +105,6 @@ class TGCALinearChartWithTwoYAxisView: TGCALinearChartView {
   
   override func addHorizontalAxes() {
     
-    let boundsRight = bounds.origin.x + bounds.width
-    
     let leftValues = valuesForLeftAxis()
     let rightValues = valuesForRightAxis()
     let leftTexts = leftValues.map{chartLabelFormatterService.prettyValueString(from: $0)}
@@ -116,14 +114,14 @@ class TGCALinearChartWithTwoYAxisView: TGCALinearChartView {
 
     for i in 0..<horizontalAxesDefaultYPositions.count {
       let position = horizontalAxesDefaultYPositions[i]
-      let line = bezierLine(from: CGPoint(x: bounds.origin.x, y: 0), to: CGPoint(x: boundsRight, y: 0))
-      let lineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: ChartViewConstants.axisLineWidth)
+      let line = bezierLine(from: CGPoint.zero, to: CGPoint(x: axisLayer.frame.width, y: 0))
+      let lineLayer = axisLineShapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: ChartViewConstants.axisLineWidth)
       lineLayer.position.y = position
       
-      let leftTextLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: leftTexts[i], color: leftAxisLabelColor)
-      let rightTextLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: rightTexts[i], color: rightAxisLabelColor)
+      let leftTextLayer = textLayer(origin: CGPoint(x: 0, y: position - 20), text: leftTexts[i], color: leftAxisLabelColor)
+      let rightTextLayer = textLayer(origin: CGPoint(x: 0, y: position - 20), text: rightTexts[i], color: rightAxisLabelColor)
       leftTextLayer.alignmentMode = .left
-      rightTextLayer.frame.origin.x = boundsRight - rightTextLayer.frame.width
+      rightTextLayer.frame.origin.x = axisLayer.frame.width - rightTextLayer.frame.width
       rightTextLayer.alignmentMode = .right
       axisLayer.addSublayer(lineLayer)
       axisLayer.addSublayer(leftTextLayer)
@@ -164,7 +162,7 @@ class TGCALinearChartWithTwoYAxisView: TGCALinearChartView {
       
       let oldTextLayerTargetPosition = CGPoint(x: ax.leftTextLayer.position.x, y: ax.leftTextLayer.position.y + diffs[i])
       
-      let newTextLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: leftTexts[i], color: leftAxisLabelColor)
+      let newTextLayer = textLayer(origin: CGPoint(x: 0, y: position - 20), text: leftTexts[i], color: leftAxisLabelColor)
       newTextLayer.opacity = 0
       axisLayer.addSublayer(newTextLayer)
       let newTextLayerTargetPosition = newTextLayer.position
@@ -190,8 +188,6 @@ class TGCALinearChartWithTwoYAxisView: TGCALinearChartView {
   }
   
   private func updateRightHorizontalAxes() -> AxisAnimationBlocks {
-    let boundsRight = bounds.origin.x + bounds.width
-
     let rightValues = valuesForRightAxis()
     let rightTexts = rightValues.map{chartLabelFormatterService.prettyValueString(from: $0)}
     
@@ -221,8 +217,8 @@ class TGCALinearChartWithTwoYAxisView: TGCALinearChartView {
       
       let oldTextLayerTargetPosition = CGPoint(x: ax.rightTextLayer.position.x, y: ax.rightTextLayer.position.y + diffs[i])
       
-      let newTextLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: rightTexts[i], color: rightAxisLabelColor)
-      newTextLayer.frame.origin.x = boundsRight - newTextLayer.frame.width
+      let newTextLayer = textLayer(origin: CGPoint(x: 0, y: position - 20), text: rightTexts[i], color: rightAxisLabelColor)
+      newTextLayer.frame.origin.x = axisLayer.frame.width - newTextLayer.frame.width
       newTextLayer.alignmentMode = .right
       newTextLayer.opacity = 0
       axisLayer.addSublayer(newTextLayer)
