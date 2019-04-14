@@ -14,7 +14,7 @@ class TGCAStackedBarChartView: TGCASingleBarChartView {
   override func getNormalizedYVectors() -> NormalizedYVectors {
     let translatedBounds = chart.translatedBounds(for: currentTrimRange)
 
-    return valuesStartFromZero
+    return chartConfiguration.valuesStartFromZero
       ? chart.normalizedStackedYVectorsFromZeroMinimum(in: translatedBounds, excludedIndicies: hiddenDrawingIndicies)
       : chart.normalizedStackedYVectorsFromLocalMinimum(in: translatedBounds, excludedIndicies: hiddenDrawingIndicies)
   }
@@ -38,7 +38,7 @@ class TGCAStackedBarChartView: TGCASingleBarChartView {
         shapeLayer.add(pathAnimation, forKey: "pathAnimation")
       }
       
-      if animatesPositionOnHide {
+      if !chartConfiguration.isThumbnail {
         positionChangeBlock()
       } else {
         if !hiddenDrawingIndicies.contains(i) && !(originalHiddens.contains(i) && indexes.contains(i)) {
@@ -61,7 +61,7 @@ class TGCAStackedBarChartView: TGCASingleBarChartView {
         
         opacityAnimation.values = [oldOpacity ?? shapeLayer.opacity, targetOpacity]
         shapeLayer.opacity = targetOpacity
-        opacityAnimation.keyTimes = (!animatesPositionOnHide || hiddenDrawingIndicies.count == chart.yVectors.count || (hiddenDrawingIndicies.count == chart.yVectors.count - 1 && originalHiddens.contains(i))) ? [0.0, 1.0] : (originalHiddens.contains(i) ? [0.0, 0.25] : [0.75, 1.0])
+        opacityAnimation.keyTimes = (chartConfiguration.isThumbnail || hiddenDrawingIndicies.count == chart.yVectors.count || (hiddenDrawingIndicies.count == chart.yVectors.count - 1 && originalHiddens.contains(i))) ? [0.0, 1.0] : (originalHiddens.contains(i) ? [0.0, 0.25] : [0.75, 1.0])
         opacityAnimation.duration = CHART_FADE_ANIMATION_DURATION
         shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
       }

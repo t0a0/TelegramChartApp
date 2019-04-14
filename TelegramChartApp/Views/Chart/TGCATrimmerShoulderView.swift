@@ -22,7 +22,7 @@ class TGCATrimmerShoulderView: UIView {
     return increasedBounds.contains(point)
   }
   
-  private var increasedBounds: CGRect {
+  var increasedBounds: CGRect {
     return bounds.insetBy(dx: -1 * boundsInsetIncreaseValue, dy: -1 * boundsInsetIncreaseValue)
   }
   
@@ -71,6 +71,10 @@ class TGCATrimmerLeftShoulderView: TGCATrimmerShoulderView {
     imageView.isOpaque = true
   }
   
+  override var increasedBounds: CGRect {
+    return bounds.inset(by: UIEdgeInsets(top: 0, left: -boundsInsetIncreaseValue, bottom: 0, right: -boundsInsetIncreaseValue/4.0))
+  }
+  
 }
 
 class TGCATrimmerRightShoulderView: TGCATrimmerShoulderView {
@@ -84,6 +88,10 @@ class TGCATrimmerRightShoulderView: TGCATrimmerShoulderView {
     super.setupImageView()
     imageView.image = UIImage(named: "disclosure_image")?.withRenderingMode(.alwaysTemplate)
     imageView.isOpaque = true
+  }
+  
+  override var increasedBounds: CGRect {
+    return bounds.inset(by: UIEdgeInsets(top: 0, left: -boundsInsetIncreaseValue/4.0, bottom: 0, right: -boundsInsetIncreaseValue))
   }
   
 }

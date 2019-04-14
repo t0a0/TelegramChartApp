@@ -87,25 +87,35 @@ class TGCAChartTableViewCell: UITableViewCell {
   
   private func setupChartView(with view: TGCAChartView, type: DataChartType) {
     chartView = view
-    chartView.graphLineWidth = 2.0
-    chartView.shouldDisplayAxesAndLabels = true
     chartView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
-    chartView.valuesStartFromZero = type != .linear && type != .linearWith2Axes
+    
+    chartView.setChartConfiguration(chartConfig(for: type, isThumbnail: false))
+    
     containerForChartView.addSubview(chartView)
   }
   
   private func setupThumbnailChartView(with view: TGCAChartView, type: DataChartType) {
     thumbnailChartView = view
-    thumbnailChartView.animatesPositionOnHide = false
-    thumbnailChartView.valuesStartFromZero = false
-    thumbnailChartView.canShowAnnotations = false
     thumbnailChartView.isUserInteractionEnabled = false
-    thumbnailChartView.graphLineWidth = type == .percentage ? 0.0 : 1.0
     thumbnailChartView.layer.cornerRadius = TGCATrimmerView.shoulderWidth * 0.75
     thumbnailChartView.layer.masksToBounds = true
     thumbnailChartView.autoresizingMask  = [.flexibleHeight, .flexibleWidth]
+    
+    thumbnailChartView.setChartConfiguration(chartConfig(for: type, isThumbnail: true))
+    
     containerForThumbailChartView.addSubview(thumbnailChartView)
 
+  }
+  
+  private func chartConfig(for type: DataChartType, isThumbnail: Bool) -> TGCAChartView.ChartConfiguration {
+    switch type {
+    case .linear, .linearWith2Axes, .threeDaysComparison:
+      return isThumbnail ? TGCAChartView.ChartConfiguration.ThumbnailDefault : TGCAChartView.ChartConfiguration.Default
+    case .percentage:
+      return isThumbnail ? TGCAChartView.ChartConfiguration.PercentageThumbnailChartConfiguration : TGCAChartView.ChartConfiguration.PercentageChartConfiguration
+    case .singleBar, .stackedBar:
+      return isThumbnail ? TGCAChartView.ChartConfiguration.BarThumbnailChartConfiguration : TGCAChartView.ChartConfiguration.BarChartConfiguration
+    }
   }
   
 }

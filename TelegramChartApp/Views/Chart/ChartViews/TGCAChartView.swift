@@ -11,8 +11,6 @@ import QuartzCore
 
 class TGCAChartView: UIView, ThemeChangeObserving {
   
-  var onAnnotationClick: ((_ date: Date) -> (Bool))?
-  
   struct ChartViewConstants {
     static let scrollViewPadding: CGFloat = 15.0
     static let axisLineWidth: CGFloat = 0.5
@@ -30,13 +28,33 @@ class TGCAChartView: UIView, ThemeChangeObserving {
       static let updateByTrimming = "updateByTrimming"
     }
   }
-  let scrollView = UIScrollView()
+  
+  struct ChartConfiguration {
+    let graphLineWidth: CGFloat
+    let isThumbnail: Bool
+    let valuesStartFromZero: Bool
+    let canDisplayCircles: Bool
+    
+    static let Default = ChartConfiguration(graphLineWidth: 2.0, isThumbnail: false, valuesStartFromZero: false, canDisplayCircles: true)
+    static let ThumbnailDefault = ChartConfiguration(graphLineWidth: 1.0, isThumbnail: true, valuesStartFromZero: false, canDisplayCircles: false)
+    
+    static let BarChartConfiguration = ChartConfiguration(graphLineWidth: 0, isThumbnail: false, valuesStartFromZero: true, canDisplayCircles: false)
+    static let BarThumbnailChartConfiguration = ChartConfiguration(graphLineWidth: 0, isThumbnail: true, valuesStartFromZero: false, canDisplayCircles: false)
 
+    //values start from zero will be ignored
+    static let PercentageChartConfiguration = ChartConfiguration(graphLineWidth: 0, isThumbnail: false, valuesStartFromZero: true, canDisplayCircles: false)
+    static let PercentageThumbnailChartConfiguration = ChartConfiguration(graphLineWidth: 0, isThumbnail: true, valuesStartFromZero: true, canDisplayCircles: false)
+
+  }
+
+  var onAnnotationClick: ((_ date: Date) -> (Bool))?
+
+  // MARK: - Init
+  let scrollView = UIScrollView()
   let axisLayer = CALayer()
   let lineLayer = CALayer()
+  let lineBackgroundLayer = CALayer()
   let datesLayer = CALayer()
-  
-  // MARK: - Init
   
   override init(frame: CGRect) {
     super.init(frame: frame)
@@ -54,19 +72,31 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     applyCurrentTheme()
     axisLayer.zPosition = zPositions.Chart.axis.rawValue
     lineLayer.zPosition = zPositions.Chart.graph.rawValue
+    lineBackgroundLayer.zPosition = zPositions.Chart.graph.rawValue
     datesLayer.zPosition = zPositions.Chart.dates.rawValue
     for l in [axisLayer, datesLayer] {
       layer.addSublayer(l)
     }
     
-//    lineLayer.masksToBounds = true
     scrollView.bounces = false
     scrollView.isScrollEnabled = false
     scrollView.isUserInteractionEnabled = false
     
-    scrollView.layer.addSublayer(lineLayer)
+    lineBackgroundLayer.masksToBounds = true
+    lineBackgroundLayer.addSublayer(lineLayer)
+    scrollView.layer.addSublayer(lineBackgroundLayer)
     addSubview(scrollView)
 
+  }
+  
+  func setChartConfiguration(_ configuration: ChartConfiguration) {
+    self.chartConfiguration = configuration
+  }
+  
+  private(set) var chartConfiguration = ChartConfiguration.Default {
+    didSet {
+     layoutSubviews()
+    }
   }
   
   // MARK: - Variables
@@ -80,18 +110,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     : chartLabelFormatterService.prettyDateString(from: date)
   }
   
-  
-  var graphLineWidth: CGFloat = 2.0
-  
-  var shouldDisplayAxesAndLabels = false
-  
-  /// If true, than when after some graph was hidden and the local maximum Y has changed, the chart would animate its position relative to the new maximum. If false, it will just fade.
-  var animatesPositionOnHide = true
-  
-  /// If true than the minimum Y value would always be zero
-  var valuesStartFromZero = true
-  
-  var canShowAnnotations = true
+  var padding: CGFloat = 15
   
   var isUnderlying = false
   
@@ -191,6 +210,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   override func layoutSubviews() {
     
     scrollView.frame = CGRect(x: 0, y: 0, width: self.frame.size.width, height: self.frame.size.height)
+    
     numOfGuideLabels = Int(scrollView.frame.width / ChartViewConstants.sizeForGuideLabels.width)
     if chart != nil {
 //      lineLayer.frame = CGRect(origin: CGPoint.zero, size: scrollView.contentSize)
@@ -210,7 +230,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   }
   
   func addAxesAndLabelsIfNeeded() {
-    if shouldDisplayAxesAndLabels  {
+    if !chartConfiguration.isThumbnail  {
       CATransaction.begin()
       CATransaction.setDisableActions(true)
       addHorizontalAxes()
@@ -228,7 +248,20 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   
   private func updateScrollView(with newRange: CGFloatRangeInBounds, event: DisplayRangeChangeEvent) {
     if event != .Scrolled {
-      scrollView.contentSize.width = scrollView.frame.width * newRange.scale
+      
+      scrollView.contentSize = CGSize(width: scrollView.frame.width * newRange.scale, height: scrollView.frame.height)
+      
+      CATransaction.begin()
+      CATransaction.setDisableActions(true)
+      if !chartConfiguration.isThumbnail {
+        lineBackgroundLayer.frame.size.width = scrollView.contentSize.width
+        lineLayer.frame.size.width = lineBackgroundLayer.frame.width - padding*2
+      } else {
+        lineBackgroundLayer.frame.size.width = scrollView.contentSize.width
+        lineLayer.frame.size.width = lineBackgroundLayer.frame.size.width
+      }
+      CATransaction.commit()
+      
     }
     scrollView.contentOffset.x = scrollView.contentSize.width * newRange.offset
   }
@@ -255,7 +288,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     
     updateChart(withEvent: event)
 
-    if shouldDisplayAxesAndLabels {
+    if !chartConfiguration.isThumbnail {
       animateGuideLabelsChange(to: newRange, event: event)
     }
   }
@@ -321,7 +354,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   
   func getShapeLayersToDraw(for paths: [CGPath]) -> [CAShapeLayer] {
     return (0..<paths.count).map{
-      shapeLayer(withPath: paths[$0], color: chart.yVectors[$0].metaData.color.cgColor, lineWidth: graphLineWidth)
+      shapeLayer(withPath: paths[$0], color: chart.yVectors[$0].metaData.color.cgColor, lineWidth: chartConfiguration.graphLineWidth)
     }
   }
   
@@ -382,7 +415,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
         shapeLayer.add(pathAnimation, forKey: ChartViewConstants.AnimationKeys.updateByTrimming)
       }
       
-      if animatesPositionOnHide {
+      if !chartConfiguration.isThumbnail {
         positionChangeBlock()
       } else {
         if !hiddenDrawingIndicies.contains(i) && !(originalHiddens.contains(i) && indexes.contains(i)) {
@@ -487,24 +520,49 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     configureChartBounds()
     configureHorizontalAxesSpacing()
     configureHorizontalAxesDefaultPositions()
+    applyFrameChangesRelativeToChartConfiguration()
   }
   
   func configureChartBounds() {
     // We need to inset drawing so that if the edge points are selected, the circular point on the graph is fully visible in the view
-    let inset = graphLineWidth + (canShowAnnotations ? ChartViewConstants.circlePointRadius : 0)
+    let inset = chartConfiguration.graphLineWidth + ((!chartConfiguration.isThumbnail && chartConfiguration.canDisplayCircles) ? ChartViewConstants.circlePointRadius : 0)
+    let additionalHeightInset = !chartConfiguration.isThumbnail ? ChartViewConstants.sizeForGuideLabels.height : 0
     chartBounds = CGRect(x: bounds.origin.x + inset,
                          y: bounds.origin.y + inset,
                          width: bounds.width - inset * 2,
                          height: bounds.height - inset * 2
-                          - (shouldDisplayAxesAndLabels ? ChartViewConstants.sizeForGuideLabels.height : 0))
+                          - additionalHeightInset)
   }
   
   private func configureHorizontalAxesSpacing() {
-    horizontalAxesSpacing = chartBounds.height * ChartViewConstants.capHeightMultiplierForHorizontalAxes / CGFloat(numOfHorizontalAxes - 1)
+    //add orogin y becase read comment in applyFrameChanges
+    horizontalAxesSpacing = (chartBounds.height + chartBounds.origin.y) * ChartViewConstants.capHeightMultiplierForHorizontalAxes / CGFloat(numOfHorizontalAxes - 1)
   }
   
   private func configureHorizontalAxesDefaultPositions() {
     horizontalAxesDefaultYPositions = (0..<numOfHorizontalAxes).map{chartBoundsBottom - (CGFloat($0) * horizontalAxesSpacing)}
+  }
+  
+  private func applyFrameChangesRelativeToChartConfiguration() {
+    CATransaction.begin()
+    CATransaction.setDisableActions(true)
+    
+    
+    axisLayer.frame = CGRect(origin: CGPoint(x: padding, y: 0), size: CGSize(width: bounds.size.width - padding*2, height: bounds.size.height - ChartViewConstants.sizeForGuideLabels.height))
+    
+    if !chartConfiguration.isThumbnail {
+      lineLayer.frame.origin = CGPoint(x: padding, y: chartBounds.origin.y)
+      // i remove origin y from both once so that they are cut off at zero, but circles i will add on to self.layer
+      lineBackgroundLayer.frame.size.height = scrollView.frame.height - ChartViewConstants.sizeForGuideLabels.height - chartBounds.origin.y
+      lineLayer.frame.size.height = lineBackgroundLayer.frame.height - chartBounds.origin.y
+    } else {
+      lineLayer.frame.origin = CGPoint.zero
+      lineBackgroundLayer.frame.size.height = scrollView.frame.height
+      lineLayer.frame.size.height = lineBackgroundLayer.frame.size.height
+    }
+    
+    
+    CATransaction.commit()
   }
   
   // MARK: - Guide Labels
@@ -820,7 +878,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
       let color = chart.yVectors[i].metaData.color
       let point = CGPoint(x: xPoint, y: drawings.yVectorData.yVectors[i][index])
       let circle = bezierCircle(at: point, radius: ChartViewConstants.circlePointRadius)
-      let circleShape = shapeLayer(withPath: circle.cgPath, color: color.cgColor, lineWidth: graphLineWidth, fillColor: circlePointFillColor)
+      let circleShape = shapeLayer(withPath: circle.cgPath, color: color.cgColor, lineWidth: chartConfiguration.graphLineWidth, fillColor: circlePointFillColor)
       circleShape.zPosition = zPositions.Annotation.circleShape.rawValue
       circleLayers.append(circleShape)
       if !hiddenDrawingIndicies.contains(i) {
@@ -929,7 +987,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   
   override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
     guard let touch = touches.first,
-      canShowAnnotations && hiddenDrawingIndicies.count != chart.yVectors.count,
+      !chartConfiguration.isThumbnail && hiddenDrawingIndicies.count != chart.yVectors.count,
       scrollView.frame.contains(touch.location(in: self)),
       !(currentChartAnnotation?.annotationView.frame.contains(touch.location(in: self)) ?? false)
     else {
@@ -1018,17 +1076,17 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   
   func getNormalizedYVectors() -> NormalizedYVectors {
     let translatedBounds = chart.translatedBounds(for: currentTrimRange)
-    return valuesStartFromZero
+    return chartConfiguration.valuesStartFromZero
       ? chart.normalizedYVectorsFromZeroMinimum(in: translatedBounds, excludedIdxs: hiddenDrawingIndicies)
       : chart.normalizedYVectorsFromLocalMinimum(in: translatedBounds, excludedIdxs: hiddenDrawingIndicies)
   }
   
   func getXVectorMappedToScrollView() -> ValueVector {
-    return chart.normalizedXPositions.map{$0 * scrollView.contentSize.width}
+    return chart.normalizedXPositions.map{$0 * lineLayer.frame.width}
   }
   
   func mapToChartBoundsHeight(_ vector: ValueVector) -> ValueVector {
-    return vector.map{chartBoundsBottom - ($0 * chartBounds.height)}
+    return vector.map{lineLayer.frame.height - ($0 * lineLayer.frame.height)}
   }
   
   /// Calculates what is the best "power of two" for the provided count, depending on the max number of labels that fit the screen. Leftover is how far am I to the point, where the best index would change. < 0.5 is changing towards smaller spacing. >0.5 changing towards higher spacing.
