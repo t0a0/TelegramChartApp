@@ -69,12 +69,17 @@ class TGCAChartView: UIView, ThemeChangeObserving {
 
   }
   
- 
-  
   // MARK: - Variables
   
   /// Service that knows how to format values for Y axes and dates for X axis.
   let chartLabelFormatterService = TGCAChartLabelFormatterService()
+  
+  func getGuideLabelDateString(for date: Date) -> String {
+    return isUnderlying
+    ? chartLabelFormatterService.prettyTimeString(from: date)
+    : chartLabelFormatterService.prettyDateString(from: date)
+  }
+  
   
   var graphLineWidth: CGFloat = 2.0
   
@@ -629,7 +634,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   private func generateGuideLabels(for xIndexes: [Int]) -> [GuideLabel] {
     
     let dates = xIndexes.map{chart.datesVector[$0]}
-    let strings = dates.map{chartLabelFormatterService.prettyDateString(from: $0)}
+    let strings = dates.map{getGuideLabelDateString(for: $0)}
     
     var labels = [GuideLabel]()
     for i in 0..<xIndexes.count {
@@ -784,7 +789,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     coloredValues.sort { (left, right) -> Bool in
       return left.value >= right.value
     }
-    return TGCAChartAnnotationView.AnnotationViewConfiguration(date: chart.datesVector[index], showsDisclosureIcon: true, mode: .Date, showsLeftColumn: false, coloredValues: coloredValues)
+    return TGCAChartAnnotationView.AnnotationViewConfiguration(date: chart.datesVector[index], showsDisclosureIcon: !isUnderlying, mode: .Date, showsLeftColumn: false, coloredValues: coloredValues)
   }
   
   func addChartAnnotation(_ chartAnnotation: ChartAnnotationProtocol) {

@@ -11,6 +11,8 @@ import UIKit
 
 class TGCADateRangeFormatterService {
   
+  private static let ONE_DAY: TimeInterval = 24*60*60
+  
   private lazy var fullDateFormatter: DateFormatter = {
     let df = DateFormatter()
     df.locale = Locale(identifier: "en_US")
@@ -28,7 +30,8 @@ class TGCADateRangeFormatterService {
   }()
   
   func prettyDateStringFrom(left: Date, right: Date) -> String {
-    if left != right {
+    
+    if right.timeIntervalSince(left) > TGCADateRangeFormatterService.ONE_DAY {
       return mediumDateFormatter.string(from: left) + " - " + mediumDateFormatter.string(from: right)
     }
     return fullDateFormatter.string(from: left)

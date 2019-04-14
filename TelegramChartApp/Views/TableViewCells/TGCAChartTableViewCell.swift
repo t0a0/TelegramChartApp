@@ -67,10 +67,13 @@ class TGCAChartTableViewCell: UITableViewCell {
     case .stackedBar:
       view = TGCAStackedBarChartView(frame: containerForChartView.bounds)
       thumbnailView = TGCAStackedBarChartView(frame: containerForThumbailChartView.bounds)
+    case .threeDaysComparison:
+      view = TGCA3DaysComparisonChartView(frame: containerForChartView.bounds)
+      thumbnailView = TGCA3DaysComparisonChartView(frame: containerForThumbailChartView.bounds)
     }
     
     setupChartView(with: view, type: chartType)
-    setupThumbnailChartView(with: thumbnailView)
+    setupThumbnailChartView(with: thumbnailView, type: chartType)
     
   }
   
@@ -91,13 +94,13 @@ class TGCAChartTableViewCell: UITableViewCell {
     containerForChartView.addSubview(chartView)
   }
   
-  private func setupThumbnailChartView(with view: TGCAChartView) {
+  private func setupThumbnailChartView(with view: TGCAChartView, type: DataChartType) {
     thumbnailChartView = view
     thumbnailChartView.animatesPositionOnHide = false
     thumbnailChartView.valuesStartFromZero = false
     thumbnailChartView.canShowAnnotations = false
     thumbnailChartView.isUserInteractionEnabled = false
-    thumbnailChartView.graphLineWidth = 1.0
+    thumbnailChartView.graphLineWidth = type == .percentage ? 0.0 : 1.0
     thumbnailChartView.layer.cornerRadius = TGCATrimmerView.shoulderWidth * 0.75
     thumbnailChartView.layer.masksToBounds = true
     thumbnailChartView.autoresizingMask  = [.flexibleHeight, .flexibleWidth]

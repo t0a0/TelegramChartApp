@@ -41,6 +41,7 @@
 		167FCAD92234334A001CA7E5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 167FCAD72234334A001CA7E5 /* LaunchScreen.storyboard */; };
 		167FCAFD22343523001CA7E5 /* TGCAChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167FCAFC22343523001CA7E5 /* TGCAChartView.swift */; };
 		1685C9D12260E493002D6AB3 /* CGFloatRangeInBounds.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1685C9D02260E493002D6AB3 /* CGFloatRangeInBounds.swift */; };
+		1685C9D32262B58D002D6AB3 /* TGCA3DaysComparisonChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1685C9D22262B58C002D6AB3 /* TGCA3DaysComparisonChartView.swift */; };
 		168DDC8622415EB300F51300 /* TGCAChartLabelFormatterService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 168DDC8522415EB300F51300 /* TGCAChartLabelFormatterService.swift */; };
 		168DDC88224198D500F51300 /* ClosedRange+Distance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 168DDC87224198D500F51300 /* ClosedRange+Distance.swift */; };
 		16A08AD3225FAEFC00EC11F2 /* TGCADateToPathComponentsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16A08AD2225FAEFC00EC11F2 /* TGCADateToPathComponentsService.swift */; };
@@ -83,6 +84,7 @@
 		167FCADA2234334A001CA7E5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		167FCAFC22343523001CA7E5 /* TGCAChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartView.swift; sourceTree = "<group>"; };
 		1685C9D02260E493002D6AB3 /* CGFloatRangeInBounds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGFloatRangeInBounds.swift; sourceTree = "<group>"; };
+		1685C9D22262B58C002D6AB3 /* TGCA3DaysComparisonChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCA3DaysComparisonChartView.swift; sourceTree = "<group>"; };
 		168DDC8522415EB300F51300 /* TGCAChartLabelFormatterService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAChartLabelFormatterService.swift; sourceTree = "<group>"; };
 		168DDC87224198D500F51300 /* ClosedRange+Distance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ClosedRange+Distance.swift"; sourceTree = "<group>"; };
 		16A08AD2225FAEFC00EC11F2 /* TGCADateToPathComponentsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCADateToPathComponentsService.swift; sourceTree = "<group>"; };
@@ -230,6 +232,7 @@
 		16FAF460225AB4BD00EEADE8 /* ChartViews */ = {
 			isa = PBXGroup;
 			children = (
+				1685C9D22262B58C002D6AB3 /* TGCA3DaysComparisonChartView.swift */,
 				161CA5FD225A439300FFC1DF /* TGCASingleBarChartView.swift */,
 				1666F56F225AB43D00D205C0 /* TGCAStackedBarChartView.swift */,
 				161CA601225A43B700FFC1DF /* TGCAPercentageChartView.swift */,
@@ -318,6 +321,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1685C9D32262B58D002D6AB3 /* TGCA3DaysComparisonChartView.swift in Sources */,
 				1657643D22349B0000173E97 /* TGCATrimmerShoulderView.swift in Sources */,
 				1657646C223D1DDE00173E97 /* TGCAColorTheme.swift in Sources */,
 				1657645C2237019700173E97 /* TGCAJsonToChartService.swift in Sources */,

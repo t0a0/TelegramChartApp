@@ -20,6 +20,7 @@ enum DataChartType: String {
   case singleBar
   case stackedBar
   case percentage
+  case threeDaysComparison
 }
 
 struct DataChart {

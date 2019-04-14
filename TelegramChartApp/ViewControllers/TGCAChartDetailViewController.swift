@@ -139,7 +139,7 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueReusableCell(withIdentifier: TGCAChartTableViewCell.defaultReuseIdd) as! TGCAChartTableViewCell
-    cell.configure(for: chartContainers[indexPath.section].chart.type)
+    cell.configure(for: chartContainers[indexPath.section].underlyingChartContainer?.chart.type ?? chartContainers[indexPath.section].chart.type)
     configureChartCell(cell, section: indexPath.section)
     return cell
   }
@@ -185,6 +185,9 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
     cell.chartFiltersHeightConstraint.constant = cell.chartFiltersView?.setupButtons(getButtonsConfigurationFor(chartContainer: chartContainer, cell: cell, index: section)) ?? 0
     
     cell.chartView?.onAnnotationClick = {[weak self] date in
+      guard !isUnderlying else {
+        return false
+      }
       if let underlyingChart = self?.loadZoomedInJSONDataFor(chartIndex: section, date: date) {
         let newContainer = ChartContainer(chart: underlyingChart, hiddenIndicies: chartContainer.hiddenIndicies)
         chartContainer.setUnderlyingChartContainer(newContainer)
@@ -200,6 +203,7 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
       return false
     }
 
+    cell.chartView.isUnderlying = isUnderlying
 
     cell.chartView?.configure(with: chartContainer.chart, hiddenIndicies: chartContainer.hiddenIndicies, displayRange: chartContainer.trimRange)
     cell.thumbnailChartView?.configure(with: chartContainer.chart, hiddenIndicies: chartContainer.hiddenIndicies, displayRange: CGFloatRangeInBounds.ZeroToOne)

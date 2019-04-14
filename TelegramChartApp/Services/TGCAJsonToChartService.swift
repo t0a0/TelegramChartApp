@@ -44,6 +44,9 @@ struct TGCAJsonToChartService/*: JsonParserServiceProtocol*/ {
     } else {
       type = .percentage
     }
+    if type == .linear && yVectors.count == 3 {
+      type = .threeDaysComparison
+    }
     return DataChart(yVectors: yVectors,
                       xVector: jsonChart.xColumn.values,
                       type: type,
