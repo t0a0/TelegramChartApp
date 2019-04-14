@@ -120,16 +120,6 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   /// Maximum number of guide labels that should be visible on the screen
   var numOfGuideLabels = 6
   
-  /// The rect in which the chart drawing is happening
-  var chartBounds: CGRect = CGRect.zero {
-    didSet {
-      chartBoundsRight = chartBounds.origin.x + chartBounds.width
-      chartBoundsBottom = chartBounds.origin.y + chartBounds.height
-    }
-  }
-  var chartBoundsBottom: CGFloat = 0
-  var chartBoundsRight: CGFloat = 0
-  
   var chart: DataChart!
   var drawings: ChartDrawings!
   
@@ -137,9 +127,6 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   var hiddenDrawingIndicies: Set<Int>!
   
   private var horizontalAxes: [HorizontalAxis]!
-  var horizontalAxesSpacing: CGFloat!
-
-  var horizontalAxesDefaultYPositions: [CGFloat]!
   
   var currentChartAnnotation: ChartAnnotationProtocol?
   
@@ -515,28 +502,31 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   }
   
   // MARK: - Configuration
+  //lower bound is like origin.y, upperbound is height
+  var chartHeightBounds: ClosedRange<CGFloat> = ZORange
+  var horizontalAxesSpacing: CGFloat!
+  var horizontalAxesDefaultYPositions: [CGFloat]!
+  var chartBoundsBottom: CGFloat {
+    return chartHeightBounds.lowerBound + chartHeightBounds.upperBound
+  }
   
   private func configure() {
-    configureChartBounds()
+    configureChartHeightBounds()
     configureHorizontalAxesSpacing()
     configureHorizontalAxesDefaultPositions()
     applyFrameChangesRelativeToChartConfiguration()
   }
   
-  func configureChartBounds() {
+  func configureChartHeightBounds() {
     // We need to inset drawing so that if the edge points are selected, the circular point on the graph is fully visible in the view
     let inset = chartConfiguration.graphLineWidth + ((!chartConfiguration.isThumbnail && chartConfiguration.canDisplayCircles) ? ChartViewConstants.circlePointRadius : 0)
     let additionalHeightInset = !chartConfiguration.isThumbnail ? ChartViewConstants.sizeForGuideLabels.height : 0
-    chartBounds = CGRect(x: bounds.origin.x + inset,
-                         y: bounds.origin.y + inset,
-                         width: bounds.width - inset * 2,
-                         height: bounds.height - inset * 2
-                          - additionalHeightInset)
+    chartHeightBounds = (bounds.origin.y + inset)...(bounds.height - inset * 2 - additionalHeightInset)
   }
   
   private func configureHorizontalAxesSpacing() {
     //add orogin y becase read comment in applyFrameChanges
-    horizontalAxesSpacing = (chartBounds.height + chartBounds.origin.y) * ChartViewConstants.capHeightMultiplierForHorizontalAxes / CGFloat(numOfHorizontalAxes - 1)
+    horizontalAxesSpacing = (chartBoundsBottom) * ChartViewConstants.capHeightMultiplierForHorizontalAxes / CGFloat(numOfHorizontalAxes - 1)
   }
   
   private func configureHorizontalAxesDefaultPositions() {
@@ -551,10 +541,10 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     axisLayer.frame = CGRect(origin: CGPoint(x: padding, y: 0), size: CGSize(width: bounds.size.width - padding*2, height: bounds.size.height - ChartViewConstants.sizeForGuideLabels.height))
     
     if !chartConfiguration.isThumbnail {
-      lineLayer.frame.origin = CGPoint(x: padding, y: chartBounds.origin.y)
+      lineLayer.frame.origin = CGPoint(x: padding, y: chartHeightBounds.lowerBound)
       // i remove origin y from both once so that they are cut off at zero, but circles i will add on to self.layer
-      lineBackgroundLayer.frame.size.height = scrollView.frame.height - ChartViewConstants.sizeForGuideLabels.height - chartBounds.origin.y
-      lineLayer.frame.size.height = lineBackgroundLayer.frame.height - chartBounds.origin.y
+      lineBackgroundLayer.frame.size.height = scrollView.frame.height - ChartViewConstants.sizeForGuideLabels.height - chartHeightBounds.lowerBound
+      lineLayer.frame.size.height = lineBackgroundLayer.frame.height - chartHeightBounds.lowerBound
     } else {
       lineLayer.frame.origin = CGPoint.zero
       lineBackgroundLayer.frame.size.height = scrollView.frame.height

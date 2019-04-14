@@ -133,7 +133,7 @@ class TGCAPercentageChartView: TGCAChartView {
     let values: [CGFloat] = [0, 25, 50, 75, 100]
     let texts = values.map{chartLabelFormatterService.prettyValueString(from: $0)}
 
-    let spacing = chartBounds.height / CGFloat(values.count-1)
+    let spacing = chartHeightBounds.upperBound / CGFloat(values.count-1)
     
     let positions = (0..<values.count).map{chartBoundsBottom - (CGFloat($0) * spacing)}
 
