@@ -332,7 +332,7 @@ class TGCATrimmerView: UIView {
       if widthChangeCoefficient == CGFloat.infinity { widthChangeCoefficient = 0.0}
       lc.constant = round(lc.constant * widthChangeCoefficient)
       rc.constant = round(rc.constant * widthChangeCoefficient)
-//      layoutIfNeeded()
+      layoutIfNeeded()
     }
   }
   
