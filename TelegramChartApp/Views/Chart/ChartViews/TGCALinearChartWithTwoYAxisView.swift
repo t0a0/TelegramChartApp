@@ -244,6 +244,31 @@ class TGCALinearChartWithTwoYAxisView: TGCALinearChartView {
     return (blocks, removalBlocks)
   }
   
+  override func hideHorizontalAxes() {
+    if let horizontalAxes = horizontalAxes {
+      for i in 1..<horizontalAxes.count {
+        let ax = horizontalAxes[i]
+        ax.leftTextLayer.isHidden = true
+        ax.rightTextLayer.isHidden = true
+        ax.lineLayer.isHidden = true
+      }
+      horizontalAxes.first?.leftTextLayer.isHidden = true
+      horizontalAxes.first?.rightTextLayer.isHidden = true
+    }
+  }
+  
+  override func revealHorizontalAxes() {
+    if let horizontalAxes = horizontalAxes {
+      for i in 1..<horizontalAxes.count {
+        let ax = horizontalAxes[i]
+        ax.leftTextLayer.isHidden = false
+        ax.rightTextLayer.isHidden = false
+        ax.lineLayer.isHidden = false
+      }
+      horizontalAxes.first?.leftTextLayer.isHidden = false
+      horizontalAxes.first?.rightTextLayer.isHidden = false
+    }
+  }
   
   override func removeHorizontalAxes() {
     axisLayer.sublayers?.forEach{

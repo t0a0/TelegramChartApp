@@ -783,6 +783,28 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     return (blocks, removalBlocks)
   }
   
+  func hideHorizontalAxes() {
+    if let horizontalAxes = horizontalAxes {
+      for i in 1..<horizontalAxes.count {
+        let ax = horizontalAxes[i]
+        ax.labelLayer.isHidden = true
+        ax.lineLayer.isHidden = true
+      }
+      horizontalAxes.first?.labelLayer.isHidden = true
+    }
+  }
+  
+  func revealHorizontalAxes() {
+    if let horizontalAxes = horizontalAxes {
+      for i in 1..<horizontalAxes.count {
+        let ax = horizontalAxes[i]
+        ax.labelLayer.isHidden = false
+        ax.lineLayer.isHidden = false
+      }
+      horizontalAxes.first?.labelLayer.isHidden = false
+    }
+  }
+  
   // MARK: - Annotation
   func getMaxPossibleLabelsCountForChartAnnotation() -> Int {
     return chart.yVectors.count
