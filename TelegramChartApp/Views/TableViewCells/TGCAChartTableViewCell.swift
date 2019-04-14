@@ -92,12 +92,19 @@ class TGCAChartTableViewCell: UITableViewCell, CAAnimationDelegate {
     chartView.isHidden = true
     thumbnailChartView.isHidden = true
     
-    let transition = createTransition()
+    let transition = fadeTransition()
+    
+
     
     containerForChartView.layer.add(transition, forKey: "chartContainer")
     containerForThumbailChartView.layer.add(transition, forKey: "thumbnailChartContainer")
     headerView.layer.add(transition, forKey: "header")
 
+    if newType == .singleBar || newType == .threeDaysComparison {
+      chartFiltersView.layer.add(transition, forKey: "filtersView")
+      trimmerView.layer.add(transition, forKey: "trimmerView")
+    }
+    
     oldChartView.isHidden = true
     oldThumbnaiView.isHidden = true
     chartView.isHidden = false
@@ -117,7 +124,7 @@ class TGCAChartTableViewCell: UITableViewCell, CAAnimationDelegate {
     }
   }
   
-  func createTransition() -> CATransition{
+  func fadeTransition() -> CATransition{
     let transition = CATransition()
     transition.duration = CHART_ZOOM_ANIMATION_DURATION
     transition.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
