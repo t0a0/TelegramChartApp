@@ -8,7 +8,7 @@
 
 import UIKit
 
-class TGCAChartTableViewCell: UITableViewCell {
+class TGCAChartTableViewCell: UITableViewCell, CAAnimationDelegate {
   
   static let defaultReuseIdd = "TGCAChartTableViewCell"
 
@@ -34,16 +34,19 @@ class TGCAChartTableViewCell: UITableViewCell {
     }
     headerView?.label.font = UIFont.systemFont(ofSize: fontSize, weight: .medium)
     selectionStyle = .none
+    
   }
   
-  func configure(for chartType: DataChartType) {
+  func configure(for chartType: DataChartType, remove: Bool = true) {
     
-    containerForThumbailChartView.subviews.forEach{
-      $0.removeFromSuperview()
-    }
-    
-    containerForChartView.subviews.forEach{
-      $0.removeFromSuperview()
+    if remove {
+      containerForThumbailChartView.subviews.forEach{
+        $0.removeFromSuperview()
+      }
+      
+      containerForChartView.subviews.forEach{
+        $0.removeFromSuperview()
+      }
     }
     
     chartView = nil
@@ -80,7 +83,47 @@ class TGCAChartTableViewCell: UITableViewCell {
   //MARK: Transition
   
   func transition(to newType: DataChartType) {
-    configure(for: newType)
+    let oldChartView = containerForChartView.subviews.first!
+    let oldThumbnaiView = containerForThumbailChartView.subviews.first!
+    
+    
+    configure(for: newType, remove: false)
+    
+    chartView.isHidden = true
+    thumbnailChartView.isHidden = true
+    
+    let transition = createTransition()
+    
+    containerForChartView.layer.add(transition, forKey: "chartContainer")
+    containerForThumbailChartView.layer.add(transition, forKey: "thumbnailChartContainer")
+    headerView.layer.add(transition, forKey: "header")
+
+    oldChartView.isHidden = true
+    oldThumbnaiView.isHidden = true
+    chartView.isHidden = false
+    thumbnailChartView.isHidden = false
+  }
+  
+  func animationDidStop(_ anim: CAAnimation, finished flag: Bool) {
+    containerForChartView.subviews.forEach{
+      if $0 != chartView {
+        $0.removeFromSuperview()
+      }
+    }
+    containerForThumbailChartView.subviews.forEach{
+      if $0 != thumbnailChartView {
+        $0.removeFromSuperview()
+      }
+    }
+  }
+  
+  func createTransition() -> CATransition{
+    let transition = CATransition()
+    transition.duration = CHART_ZOOM_ANIMATION_DURATION
+    transition.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+    transition.type = .fade
+    transition.delegate = self
+    return transition
   }
   
   //MARK: Setup
