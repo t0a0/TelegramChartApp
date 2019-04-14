@@ -650,7 +650,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     
     var labels = [GuideLabel]()
     for i in 0..<xIndexes.count {
-      let textL = textLayer(origin: CGPoint(x: drawings.xPositions[xIndexes[i]], y: 0/*ChartViewConstants.sizeForGuideLabels.height/2)*/), text: strings[i], color: axisXLabelColor)
+      let textL = textLayer(origin: CGPoint(x: drawings.xPositions[xIndexes[i]], y: ChartViewConstants.sizeForGuideLabels.height/4.0), text: strings[i], color: axisXLabelColor)
       labels.append(GuideLabel(textLayer: textL, indexInChart: xIndexes[i]))
     }
     return labels
