@@ -182,8 +182,13 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
       self?.configureChartCell(cell, section: section, animateTrimmer: true)
     }
     
-    
-    cell.chartFiltersHeightConstraint.constant = cell.chartFiltersView?.setupButtons(getButtonsConfigurationFor(chartContainer: chartContainer, cell: cell, index: section)) ?? 0
+    if chartContainer.chart.type != .singleBar {
+      cell.chartFiltersHeightConstraint.constant = cell.chartFiltersView?.setupButtons(getButtonsConfigurationFor(chartContainer: chartContainer, cell: cell, index: section)) ?? 0
+      cell.chartFiltersView.isHidden = false
+    } else {
+      cell.chartFiltersView.isHidden = true
+      cell.chartFiltersHeightConstraint.constant = 0
+    }
     
     cell.chartView?.onAnnotationClick = {[weak self] date in
       guard !isUnderlying else {
@@ -210,22 +215,27 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
     cell.thumbnailChartView?.configure(with: chartContainer.chart, hiddenIndicies: chartContainer.hiddenIndicies, displayRange: CGFloatRangeInBounds.ZeroToOne)
     
     //trim view config
-    cell.trimmerView?.setCurrentRange(chartContainer.trimRange, animated: animateTrimmer)
-    
-    cell.trimmerView?.onChange = {[weak self] (newRange, event) in
-      if event == .Started {
-        cell.chartView?.isUserInteractionEnabled = false
-      } else if event == .Ended {
-        cell.chartView?.isUserInteractionEnabled = true
+    if chartContainer.chart.type != .threeDaysComparison {
+      cell.trimmerView.isHidden = false
+      cell.trimmerView?.setCurrentRange(chartContainer.trimRange, animated: animateTrimmer)
+      
+      cell.trimmerView?.onChange = {[weak self] (newRange, event) in
+        if event == .Started {
+          cell.chartView?.isUserInteractionEnabled = false
+        } else if event == .Ended {
+          cell.chartView?.isUserInteractionEnabled = true
+        }
+        cell.chartView?.trimDisplayRange(to: newRange, with: event)
+        chartContainer.updateTrimRange(to: newRange)
+        
+        let translatedBounds = chartContainer.chart.translatedBounds(for: newRange)
+        let left = chartContainer.chart.datesVector[translatedBounds.lowerBound]
+        let right = chartContainer.chart.datesVector[translatedBounds.upperBound]
+        
+        cell.headerView.label.text = self?.dateRangeFormatter.prettyDateStringFrom(left: left, right: right)
       }
-      cell.chartView?.trimDisplayRange(to: newRange, with: event)
-      chartContainer.updateTrimRange(to: newRange)
-      
-      let translatedBounds = chartContainer.chart.translatedBounds(for: newRange)
-      let left = chartContainer.chart.datesVector[translatedBounds.lowerBound]
-      let right = chartContainer.chart.datesVector[translatedBounds.upperBound]
-      
-      cell.headerView.label.text = self?.dateRangeFormatter.prettyDateStringFrom(left: left, right: right)
+    } else {
+      cell.trimmerView.isHidden = true
     }
     
     let theme = UIApplication.myDelegate.currentTheme

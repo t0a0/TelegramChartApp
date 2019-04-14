@@ -57,7 +57,7 @@ struct TGCAColorTheme {
     accentColor: UIColor(hex: "2EA6FE")!,
     mainTextColor: UIColor.white,
     axisColor: UIColor(hex: "8596AB", a: 0.2)!,
-    axisColorForFilledCharts: UIColor(hex: "BACCE1", a: 0.5)!,
+    axisColorForFilledCharts: UIColor(hex: "BACCE1", a: 0.2)!,
     axisLabelColor: UIColor(hex: "8596AB")!,
     xAxisLabelColorForFilledCharts: UIColor(hex: "8596AB")!,
     yAxisLabelColorForFilledCharts: UIColor(hex: "BACCE1", a: 1)!,
