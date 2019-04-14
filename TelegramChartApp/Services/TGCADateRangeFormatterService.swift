@@ -10,7 +10,7 @@ import Foundation
 import UIKit
 
 class TGCADateRangeFormatterService {
-    
+  
   private lazy var fullDateFormatter: DateFormatter = {
     let df = DateFormatter()
     df.locale = Locale(identifier: "en_US")
@@ -30,7 +30,9 @@ class TGCADateRangeFormatterService {
   private lazy var calendar: Calendar = {
     var calendar = Calendar(identifier: .gregorian)
     calendar.locale = Locale(identifier: "en_US")
-    calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+    if let timeZone = TimeZone(secondsFromGMT: 0) {
+      calendar.timeZone = timeZone
+    }
     return calendar
   }()
   
