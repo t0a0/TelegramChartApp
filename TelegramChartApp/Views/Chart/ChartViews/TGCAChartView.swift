@@ -52,8 +52,8 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   // MARK: - Init
   let scrollView = UIScrollView()
   let axisLayer = CALayer()
-  let lineLayer = CALayer()
-  let lineBackgroundLayer = CALayer()
+  let chartDrawingsLayer = CALayer()
+  let chartDrawingsBackgroundLayer = CALayer()
   let datesLayer = CALayer()
   
   override init(frame: CGRect) {
@@ -71,8 +71,8 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     isUserInteractionEnabled = true
     applyCurrentTheme()
     axisLayer.zPosition = zPositions.Chart.axis.rawValue
-    lineLayer.zPosition = zPositions.Chart.graph.rawValue
-    lineBackgroundLayer.zPosition = zPositions.Chart.graph.rawValue
+    chartDrawingsLayer.zPosition = zPositions.Chart.graph.rawValue
+    chartDrawingsBackgroundLayer.zPosition = zPositions.Chart.graph.rawValue
     datesLayer.zPosition = zPositions.Chart.dates.rawValue
     
     layer.addSublayer(axisLayer)
@@ -83,9 +83,9 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     scrollView.isScrollEnabled = false
     scrollView.isUserInteractionEnabled = false
     
-    lineBackgroundLayer.masksToBounds = true
-    lineBackgroundLayer.addSublayer(lineLayer)
-    scrollView.layer.addSublayer(lineBackgroundLayer)
+    chartDrawingsLayer.masksToBounds = true
+    chartDrawingsBackgroundLayer.addSublayer(chartDrawingsLayer)
+    scrollView.layer.addSublayer(chartDrawingsBackgroundLayer)
     scrollView.layer.addSublayer(datesLayer)
     addSubview(scrollView)
     
@@ -239,11 +239,11 @@ class TGCAChartView: UIView, ThemeChangeObserving {
       CATransaction.setDisableActions(true)
       
       if !chartConfiguration.isThumbnail {
-        lineBackgroundLayer.frame.size.width = scrollView.contentSize.width
-        lineLayer.frame.size.width = lineBackgroundLayer.frame.width - padding*2
+        chartDrawingsBackgroundLayer.frame.size.width = scrollView.contentSize.width
+        chartDrawingsLayer.frame.size.width = chartDrawingsBackgroundLayer.frame.width - padding*2
       } else {
-        lineBackgroundLayer.frame.size.width = scrollView.contentSize.width
-        lineLayer.frame.size.width = lineBackgroundLayer.frame.size.width
+        chartDrawingsBackgroundLayer.frame.size.width = scrollView.contentSize.width
+        chartDrawingsLayer.frame.size.width = chartDrawingsBackgroundLayer.frame.size.width
       }
       
       CATransaction.commit()
@@ -349,7 +349,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   
   func addShapeSublayers(_ layers: [CAShapeLayer]) {
     layers.forEach{
-      lineLayer.addSublayer($0)
+      chartDrawingsLayer.addSublayer($0)
     }
   }
   
@@ -553,17 +553,17 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     
     axisLayer.frame = CGRect(origin: CGPoint(x: padding, y: 0), size: CGSize(width: bounds.size.width - padding*2, height: bounds.size.height - ChartViewConstants.sizeForGuideLabels.height))
     if !chartConfiguration.isThumbnail {
-      lineLayer.frame.origin = CGPoint(x: padding, y: chartHeightBounds.lowerBound)
+      chartDrawingsLayer.frame.origin = CGPoint(x: padding, y: chartHeightBounds.lowerBound)
       // i remove origin y from both once so that they are cut off at zero, but circles i will add on to self.layer
-      lineBackgroundLayer.frame.size.height = scrollView.frame.height - ChartViewConstants.sizeForGuideLabels.height - chartHeightBounds.lowerBound
-      lineLayer.frame.size.height = lineBackgroundLayer.frame.height - chartHeightBounds.lowerBound
+      chartDrawingsBackgroundLayer.frame.size.height = scrollView.frame.height - ChartViewConstants.sizeForGuideLabels.height// - chartHeightBounds.lowerBound
+      chartDrawingsLayer.frame.size.height = chartDrawingsBackgroundLayer.frame.height - chartHeightBounds.lowerBound * 2
     } else {
-      lineLayer.frame.origin = CGPoint.zero
-      lineBackgroundLayer.frame.size.height = scrollView.frame.height
-      lineLayer.frame.size.height = lineBackgroundLayer.frame.size.height
+      chartDrawingsLayer.frame.origin = CGPoint.zero
+      chartDrawingsBackgroundLayer.frame.size.height = scrollView.frame.height
+      chartDrawingsLayer.frame.size.height = chartDrawingsBackgroundLayer.frame.size.height
     }
     
-    datesLayer.frame.origin = CGPoint(x: padding, y: lineBackgroundLayer.frame.height)
+    datesLayer.frame.origin = CGPoint(x: padding, y: chartDrawingsBackgroundLayer.frame.height)
     datesLayer.frame.size.height = ChartViewConstants.sizeForGuideLabels.height
 //    datesLayer.backgroundColor = UIColor.red.cgColor
 
@@ -840,9 +840,9 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     }
     
     addSubview(chartAnnotation.annotationView)
-    lineLayer.addSublayer(chartAnnotation.lineLayer)
+    chartDrawingsBackgroundLayer.addSublayer(chartAnnotation.lineLayer)
     chartAnnotation.circleLayers.forEach {
-      lineLayer.addSublayer($0)
+      chartDrawingsBackgroundLayer.addSublayer($0)
     }
   }
   
@@ -855,12 +855,12 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   }
   
   func generateChartAnnotation(for index: Int, with annotationView: TGCAChartAnnotationView) -> ChartAnnotationProtocol {
-    let xPoint = drawings.xPositions[index]
+    let xPoint = drawings.xPositions[index] + chartDrawingsLayer.frame.origin.x
     var circleLayers = [CAShapeLayer]()
     
     for i in 0..<drawings.yVectorData.yVectors.count {
       let color = chart.yVectors[i].metaData.color
-      let point = CGPoint(x: xPoint, y: drawings.yVectorData.yVectors[i][index])
+      let point = CGPoint(x: xPoint, y: drawings.yVectorData.yVectors[i][index] + chartDrawingsLayer.frame.origin.y)
       let circle = bezierCircle(at: point, radius: ChartViewConstants.circlePointRadius)
       let circleShape = shapeLayer(withPath: circle.cgPath, color: color.cgColor, lineWidth: chartConfiguration.graphLineWidth, fillColor: circlePointFillColor)
       circleShape.zPosition = zPositions.Annotation.circleShape.rawValue
@@ -872,7 +872,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
       }
     }
     
-    let line = bezierLine(from: CGPoint(x: xPoint, y: annotationView.frame.origin.y + annotationView.frame.height), to: CGPoint(x: xPoint, y: chartBoundsBottom))
+    let line = bezierLine(from: CGPoint(x: xPoint, y: chartDrawingsLayer.frame.origin.y), to: CGPoint(x: xPoint, y: chartDrawingsLayer.frame.origin.y + chartDrawingsLayer.frame.height))
     let lineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: ChartViewConstants.annotationLineWidth)
     
     lineLayer.zPosition = zPositions.Annotation.lineShape.rawValue
@@ -886,11 +886,11 @@ class TGCAChartView: UIView, ThemeChangeObserving {
       return
     }
     
-    let xPoint = drawings.xPositions[index]
+    let xPoint = drawings.xPositions[index] + chartDrawingsLayer.frame.origin.x
     
     for i in 0..<drawings.yVectorData.yVectors.count {
       
-      let point = CGPoint(x: xPoint, y: drawings.yVectorData.yVectors[i][index])
+      let point = CGPoint(x: xPoint, y: drawings.yVectorData.yVectors[i][index] + chartDrawingsLayer.frame.origin.y)
       let circle = bezierCircle(at: point, radius: ChartViewConstants.circlePointRadius)
       let circleLayer = annotation.circleLayers[i]
       
@@ -925,7 +925,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
       
     }
     
-    let line = bezierLine(from: CGPoint(x: xPoint, y: annotation.annotationView.frame.origin.y + annotation.annotationView.frame.height), to: CGPoint(x: xPoint, y: chartBoundsBottom))
+    let line = bezierLine(from: CGPoint(x: xPoint, y: chartDrawingsLayer.frame.origin.y), to: CGPoint(x: xPoint, y: chartDrawingsLayer.frame.origin.y + chartDrawingsLayer.frame.height))
     annotation.lineLayer.path = line.cgPath
   }
   
@@ -1010,7 +1010,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     if touchLocation.x < padding {
       return 0
     }
-    return min(chart.xVector.count-1, max(0, Int(round((touchLocation.x - padding) * CGFloat(chart.xVector.count-1) / lineLayer.frame.width))))
+    return min(chart.xVector.count-1, max(0, Int(round((touchLocation.x - padding) * CGFloat(chart.xVector.count-1) / chartDrawingsLayer.frame.width))))
   }
   
   // MARK: - Reset
@@ -1072,11 +1072,11 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   }
   
   private func getXVectorMappedToLineLayerWidth() -> ValueVector {
-    return chart.normalizedXPositions.map{$0 * lineLayer.frame.width}
+    return chart.normalizedXPositions.map{$0 * chartDrawingsLayer.frame.width}
   }
   
   func mapToLineLayerHeight(_ vector: ValueVector) -> ValueVector {
-    return vector.map{lineLayer.frame.height - ($0 * lineLayer.frame.height)}
+    return vector.map{chartDrawingsLayer.frame.height - ($0 * chartDrawingsLayer.frame.height)}
   }
   
  

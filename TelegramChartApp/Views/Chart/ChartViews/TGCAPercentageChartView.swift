@@ -46,7 +46,7 @@ class TGCAPercentageChartView: TGCAChartView {
   
   override func addShapeSublayers(_ layers: [CAShapeLayer]) {
     layers.reversed().forEach{
-      lineLayer.addSublayer($0)
+      chartDrawingsLayer.addSublayer($0)
     }
   }
   
@@ -217,7 +217,7 @@ class TGCAPercentageChartView: TGCAChartView {
       return
     }
     addSubview(chartAnnotation.annotationView)
-    lineLayer.addSublayer(chartAnnotation.lineLayer)
+    chartDrawingsLayer.addSublayer(chartAnnotation.lineLayer)
   }
   
   override func generateChartAnnotation(for index: Int, with annotationView: TGCAChartAnnotationView) -> ChartAnnotationProtocol {

@@ -70,7 +70,7 @@ class TGCAStackedBarChartView: TGCASingleBarChartView {
   
   override func addShapeSublayers(_ layers: [CAShapeLayer]) {
     layers.reversed().forEach{
-      lineLayer.addSublayer($0)
+      chartDrawingsLayer.addSublayer($0)
     }
   }
 

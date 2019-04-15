@@ -35,8 +35,8 @@ class TGCASingleBarChartView: TGCAChartView {
       return
     }
     addSubview(chartAnnotation.annotationView)
-    lineLayer.addSublayer(chartAnnotation.leftMask)
-    lineLayer.addSublayer(chartAnnotation.rightMask)
+    chartDrawingsLayer.addSublayer(chartAnnotation.leftMask)
+    chartDrawingsLayer.addSublayer(chartAnnotation.rightMask)
   }
   
   override func generateChartAnnotation(for index: Int, with annotationView: TGCAChartAnnotationView) -> ChartAnnotationProtocol {
