@@ -23,37 +23,78 @@ class TGCALinearChartWithTwoYAxisView: TGCALinearChartView {
     let leftChanged = yRangeData.leftYRange != leftYValueRange
     let rightChanged = yRangeData.rightYRange != rightYValueRange
     if !leftChanged && !rightChanged {
+      if horizontalAxes != nil {
+        if hiddenDrawingIndicies.count == chart.yVectors.count {
+          hideLeftLabels()
+          hideRightlabels()
+          hideHorizontalAxes()
+        } else {
+          if hiddenDrawingIndicies.contains(0) {
+            hideLeftLabels()
+          } else {
+            revealLeftLabels()
+            revealHorizontalAxes()
+          }
+          if hiddenDrawingIndicies.contains(1) {
+            hideRightlabels()
+          } else {
+            revealRightlabels()
+            revealHorizontalAxes()
+          }
+        }
+      }
       return DoubleAxisYRangeChageResult(leftChanged: false, rightChanged: false)
     }
     
     leftYValueRange = yRangeData.leftYRange
     rightYValueRange = yRangeData.rightYRange
     if horizontalAxes != nil {
+      if hiddenDrawingIndicies.count == chart.yVectors.count {
+        hideLeftLabels()
+        hideRightlabels()
+        hideHorizontalAxes()
+        return DoubleAxisYRangeChageResult(leftChanged: leftChanged, rightChanged: rightChanged)
+      }
       var animBlocks = [()->()]()
       var removalBlocks = [()->()]()
-      if leftChanged {
-        let blocks = updateLeftHorizontalAxes()
-        animBlocks.append(contentsOf: blocks.animationBlocks)
-        removalBlocks.append(contentsOf: blocks.removalBlocks)
+      if hiddenDrawingIndicies.contains(0) {
+        hideLeftLabels()
+      } else {
+        revealLeftLabels()
+        revealHorizontalAxes()
+        if leftChanged {
+          let blocks = updateLeftHorizontalAxes()
+          animBlocks.append(contentsOf: blocks.animationBlocks)
+          removalBlocks.append(contentsOf: blocks.removalBlocks)
+        }
       }
-      if rightChanged {
-        let blocks = updateRightHorizontalAxes()
-        animBlocks.append(contentsOf: blocks.animationBlocks)
-        removalBlocks.append(contentsOf: blocks.removalBlocks)
+      if hiddenDrawingIndicies.contains(1) {
+        hideRightlabels()
+      } else {
+        revealRightlabels()
+        revealHorizontalAxes()
+        if rightChanged {
+          let blocks = updateRightHorizontalAxes()
+          animBlocks.append(contentsOf: blocks.animationBlocks)
+          removalBlocks.append(contentsOf: blocks.removalBlocks)
+        }
       }
-      DispatchQueue.main.async {
-        CATransaction.flush()
-        CATransaction.begin()
-        CATransaction.setAnimationDuration(AXIS_ANIMATION_DURATION)
-        CATransaction.setCompletionBlock{
-          for r in removalBlocks {
-            r()
+      
+      if !animBlocks.isEmpty && !removalBlocks.isEmpty {
+        DispatchQueue.main.async {
+          CATransaction.flush()
+          CATransaction.begin()
+          CATransaction.setAnimationDuration(AXIS_ANIMATION_DURATION)
+          CATransaction.setCompletionBlock{
+            for r in removalBlocks {
+              r()
+            }
           }
+          for ab in animBlocks {
+            ab()
+          }
+          CATransaction.commit()
         }
-        for ab in animBlocks {
-          ab()
-        }
-        CATransaction.commit()
       }
     }
     return DoubleAxisYRangeChageResult(leftChanged: leftChanged, rightChanged: rightChanged)
@@ -129,6 +170,25 @@ class TGCALinearChartWithTwoYAxisView: TGCALinearChartView {
       newAxis.append(HorizontalAxis(lineLayer: lineLayer, leftTextLayer: leftTextLayer, rightTextLayer: rightTextLayer, leftValue: leftValues[i], rightValue: rightValues[i]))
     }
     horizontalAxes = newAxis
+    
+    if hiddenDrawingIndicies.count == chart.yVectors.count {
+      hideLeftLabels()
+      hideRightlabels()
+      hideHorizontalAxes()
+    } else {
+      if hiddenDrawingIndicies.contains(0) {
+        hideLeftLabels()
+      } else {
+        revealLeftLabels()
+        revealHorizontalAxes()
+      }
+      if hiddenDrawingIndicies.contains(1) {
+        hideRightlabels()
+      } else {
+        revealRightlabels()
+        revealHorizontalAxes()
+      }
+    }
   }
   
   private func updateLeftHorizontalAxes() -> AxisAnimationBlocks {
@@ -244,29 +304,43 @@ class TGCALinearChartWithTwoYAxisView: TGCALinearChartView {
     return (blocks, removalBlocks)
   }
   
-  override func hideHorizontalAxes() {
-    if let horizontalAxes = horizontalAxes {
-      for i in 1..<horizontalAxes.count {
-        let ax = horizontalAxes[i]
-        ax.leftTextLayer.isHidden = true
-        ax.rightTextLayer.isHidden = true
-        ax.lineLayer.isHidden = true
-      }
-      horizontalAxes.first?.leftTextLayer.isHidden = true
-      horizontalAxes.first?.rightTextLayer.isHidden = true
+  private func hideLeftLabels() {
+    horizontalAxes?.forEach{
+      $0.leftTextLayer.isHidden = true
     }
   }
   
-  override func revealHorizontalAxes() {
+  private func hideRightlabels() {
+    horizontalAxes?.forEach{
+      $0.rightTextLayer.isHidden = true
+    }
+  }
+  
+  private func revealLeftLabels() {
+    horizontalAxes?.forEach{
+      $0.leftTextLayer.isHidden = false
+    }
+  }
+  
+  private func revealRightlabels() {
+    horizontalAxes?.forEach{
+      $0.rightTextLayer.isHidden = false
+    }
+  }
+  
+  private func hideHorizontalAxes() {
     if let horizontalAxes = horizontalAxes {
       for i in 1..<horizontalAxes.count {
-        let ax = horizontalAxes[i]
-        ax.leftTextLayer.isHidden = false
-        ax.rightTextLayer.isHidden = false
-        ax.lineLayer.isHidden = false
+        horizontalAxes[i].lineLayer.isHidden = true
       }
-      horizontalAxes.first?.leftTextLayer.isHidden = false
-      horizontalAxes.first?.rightTextLayer.isHidden = false
+    }
+  }
+  
+  private func revealHorizontalAxes() {
+    if let horizontalAxes = horizontalAxes {
+      for i in 1..<horizontalAxes.count {
+        horizontalAxes[i].lineLayer.isHidden = false
+      }
     }
   }
   

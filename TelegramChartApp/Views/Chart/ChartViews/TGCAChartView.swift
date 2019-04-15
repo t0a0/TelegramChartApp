@@ -136,6 +136,12 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     }
     currentYValueRange = yRangeData.yRange
     if horizontalAxes != nil {
+      if hiddenDrawingIndicies.count == chart.yVectors.count {
+        hideHorizontalAxes()
+        return YRangeChangeResult(didChange: true)
+      } else {
+        revealHorizontalAxes()
+      }
       var animBlocks = [()->()]()
       var removalBlocks = [()->()]()
       
@@ -689,6 +695,12 @@ class TGCAChartView: UIView, ThemeChangeObserving {
       newAxis.append(HorizontalAxis(lineLayer: lineLayer, labelLayer: labelLayer, value: values[i]))
     }
     horizontalAxes = newAxis
+    
+    if hiddenDrawingIndicies.count == chart.yVectors.count {
+      hideHorizontalAxes()
+    } else {
+      revealHorizontalAxes()
+    }
   }
   
   func updateHorizontalAxes() -> AxisAnimationBlocks{
@@ -783,7 +795,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     return (blocks, removalBlocks)
   }
   
-  func hideHorizontalAxes() {
+  private func hideHorizontalAxes() {
     if let horizontalAxes = horizontalAxes {
       for i in 1..<horizontalAxes.count {
         let ax = horizontalAxes[i]
@@ -794,7 +806,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     }
   }
   
-  func revealHorizontalAxes() {
+  private func revealHorizontalAxes() {
     if let horizontalAxes = horizontalAxes {
       for i in 1..<horizontalAxes.count {
         let ax = horizontalAxes[i]
@@ -930,7 +942,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
       guard let strongSelf = self else {
         return
       }
-      strongSelf.onAnnotationClick?(strongSelf.chart.datesVector[chartAnnotation.displayedIndex]) ?? false
+      strongSelf.onAnnotationClick?(strongSelf.chart.datesVector[chartAnnotation.displayedIndex])
       strongSelf.removeChartAnnotation()
 
     }

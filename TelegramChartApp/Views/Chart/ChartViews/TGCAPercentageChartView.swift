@@ -26,6 +26,11 @@ class TGCAPercentageChartView: TGCAChartView {
   }
   
   override func updateYValueRange(with yRangeData: YRangeDataProtocol) -> YRangeChangeResultProtocol {
+    if hiddenDrawingIndicies.count == chart.yVectors.count {
+      hideHorizontalAxes()
+    } else {
+      revealHorizontalAxes()
+    }
     return PercentageChartYChangeResult()
   }
   
@@ -151,9 +156,16 @@ class TGCAPercentageChartView: TGCAChartView {
       newAxis.append(PercentageHorizontalAxis(lineLayer: lineLayer, labelLayer: labelLayer, value: values[i]))
     }
     horizontalAxes = newAxis
+    
+    if hiddenDrawingIndicies.count == chart.yVectors.count {
+      hideHorizontalAxes()
+    } else {
+      revealHorizontalAxes()
+    }
   }
   
-  override func hideHorizontalAxes() {
+  private func hideHorizontalAxes() {
+    
     if let horizontalAxes = horizontalAxes {
       for i in 1..<horizontalAxes.count {
         let ax = horizontalAxes[i]
@@ -164,7 +176,7 @@ class TGCAPercentageChartView: TGCAChartView {
     }
   }
   
-  override func revealHorizontalAxes() {
+  private func revealHorizontalAxes() {
     if let horizontalAxes = horizontalAxes {
       for i in 1..<horizontalAxes.count {
         let ax = horizontalAxes[i]
