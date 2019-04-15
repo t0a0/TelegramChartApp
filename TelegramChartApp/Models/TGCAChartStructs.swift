@@ -221,8 +221,19 @@ struct DataChart {
     return retVal
   }
   
-  func sums(at indexes: [Int]) -> [CGFloat] {
-    return (0..<yVectors.count).map{ValueVector(yVectors[$0].vector[indexes.first!...indexes.last!]).sum()}
+  func sums(at indexes: [Int], includedIndicies: [Int]) -> [CGFloat] {
+    let sums =  includedIndicies.map{ValueVector(yVectors[$0].vector[indexes.first!...indexes.last!]).sum()}
+    var retVal = [CGFloat]()
+    var j = 0
+    for i in 0..<yVectors.count {
+      if includedIndicies.contains(i) {
+        retVal.append(sums[j])
+        j += 1
+      } else {
+        retVal.append(0)
+      }
+    }
+    return retVal
   }
   
   func translatedBounds(for xRange: CGFloatRangeInBounds) -> ClosedRange<Int> {

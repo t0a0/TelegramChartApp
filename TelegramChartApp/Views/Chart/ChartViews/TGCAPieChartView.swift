@@ -54,16 +54,8 @@ class TGCAPieChartView: TGCAChartView {
     updatePie()
   }
   
-  override func hideAll() {
-    
-  }
-  
-  override func showAll() {
-    
-  }
-  
-  override func toggleHidden(at indexes: Set<Int>) {
-    
+  override func updateChartByHiding(at indexes: Set<Int>, originalHiddens: Set<Int>) {
+    updatePie()
   }
   
   //MARK: - Draw
@@ -180,7 +172,8 @@ class TGCAPieChartView: TGCAChartView {
     let includedIndicies = (0..<chart.yVectors.count).filter{!hiddenDrawingIndicies.contains($0)}
     let yVectors = chart.yVectors
     let percentages = chart.percentages(at: Array(trimmedXRange), includedIndicies: includedIndicies)
-    let sums = chart.sums(at: Array(trimmedXRange))
+    print(percentages)
+    let sums = chart.sums(at: Array(trimmedXRange), includedIndicies: includedIndicies)
     var slices = [Slice]()
     for i in 0..<yVectors.count {
       let yV = yVectors[i]
@@ -223,6 +216,7 @@ class TGCAPieChartView: TGCAChartView {
     let path = UIBezierPath()
     path.move(to: center)
     path.addArc(withCenter: center, radius: radius, startAngle: startAngle, endAngle: endAngle, clockwise: true)
+    path.close()
     return path.cgPath
   }
   

@@ -490,7 +490,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     drawings.xPositions = xVector
   }
   
-  private func updateChartByHiding(at indexes: Set<Int>, originalHiddens: Set<Int>) {
+  func updateChartByHiding(at indexes: Set<Int>, originalHiddens: Set<Int>) {
     prepareToUpdateChartByHiding()
     let xVector = getXVectorMappedToLineLayerWidth()
     let yVectorData = getCurrentYVectorData()
