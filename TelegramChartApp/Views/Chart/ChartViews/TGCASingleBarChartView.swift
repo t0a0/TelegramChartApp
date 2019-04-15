@@ -29,7 +29,30 @@ class TGCASingleBarChartView: TGCAChartView {
   
   //MARK: - Annotations
   
-
+  override func desiredOriginForChartAnnotationPlacing(chartAnnotation: ChartAnnotationProtocol) -> CGPoint {
+    let xPoint = drawings.xPositions[chartAnnotation.displayedIndex] + chartDrawingsLayer.frame.origin.x
+    let annotationSize = chartAnnotation.annotationView.bounds.size
+    let windowStart = scrollView.contentOffset.x
+    let windowEnd = scrollView.contentOffset.x + scrollView.frame.size.width
+    
+    var scaledGap: CGFloat = 10
+    if let a = drawings?.xPositions {
+      if a.count >= 3 {
+        scaledGap += a[3] - a[0]
+      }
+    }
+    
+    //hack with scaled gap
+    if xPoint + annotationSize.width + 10 + padding < windowEnd {
+      return CGPoint(x: max(0, min(frame.width - annotationSize.width, xPoint + scaledGap - windowStart)), y: ChartViewConstants.chartAnnotationYOrigin)
+    } else if xPoint - annotationSize.width - 10 - padding > windowStart {
+      return CGPoint(x: max(0, min(frame.width - annotationSize.width, xPoint - annotationSize.width - scaledGap - windowStart)), y: ChartViewConstants.chartAnnotationYOrigin)
+    }
+    let xPos = min(windowEnd - annotationSize.width, max(windowStart, xPoint - annotationSize.width/2 ))
+    return CGPoint(x: xPos - windowStart, y: ChartViewConstants.chartAnnotationYOrigin)
+  }
+  
+  
   override func addChartAnnotation(_ chartAnnotation: ChartAnnotationProtocol) {
     guard let chartAnnotation = chartAnnotation as? ChartAnnotation else {
       return
