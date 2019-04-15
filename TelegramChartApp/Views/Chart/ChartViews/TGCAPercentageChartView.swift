@@ -217,13 +217,13 @@ class TGCAPercentageChartView: TGCAChartView {
       return
     }
     addSubview(chartAnnotation.annotationView)
-    chartDrawingsLayer.addSublayer(chartAnnotation.lineLayer)
+    scrollView.layer.addSublayer(chartAnnotation.lineLayer)
   }
   
   override func generateChartAnnotation(for index: Int, with annotationView: TGCAChartAnnotationView) -> ChartAnnotationProtocol {
     let xPoint = drawings.xPositions[index]
     
-    let line = bezierLine(from: CGPoint(x: xPoint, y: annotationView.frame.origin.y + annotationView.frame.height), to: CGPoint(x: xPoint, y: chartBoundsBottom))
+    let line = bezierLine(from: CGPoint(x: xPoint, y: chartDrawingsLayer.frame.origin.y), to: CGPoint(x: xPoint, y: chartDrawingsLayer.frame.origin.y + chartDrawingsLayer.frame.height))
     let lineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: ChartViewConstants.annotationLineWidth)
     
     lineLayer.zPosition = zPositions.Annotation.lineShape.rawValue
@@ -238,8 +238,8 @@ class TGCAPercentageChartView: TGCAChartView {
     }
     let xPoint = drawings.xPositions[index]
     
-    let line = bezierLine(from: CGPoint(x: xPoint, y: annotation.annotationView.frame.origin.y + annotation.annotationView.frame.height), to: CGPoint(x: xPoint, y: chartBoundsBottom))
-    
+    let line = bezierLine(from: CGPoint(x: xPoint, y: chartDrawingsLayer.frame.origin.y), to: CGPoint(x: xPoint, y: chartDrawingsLayer.frame.origin.y + chartDrawingsLayer.frame.height))
+
     annotation.lineLayer.path = line.cgPath
   }
   
