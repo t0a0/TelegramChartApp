@@ -853,49 +853,15 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     let annotationSize = chartAnnotation.annotationView.bounds.size
     let windowStart = scrollView.contentOffset.x
     let windowEnd = scrollView.contentOffset.x + scrollView.frame.size.width
+    
+    if xPoint - annotationSize.width - 10 > windowStart {
+      return CGPoint(x: xPoint - annotationSize.width - 10 - windowStart, y: bounds.height / 8)
+    } else if xPoint + annotationSize.width + 10 < windowEnd {
+      return CGPoint(x: xPoint + 10 - windowStart, y: bounds.height / 8)
+    }
+    
     let xPos = min(windowEnd - annotationSize.width, max(windowStart, xPoint - annotationSize.width/2 ))
     return CGPoint(x: xPos - windowStart, y: ChartViewConstants.chartAnnotationYOrigin)
-//    let threshold = ChartViewConstants.chartAnnotationYOrigin + annotationSize.height
-    
-//    var canDisplayOnTop = true
-//    for i in 0..<drawings.yVectorData.yVectors.count {
-//      if hiddenDrawingIndicies.contains(i) {
-//        continue
-//      }
-//      let yPos = drawings.yVectorData.yVectors[i][chartAnnotation.displayedIndex]
-//      if yPos < threshold {
-//        canDisplayOnTop = false
-//        break
-//      }
-//    }
-//
-//    let windowStart =
-//    let windowEnd = scrollView.contentOffset.x + scrollView.frame.size.width
-//
-//    if canDisplayOnTop {
-//      let xPos = min(windowEnd - annotationSize.width, max(windowStart,
-//                                      xPoint - annotationSize.width/2
-//                                      ))
-//
-//      return CGPoint(x: xPos - windowStart, y: ChartViewConstants.chartAnnotationYOrigin)
-//    } else {
-//      let canLeft = xPoint - annotationSize.width - 10 > windowStart
-//      if canLeft {
-//        return CGPoint(x: xPoint - annotationSize.width - 10 - windowStart, y: ChartViewConstants.chartAnnotationYOrigin)
-//      }
-//
-//      let canRight = xPoint + 10 + annotationSize.width < windowEnd
-//      if canRight {
-//        return CGPoint(x: xPoint + 10 - windowStart, y: ChartViewConstants.chartAnnotationYOrigin)
-//      }
-//
-//      let xPos = min(windowEnd - annotationSize.width, max(windowStart,
-//                                                           xPoint - annotationSize.width/2
-//      ))
-//
-//      return CGPoint(x: xPos - windowStart, y: ChartViewConstants.chartAnnotationYOrigin)
-//    }
-
   }
   
   func generateChartAnnotation(for index: Int, with annotationView: TGCAChartAnnotationView) -> ChartAnnotationProtocol {
