@@ -73,6 +73,9 @@ class TGCAChartTableViewCell: UITableViewCell, CAAnimationDelegate {
     case .threeDaysComparison:
       view = TGCA3DaysComparisonChartView(frame: containerForChartView.bounds)
       thumbnailView = TGCA3DaysComparisonChartView(frame: containerForThumbailChartView.bounds)
+    case .pie:
+      view = TGCAPieChartView(frame: containerForChartView.bounds)
+      thumbnailView = TGCASquarePercentageChartView(frame: containerForThumbailChartView.bounds)
     }
     
     setupChartView(with: view, type: chartType)
@@ -163,7 +166,7 @@ class TGCAChartTableViewCell: UITableViewCell, CAAnimationDelegate {
       return isThumbnail ? TGCAChartView.ChartConfiguration.ThumbnailDefault : TGCAChartView.ChartConfiguration.Default
     case .percentage:
       return isThumbnail ? TGCAChartView.ChartConfiguration.PercentageThumbnailChartConfiguration : TGCAChartView.ChartConfiguration.PercentageChartConfiguration
-    case .singleBar, .stackedBar:
+    case .singleBar, .stackedBar, .pie:
       return isThumbnail ? TGCAChartView.ChartConfiguration.BarThumbnailChartConfiguration : TGCAChartView.ChartConfiguration.BarChartConfiguration
     }
   }

@@ -194,6 +194,21 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
       guard !isUnderlying else {
         return false
       }
+      if chartContainer.chart.type == .percentage {
+        if let generatedChart = chartContainer.chart.generatePieChart(for: date) {
+          let newContainer = ChartContainer(chart: generatedChart, hiddenIndicies: chartContainer.hiddenIndicies)
+          chartContainer.setUnderlyingChartContainer(newContainer)
+          cell.headerView.zoomOutButton.isHidden = false
+          if let buttonsSetup = self?.getButtonsConfigurationFor(chartContainer: newContainer, cell: cell, index: section) {
+            cell.chartFiltersHeightConstraint.constant = cell.chartFiltersView?.setupButtons(buttonsSetup) ?? 0
+          }
+          
+          cell.transition(to: newContainer.chart.type)
+          self?.configureChartCell(cell, section: section, animateTrimmer: true)
+          return true
+        }
+        return false
+      }
 
       if let underlyingChart = self?.loadZoomedInJSONDataFor(chartIndex: section, date: date) {
         let newContainer = underlyingChart.type == .threeDaysComparison ? ChartContainer(chart: underlyingChart, hiddenIndicies: chartContainer.hiddenIndicies) : ChartContainer(chart: underlyingChart, hiddenIndicies: chartContainer.hiddenIndicies, trimForDate: date)

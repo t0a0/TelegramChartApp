@@ -33,6 +33,7 @@
 		16576474223E640D00173E97 /* TGCAChartAnnotationView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 16576473223E640D00173E97 /* TGCAChartAnnotationView.xib */; };
 		1666F56E225AAABF00D205C0 /* contest in Resources */ = {isa = PBXBuildFile; fileRef = 1666F56D225AAABF00D205C0 /* contest */; };
 		1666F570225AB43D00D205C0 /* TGCAStackedBarChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1666F56F225AB43D00D205C0 /* TGCAStackedBarChartView.swift */; };
+		167415D22264A40900F026A0 /* TGCAPieChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167415D12264A40900F026A0 /* TGCAPieChartView.swift */; };
 		1675C87F225E510900233523 /* TGCADateRangeFormatterService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1675C87E225E510900233523 /* TGCADateRangeFormatterService.swift */; };
 		1675C881225E5B0600233523 /* UIViewExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1675C880225E5B0600233523 /* UIViewExtensions.swift */; };
 		167FCACF22343348001CA7E5 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167FCACE22343348001CA7E5 /* AppDelegate.swift */; };
@@ -75,6 +76,7 @@
 		16576473223E640D00173E97 /* TGCAChartAnnotationView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TGCAChartAnnotationView.xib; sourceTree = "<group>"; };
 		1666F56D225AAABF00D205C0 /* contest */ = {isa = PBXFileReference; lastKnownFileType = folder; path = contest; sourceTree = "<group>"; };
 		1666F56F225AB43D00D205C0 /* TGCAStackedBarChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAStackedBarChartView.swift; sourceTree = "<group>"; };
+		167415D12264A40900F026A0 /* TGCAPieChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCAPieChartView.swift; sourceTree = "<group>"; };
 		1675C87E225E510900233523 /* TGCADateRangeFormatterService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TGCADateRangeFormatterService.swift; sourceTree = "<group>"; };
 		1675C880225E5B0600233523 /* UIViewExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIViewExtensions.swift; sourceTree = "<group>"; };
 		167FCACB22343348001CA7E5 /* TelegramChartApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TelegramChartApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -242,6 +244,7 @@
 				161CA603225A465000FFC1DF /* TGCALinearChartView.swift */,
 				167FCAFC22343523001CA7E5 /* TGCAChartView.swift */,
 				1685C9D42263E499002D6AB3 /* TGCASquarePercentageChartView.swift */,
+				167415D12264A40900F026A0 /* TGCAPieChartView.swift */,
 			);
 			path = ChartViews;
 			sourceTree = "<group>";
@@ -351,6 +354,7 @@
 				167FCAFD22343523001CA7E5 /* TGCAChartView.swift in Sources */,
 				161CA5FC225A417100FFC1DF /* TGCALinearChartWithTwoYAxisView.swift in Sources */,
 				1675C881225E5B0600233523 /* UIViewExtensions.swift in Sources */,
+				167415D22264A40900F026A0 /* TGCAPieChartView.swift in Sources */,
 				161CA5F42259543100FFC1DF /* TGCAChartHeaderView.swift in Sources */,
 				1657646E223D27E600173E97 /* TGCANavigationController.swift in Sources */,
 				1657644922354F4100173E97 /* UIColor+Hex.swift in Sources */,

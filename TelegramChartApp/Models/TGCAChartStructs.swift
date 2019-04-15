@@ -21,6 +21,7 @@ enum DataChartType: String {
   case stackedBar
   case percentage
   case threeDaysComparison
+  case pie
 }
 
 struct DataChart {
@@ -231,6 +232,25 @@ struct DataChart {
       stacked.append(zip(vectors[i], stacked[i-1]).map{$0 + $1})
     }
     return stacked
+  }
+  
+  func generatePieChart(for date: Date) -> DataChart? {
+    guard type == .percentage, let index = datesVector.firstIndex(of: date) else {
+      return nil
+    }
+    
+    var indexes = [Int]()
+    
+    if index < 3 {
+      indexes = (0...6).map{$0}
+    } else if index > datesVector.count - 4 {
+      indexes = ((datesVector.count-7)...(datesVector.count-1)).map{$0}
+    } else {
+      indexes = ((index - 3)...(index + 3)).map{$0}
+    }
+    
+    let yVs = yVectors.map{ChartValueVector(vector: ValueVector($0.vector[indexes.first!...indexes.last!]), metaData: $0.metaData)}
+    return DataChart(yVectors: yVs, xVector: ValueVector(xVector[indexes.first!...indexes.last!]), type: .pie, title: title)
   }
   
 }
