@@ -195,10 +195,34 @@ struct DataChart {
     return retVal
   }
   
+  //returns only included indexes
   func percentages(at index: Int, includedIndicies: [Int]) -> [Int] {
     let arrayNum = includedIndicies.map{yVectors[$0].vector[index]}
     let sum = arrayNum.reduce(0, +)
     return arrayNum.map{Int(($0 * 100 / sum).rounded())}
+  }
+  
+  ///returns all indexes even hidden, they are zero
+  func percentages(at indexes: [Int], includedIndicies: [Int]) -> [Int] {
+    let arrayNum = includedIndicies.map{ValueVector(yVectors[$0].vector[indexes.first!...indexes.last!]).sum()}
+    let sum = arrayNum.reduce(0, +)
+    let percentages = arrayNum.map{Int(($0 * 100 / sum).rounded())}
+    
+    var retVal = [Int]()
+    var j = 0
+    for i in 0..<yVectors.count {
+      if includedIndicies.contains(i) {
+        retVal.append(percentages[j])
+        j += 1
+      } else {
+        retVal.append(0)
+      }
+    }
+    return retVal
+  }
+  
+  func sums(at indexes: [Int]) -> [CGFloat] {
+    return (0..<yVectors.count).map{ValueVector(yVectors[$0].vector[indexes.first!...indexes.last!]).sum()}
   }
   
   func translatedBounds(for xRange: CGFloatRangeInBounds) -> ClosedRange<Int> {

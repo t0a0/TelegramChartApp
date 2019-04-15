@@ -34,11 +34,36 @@ class TGCAPieChartView: TGCAChartView {
   //MARK: - Body
   
   private var pieSegments: [PieSegment]!
+  private var trimmedXRange: ClosedRange<Int>!
   
   override func configure(with chart: DataChart, hiddenIndicies: Set<Int>, displayRange: CGFloatRangeInBounds) {
     clean()
     self.chart = chart
+    self.hiddenDrawingIndicies = hiddenIndicies
+    self.trimmedXRange = chart.translatedBounds(for: displayRange)
     drawPie()
+  }
+  
+  override func trimDisplayRange(to newRange: CGFloatRangeInBounds, with event: DisplayRangeChangeEvent) {
+    let newTranslatedRange = chart.translatedBounds(for: newRange)
+    guard newTranslatedRange != trimmedXRange else {
+      return
+    }
+    
+    trimmedXRange = newTranslatedRange
+    updatePie()
+  }
+  
+  override func hideAll() {
+    
+  }
+  
+  override func showAll() {
+    
+  }
+  
+  override func toggleHidden(at indexes: Set<Int>) {
+    
   }
   
   //MARK: - Draw
@@ -83,13 +108,67 @@ class TGCAPieChartView: TGCAChartView {
     }
   }
   
-  override func trimDisplayRange(to newRange: CGFloatRangeInBounds, with event: DisplayRangeChangeEvent) {
+  private func updatePie() {
+    let slices = getYVectorsMappedToSlices()
     
+    var newPaths = [CGPath]()
+    var newValues = [CGFloat]()
+    var newAngles = [CGFloat]()
+    var newTexts = [String]()
+    forEachSlice(in: slices) { (slice, startAngle, endAngle) in
+      let halfAngle = startAngle + (endAngle - startAngle) * 0.5;
+      
+      // Get the 'center' of the segment.
+      var segmentCenter = center
+      if slices.count > 1 {
+        segmentCenter = segmentCenter
+          .projected(by: radius * 0.67, angle: halfAngle)
+      }
+      
+      let textToRender = slice.text
+      
+      let textRenderSize = textToRender.size(withAttributes: textAttributes)
+      
+      // The bounds that the text will occupy.
+      let renderRect = CGRect(
+        centeredOn: segmentCenter, size: textRenderSize
+      )
+      
+      let path = pieSlicePath(center: center, radius: radius, startAngle: startAngle, endAngle: endAngle)
+      newPaths.append(path)
+      newValues.append(slice.value)
+      newAngles.append(halfAngle)
+      newTexts.append(slice.text)
+    }
+    for i in 0..<pieSegments.count {
+      pieSegments[i].angle = newAngles[i]
+      pieSegments[i].value = newValues[i]
+      pieSegments[i].text = newTexts[i]
+    }
+    animatePies(with: newPaths)
   }
   
-  override func toggleHidden(at indexes: Set<Int>) {
-    
+  private func animatePies(with newPaths: [CGPath]) {
+    for i in 0..<pieSegments.count {
+      let pieSegment = pieSegments[i]
+      
+//      var oldPath: Any?
+//      if let _ = pieSegment.shapeLayer.animation(forKey: "pathAnim") {
+//        oldPath = pieSegment.shapeLayer.presentation()?.value(forKey: "path")
+//        pieSegment.shapeLayer.removeAnimation(forKey: "pathAnim")
+//      }
+      
+      let anim = CABasicAnimation(keyPath: "path")
+      anim.duration = CHART_PATH_ANIMATION_DURATION
+      anim.timingFunction = CAMediaTimingFunction(name: .linear)
+      anim.fromValue = /*oldPath ?? */pieSegment.shapeLayer.path
+      pieSegment.shapeLayer.path = newPaths[i]
+      anim.toValue = pieSegment.shapeLayer.path
+      pieSegment.shapeLayer.add(anim, forKey: "pathAnim")
+    }
   }
+  
+  //MARK: - Annotation
   
   override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
     
@@ -98,12 +177,14 @@ class TGCAPieChartView: TGCAChartView {
   //MARK: - Helpers
   
   private func getYVectorsMappedToSlices() -> [Slice] {
+    let includedIndicies = (0..<chart.yVectors.count).filter{!hiddenDrawingIndicies.contains($0)}
     let yVectors = chart.yVectors
-    let percentages = chart.percentages(at: 0, includedIndicies: Array(0..<yVectors.count))
+    let percentages = chart.percentages(at: Array(trimmedXRange), includedIndicies: includedIndicies)
+    let sums = chart.sums(at: Array(trimmedXRange))
     var slices = [Slice]()
     for i in 0..<yVectors.count {
       let yV = yVectors[i]
-      let slice = Slice(value: yV.vector[0], text: "\(percentages[i])%", color: yV.metaData.color.cgColor)
+      let slice = Slice(value: sums[i], text: "\(percentages[i])%", color: yV.metaData.color.cgColor)
       slices.append(slice)
     }
     return slices
