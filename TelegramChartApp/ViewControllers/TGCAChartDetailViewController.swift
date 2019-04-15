@@ -194,8 +194,9 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
       guard !isUnderlying else {
         return false
       }
+
       if let underlyingChart = self?.loadZoomedInJSONDataFor(chartIndex: section, date: date) {
-        let newContainer = ChartContainer(chart: underlyingChart, hiddenIndicies: chartContainer.hiddenIndicies)
+        let newContainer = underlyingChart.type == .threeDaysComparison ? ChartContainer(chart: underlyingChart, hiddenIndicies: chartContainer.hiddenIndicies) : ChartContainer(chart: underlyingChart, hiddenIndicies: chartContainer.hiddenIndicies, trimForDate: date)
         chartContainer.setUnderlyingChartContainer(newContainer)
         cell.headerView.zoomOutButton.isHidden = false
         if let buttonsSetup = self?.getButtonsConfigurationFor(chartContainer: newContainer, cell: cell, index: section) {
@@ -307,6 +308,10 @@ extension TGCAChartDetailViewController: ThemeChangeObserving {
 
 
 class ChartContainer {
+  static let ONE_DAY: TimeInterval = 24*60*60
+  static let ONE_DAY_MINUS_1_HOUR: TimeInterval = 23*60*60
+  static let ONE_HOUR: TimeInterval = 60*60
+  
   let chart: DataChart
   private(set) var underlyingChartContainer: ChartContainer?
   private(set) var parentChartContainer: ChartContainer?
@@ -319,6 +324,25 @@ class ChartContainer {
     self.chart = chart
     self.trimRange = CGFloatRangeInBounds.ZeroToOne
     self.hiddenIndicies = hiddenIndicies
+  }
+  
+  init(chart: DataChart, hiddenIndicies: Set<Int> = [], trimForDate date: Date) {
+    self.chart = chart
+    self.hiddenIndicies = hiddenIndicies
+    
+    if let endIndex = chart.datesVector.firstIndex(of: date.addingTimeInterval(ChartContainer.ONE_DAY_MINUS_1_HOUR)), let startIndex = chart.datesVector.firstIndex(of: date.addingTimeInterval(ChartContainer.ONE_HOUR)) {
+      
+      let translatedStart = max(0, CGFloat(startIndex)/CGFloat(chart.datesVector.count-1))
+      let translatedEnd = min(1.0, CGFloat(endIndex)/(CGFloat(chart.datesVector.count-1)))
+      if translatedEnd - translatedStart > 0.12 {
+        self.trimRange = CGFloatRangeInBounds(range: translatedStart...translatedEnd, bounds: 0...1)
+      } else {
+        self.trimRange = CGFloatRangeInBounds.ZeroToOne
+      }
+    } else {
+      self.trimRange = CGFloatRangeInBounds.ZeroToOne
+    }
+    
   }
   
   func updateTrimRange(to newRange: CGFloatRangeInBounds) {
