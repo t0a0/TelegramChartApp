@@ -77,7 +77,7 @@ class TGCAPieChartView: TGCAChartView {
         centeredOn: segmentCenter, size: TGCAPieChartView.sizeForText
       )
       
-      let textLayerr = textLayer(in: renderRect, text: slice.text, color: UIColor.black.cgColor)
+      let textLayerr = textLayer(in: renderRect, text: slice.text, color: UIColor.white.cgColor)
       textLayerr.zPosition = 2
       let path = pieSlicePath(center: center, radius: radius, startAngle: startAngle, endAngle: endAngle)
       let shape = shapeLayer(pieSlicePath: path, fillColor: slice.color)
@@ -87,6 +87,12 @@ class TGCAPieChartView: TGCAChartView {
     }
     
     self.pieSegments = segments
+    for i in 0..<pieSegments.count {
+      let pieSegment = pieSegments[i]
+      let contains = hiddenDrawingIndicies.contains(i)
+      pieSegment.shapeLayer.opacity = contains ? 0 : 1
+      pieSegment.textLayer.opacity = contains ? 0 : 1
+    }
     pieSegments.forEach{
       layer.addSublayer($0.shapeLayer)
       layer.addSublayer($0.textLayer)
@@ -208,6 +214,8 @@ class TGCAPieChartView: TGCAChartView {
     layer.fillColor = fillColor
     layer.strokeColor = fillColor
     layer.contentsScale = UIScreen.main.scale
+    layer.lineWidth = 0.1
+    layer.lineCap = .butt
     return layer
   }
   
