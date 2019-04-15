@@ -83,7 +83,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     scrollView.isScrollEnabled = false
     scrollView.isUserInteractionEnabled = false
     
-    chartDrawingsLayer.masksToBounds = true
+    chartDrawingsBackgroundLayer.masksToBounds = true
     chartDrawingsBackgroundLayer.addSublayer(chartDrawingsLayer)
     scrollView.layer.addSublayer(chartDrawingsBackgroundLayer)
     scrollView.layer.addSublayer(datesLayer)
@@ -555,8 +555,8 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     if !chartConfiguration.isThumbnail {
       chartDrawingsLayer.frame.origin = CGPoint(x: padding, y: chartHeightBounds.lowerBound)
       // i remove origin y from both once so that they are cut off at zero, but circles i will add on to self.layer
-      chartDrawingsBackgroundLayer.frame.size.height = scrollView.frame.height - ChartViewConstants.sizeForGuideLabels.height// - chartHeightBounds.lowerBound
-      chartDrawingsLayer.frame.size.height = chartDrawingsBackgroundLayer.frame.height - chartHeightBounds.lowerBound * 2
+      chartDrawingsBackgroundLayer.frame.size.height = scrollView.frame.height - ChartViewConstants.sizeForGuideLabels.height - chartHeightBounds.lowerBound
+      chartDrawingsLayer.frame.size.height = chartDrawingsBackgroundLayer.frame.height - chartHeightBounds.lowerBound
     } else {
       chartDrawingsLayer.frame.origin = CGPoint.zero
       chartDrawingsBackgroundLayer.frame.size.height = scrollView.frame.height
@@ -840,9 +840,9 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     }
     
     addSubview(chartAnnotation.annotationView)
-    chartDrawingsBackgroundLayer.addSublayer(chartAnnotation.lineLayer)
+    scrollView.layer.addSublayer(chartAnnotation.lineLayer)
     chartAnnotation.circleLayers.forEach {
-      chartDrawingsBackgroundLayer.addSublayer($0)
+      scrollView.layer.addSublayer($0)
     }
   }
   
