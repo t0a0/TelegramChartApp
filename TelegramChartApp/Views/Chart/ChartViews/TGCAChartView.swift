@@ -942,7 +942,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
       guard let strongSelf = self else {
         return
       }
-      strongSelf.onAnnotationClick?(strongSelf.chart.datesVector[chartAnnotation.displayedIndex])
+      _ = strongSelf.onAnnotationClick?(strongSelf.chart.datesVector[chartAnnotation.displayedIndex])
       strongSelf.removeChartAnnotation()
 
     }
@@ -980,6 +980,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
         return super.touchesBegan(touches, with: event)
     }
     
+    
     let index = closestIndex(for: touch.location(in: scrollView))
     
     if currentChartAnnotation != nil {
@@ -1006,7 +1007,10 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   }
   
   func closestIndex(for touchLocation: CGPoint) -> Int {
-    return min(chart.xVector.count-1, max(0, Int(round(touchLocation.x * CGFloat(chart.xVector.count-1) / scrollView.contentSize.width))))
+    if touchLocation.x < padding {
+      return 0
+    }
+    return min(chart.xVector.count-1, max(0, Int(round((touchLocation.x - padding) * CGFloat(chart.xVector.count-1) / lineLayer.frame.width))))
   }
   
   // MARK: - Reset
