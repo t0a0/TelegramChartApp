@@ -12,7 +12,11 @@ import UIKit
 class TGCAPieChartView: TGCAChartView {
   
   
-  static let sizeForText = CGSize(width: 50, height: 20)
+  static let sizeForText = CGSize(width: 70, height: 30)
+  static let defaultFontSize: CGFloat = 13.0
+  static let defaultFont: CFTypeRef = "Helvetica-Bold" as CFTypeRef
+
+  
   //MARK: - Configs
   
   var radius: CGFloat {
@@ -59,7 +63,7 @@ class TGCAPieChartView: TGCAChartView {
   
   func drawPie() {
     let slices = getYVectorsMappedToSlices()
-    
+    let percentages = slices.map{$0.percentage}
     var segments = [PieSegment]()
     
     forEachSlice(in: slices) { (slice, startAngle, endAngle) in
@@ -92,6 +96,9 @@ class TGCAPieChartView: TGCAChartView {
       let contains = hiddenDrawingIndicies.contains(i)
       pieSegment.shapeLayer.opacity = contains ? 0 : 1
       pieSegment.textLayer.opacity = contains ? 0 : 1
+      let fontsize: CGFloat = TGCAPieChartView.defaultFontSize
+      let percentage = percentages[i]
+      pieSegment.textLayer.fontSize = round(fontsize + (fontsize / 100)*CGFloat(percentage))
     }
     pieSegments.forEach{
       layer.addSublayer($0.shapeLayer)
@@ -135,15 +142,18 @@ class TGCAPieChartView: TGCAChartView {
       pieSegments[i].value = newValues[i]
       pieSegments[i].text = newTexts[i]
     }
-    animatePies(with: newPaths, newTextsPositions: newTextsPositions)
+    animatePies(with: newPaths, newTextsPositions: newTextsPositions, percentages: slices.map{$0.percentage})
   }
   
-  private func animatePies(with newPaths: [CGPath], newTextsPositions: [CGPoint]) {
+  private func animatePies(with newPaths: [CGPath], newTextsPositions: [CGPoint], percentages: [Int]) {
     for i in 0..<pieSegments.count {
       let pieSegment = pieSegments[i]
       pieSegment.shapeLayer.path = newPaths[i]
       pieSegment.textLayer.string = pieSegment.text
       pieSegment.textLayer.position = newTextsPositions[i]
+      let fontsize: CGFloat = TGCAPieChartView.defaultFontSize
+      let percentage = percentages[i]
+      pieSegment.textLayer.fontSize = round(fontsize + (fontsize / 100)*CGFloat(percentage))
     }
   }
   
@@ -159,12 +169,11 @@ class TGCAPieChartView: TGCAChartView {
     let includedIndicies = (0..<chart.yVectors.count).filter{!hiddenDrawingIndicies.contains($0)}
     let yVectors = chart.yVectors
     let percentages = chart.percentages(at: Array(trimmedXRange), includedIndicies: includedIndicies)
-    print(percentages)
     let sums = chart.sums(at: Array(trimmedXRange), includedIndicies: includedIndicies)
     var slices = [Slice]()
     for i in 0..<yVectors.count {
       let yV = yVectors[i]
-      let slice = Slice(value: sums[i], text: "\(percentages[i])%", color: yV.metaData.color.cgColor)
+      let slice = Slice(value: sums[i], text: "\(percentages[i])%", color: yV.metaData.color.cgColor, percentage: percentages[i])
       slices.append(slice)
     }
     return slices
@@ -222,8 +231,8 @@ class TGCAPieChartView: TGCAChartView {
   func textLayer(in rect: CGRect, text: String, color: CGColor) -> CATextLayer {
     let textLayer = CATextLayer()
     textLayer.frame = rect
-    textLayer.font = ChartViewConstants.guideLabelsFont
-    textLayer.fontSize = ChartViewConstants.guideLabelsFontSize
+    textLayer.font = TGCAPieChartView.defaultFont
+    textLayer.fontSize = TGCAPieChartView.defaultFontSize
     textLayer.string = text
     textLayer.contentsScale = ChartViewConstants.contentScaleForText
     textLayer.foregroundColor = color
@@ -254,6 +263,7 @@ class TGCAPieChartView: TGCAChartView {
     let value: CGFloat
     let text: String
     let color: CGColor
+    let percentage: Int
   }
   
   //MARK: - dummy overrides
