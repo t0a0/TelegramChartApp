@@ -24,7 +24,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     /// The axes are drawn from the bottom of the bounds to the top of the bounds, capped by this value.
     static let capHeightMultiplierForHorizontalAxes: CGFloat = 0.85
     
-    static let chartAnnotationYOrigin: CGFloat = 0.0
+    static let chartAnnotationYOrigin: CGFloat = 4.0
     
     struct AnimationKeys {
       static let updateByTrimming = "updateByTrimming"
@@ -854,12 +854,11 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     let windowStart = scrollView.contentOffset.x
     let windowEnd = scrollView.contentOffset.x + scrollView.frame.size.width
     
-    if xPoint - annotationSize.width - 10 > windowStart {
-      return CGPoint(x: xPoint - annotationSize.width - 10 - windowStart, y: bounds.height / 8)
-    } else if xPoint + annotationSize.width + 10 < windowEnd {
-      return CGPoint(x: xPoint + 10 - windowStart, y: bounds.height / 8)
+    if xPoint + annotationSize.width + 10 + padding < windowEnd {
+      return CGPoint(x: xPoint + 10 - windowStart, y: ChartViewConstants.chartAnnotationYOrigin)
+    } else if xPoint - annotationSize.width - 10 - padding > windowStart {
+      return CGPoint(x: xPoint - annotationSize.width - 10 - windowStart, y: ChartViewConstants.chartAnnotationYOrigin)
     }
-    
     let xPos = min(windowEnd - annotationSize.width, max(windowStart, xPoint - annotationSize.width/2 ))
     return CGPoint(x: xPos - windowStart, y: ChartViewConstants.chartAnnotationYOrigin)
   }
@@ -956,7 +955,10 @@ class TGCAChartView: UIView, ThemeChangeObserving {
       strongSelf.removeChartAnnotation()
 
     }
-    chartAnnotation.annotationView.frame.origin = desiredOriginForChartAnnotationPlacing(chartAnnotation: chartAnnotation)
+    UIView.animate(withDuration: ANIMATION_DURATION / 2) {
+      chartAnnotation.annotationView.frame.origin = self.desiredOriginForChartAnnotationPlacing(chartAnnotation: chartAnnotation)
+    }
+    
     currentChartAnnotation = chartAnnotation
   }
   
@@ -967,7 +969,9 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     let configuration = getChartAnnotationViewConfiguration(for: index)
     currentChartAnnotation.annotationView.configure(with: configuration)
     performUpdatesForMovingChartAnnotation(to: index, with: currentChartAnnotation, animated: animated)
-    currentChartAnnotation.annotationView.frame.origin = desiredOriginForChartAnnotationPlacing(chartAnnotation: currentChartAnnotation)
+    UIView.animate(withDuration: ANIMATION_DURATION / 2) {
+    currentChartAnnotation.annotationView.frame.origin = self.desiredOriginForChartAnnotationPlacing(chartAnnotation: currentChartAnnotation)
+    }
     currentChartAnnotation.updateDisplayedIndex(to: index)
   }
   
