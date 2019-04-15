@@ -10,9 +10,10 @@ import UIKit
 import Foundation
 
 class TGCATrimmerShoulderView: UIView {
-  
+
+  let imageView = UIImageView()
   /// Increases the hit detection rect.
-  var boundsInsetIncreaseValue: CGFloat = 15.0
+  var boundsInsetIncreaseValue: CGFloat = 10.0
   
   override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
     return increasedBounds.contains(point) ? self : nil
@@ -21,38 +22,76 @@ class TGCATrimmerShoulderView: UIView {
     return increasedBounds.contains(point)
   }
   
-  private var increasedBounds: CGRect {
+  var increasedBounds: CGRect {
     return bounds.insetBy(dx: -1 * boundsInsetIncreaseValue, dy: -1 * boundsInsetIncreaseValue)
   }
   
+  override init(frame: CGRect) {
+    super.init(frame: frame)
+    commonInit()
+  }
+  
+  required init?(coder aDecoder: NSCoder) {
+    super.init(coder: aDecoder)
+    commonInit()
+  }
+  
+  private func commonInit() {
+    setupImageView()
+  }
+  
+  func setupImageView() {
+    
+    imageView.isUserInteractionEnabled = false
+    imageView.tintColor = .white
+    imageView.clipsToBounds = true
+    imageView.contentMode = .scaleAspectFit
+    
+    imageView.translatesAutoresizingMaskIntoConstraints = false
+    imageView.isUserInteractionEnabled = true
+    addSubview(imageView)
+    
+    imageView.widthAnchor.constraint(equalTo: widthAnchor, multiplier: 0.75).isActive = true
+    imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor, multiplier: 1).isActive = true
+    imageView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
+    imageView.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
+  }
 }
 
 class TGCATrimmerLeftShoulderView: TGCATrimmerShoulderView {
   
-  override func draw(_ rect: CGRect) {
-    let line = UIBezierPath()
-    line.lineWidth = 1.5
-    line.lineJoinStyle = .round
-    UIColor.white.setStroke()
-    line.move(to: CGPoint(x: rect.origin.x + rect.width * 0.6, y: rect.origin.y + rect.height * 0.35))
-    line.addLine(to: CGPoint(x: rect.origin.x + rect.width * 0.4, y: rect.origin.y + rect.height * 0.5))
-    line.addLine(to: CGPoint(x: rect.origin.x + rect.width * 0.6, y: rect.origin.y + rect.height * 0.65))
-    line.stroke()
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    roundCorners([.topLeft, .bottomLeft], radius: TGCATrimmerView.shoulderWidth)
+  }
+  
+  override func setupImageView() {
+    super.setupImageView()
+    imageView.image = UIImage(named: "disclosure_image_reversed")?.withRenderingMode(.alwaysTemplate)
+    imageView.isOpaque = true
+  }
+  
+  override var increasedBounds: CGRect {
+    return bounds.inset(by: UIEdgeInsets(top: 0, left: -boundsInsetIncreaseValue, bottom: 0, right: -boundsInsetIncreaseValue/4.0))
   }
   
 }
 
 class TGCATrimmerRightShoulderView: TGCATrimmerShoulderView {
   
-  override func draw(_ rect: CGRect) {
-    let line = UIBezierPath()
-    line.lineWidth = 1.5
-    line.lineJoinStyle = .round
-    UIColor.white.setStroke()
-    line.move(to: CGPoint(x: rect.origin.x + rect.width * 0.4, y: rect.origin.y + rect.height * 0.35))
-    line.addLine(to: CGPoint(x: rect.origin.x + rect.width * 0.6, y: rect.origin.y + rect.height * 0.5))
-    line.addLine(to: CGPoint(x: rect.origin.x + rect.width * 0.4, y: rect.origin.y + rect.height * 0.65))
-    line.stroke()
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    roundCorners([.topRight, .bottomRight], radius: TGCATrimmerView.shoulderWidth)
+  }
+  
+  override func setupImageView() {
+    super.setupImageView()
+    imageView.image = UIImage(named: "disclosure_image")?.withRenderingMode(.alwaysTemplate)
+    imageView.isOpaque = true
+  }
+  
+  override var increasedBounds: CGRect {
+    return bounds.inset(by: UIEdgeInsets(top: 0, left: -boundsInsetIncreaseValue/4.0, bottom: 0, right: -boundsInsetIncreaseValue))
   }
   
 }

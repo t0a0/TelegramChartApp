@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="14490.70" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_1" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14490.49"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="TGCAChartHeaderView" customModule="TelegramChartApp" customModuleProvider="target">
+            <connections>
+                <outlet property="contentView" destination="iN0-l3-epB" id="GsN-As-J7v"/>
+                <outlet property="label" destination="G6F-9j-PGg" id="uzc-uP-yBH"/>
+                <outlet property="zoomOutButton" destination="uzP-rc-0gO" id="DUG-zT-tIr"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" id="iN0-l3-epB">
+            <rect key="frame" x="0.0" y="0.0" width="307" height="197"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <stackView opaque="NO" contentMode="scaleToFill" distribution="fillProportionally" alignment="center" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="X00-lg-cK8">
+                    <rect key="frame" x="0.0" y="0.0" width="307" height="197"/>
+                    <subviews>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="uzP-rc-0gO">
+                            <rect key="frame" x="0.0" y="84.5" width="80" height="28"/>
+                            <constraints>
+                                <constraint firstAttribute="width" constant="80" id="Ofl-fv-Nq7"/>
+                            </constraints>
+                            <fontDescription key="fontDescription" type="system" pointSize="13"/>
+                            <state key="normal" title="&lt; Zoom out"/>
+                            <connections>
+                                <action selector="zoomOutTapped:" destination="-1" eventType="touchUpInside" id="4Kt-Vm-CrZ"/>
+                            </connections>
+                        </button>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="5" translatesAutoresizingMaskIntoConstraints="NO" id="G6F-9j-PGg">
+                            <rect key="frame" x="90" y="90" width="217" height="17"/>
+                            <fontDescription key="fontDescription" type="system" weight="medium" pointSize="14"/>
+                            <nil key="textColor"/>
+                            <nil key="highlightedColor"/>
+                        </label>
+                    </subviews>
+                </stackView>
+            </subviews>
+            <constraints>
+                <constraint firstItem="X00-lg-cK8" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" id="FaG-bq-d4q"/>
+                <constraint firstAttribute="trailing" secondItem="X00-lg-cK8" secondAttribute="trailing" id="aPd-Fe-O2g"/>
+                <constraint firstAttribute="bottom" secondItem="X00-lg-cK8" secondAttribute="bottom" id="o2M-sV-QEK"/>
+                <constraint firstItem="X00-lg-cK8" firstAttribute="leading" secondItem="iN0-l3-epB" secondAttribute="leading" id="zml-kv-JvW"/>
+            </constraints>
+            <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
+            <point key="canvasLocation" x="51.449275362318843" y="-444.97767857142856"/>
+        </view>
+    </objects>
+</document>
