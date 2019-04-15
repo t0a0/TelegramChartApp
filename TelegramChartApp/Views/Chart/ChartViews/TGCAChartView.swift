@@ -271,7 +271,10 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   }
   
   private func trimXDisplayRange(to newRange: ClosedRange<Int>, with event: DisplayRangeChangeEvent) {
-    
+    //to fix trimming crash while transitioning
+    guard drawings != nil else {
+      return
+    }
     
     if drawings.shapeLayers.first?.animation(forKey: ChartViewConstants.AnimationKeys.updateByTrimming) != nil && event == .Scrolled {
       return
