@@ -196,7 +196,7 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
       }
       if chartContainer.chart.type == .percentage {
         if let generatedChart = chartContainer.chart.generatePieChart(for: date) {
-          let newContainer = ChartContainer(chart: generatedChart, hiddenIndicies: chartContainer.hiddenIndicies)
+          let newContainer = ChartContainer(chart: generatedChart, hiddenIndicies: chartContainer.hiddenIndicies, trimForDate: date)
           chartContainer.setUnderlyingChartContainer(newContainer)
           cell.headerView.zoomOutButton.isHidden = false
           if let buttonsSetup = self?.getButtonsConfigurationFor(chartContainer: newContainer, cell: cell, index: section) {
@@ -345,17 +345,39 @@ class ChartContainer {
     self.chart = chart
     self.hiddenIndicies = hiddenIndicies
     
-    if let endIndex = chart.datesVector.firstIndex(of: date.addingTimeInterval(ChartContainer.ONE_DAY_MINUS_1_HOUR)), let startIndex = chart.datesVector.firstIndex(of: date.addingTimeInterval(ChartContainer.ONE_HOUR)) {
-      
-      let translatedStart = max(0, CGFloat(startIndex)/CGFloat(chart.datesVector.count-1))
-      let translatedEnd = min(1.0, CGFloat(endIndex)/(CGFloat(chart.datesVector.count-1)))
-      if translatedEnd - translatedStart > 0.12 {
-        self.trimRange = CGFloatRangeInBounds(range: translatedStart...translatedEnd, bounds: 0...1)
+    if chart.type != .pie {
+      if let endIndex = chart.datesVector.firstIndex(of: date.addingTimeInterval(ChartContainer.ONE_DAY_MINUS_1_HOUR)), let startIndex = chart.datesVector.firstIndex(of: date.addingTimeInterval(ChartContainer.ONE_HOUR)) {
+        
+        let translatedStart = max(0, CGFloat(startIndex)/CGFloat(chart.datesVector.count-1))
+        let translatedEnd = min(1.0, CGFloat(endIndex)/(CGFloat(chart.datesVector.count-1)))
+        if translatedEnd - translatedStart > 0.12 {
+          self.trimRange = CGFloatRangeInBounds(range: translatedStart...translatedEnd, bounds: 0...1)
+        } else {
+          self.trimRange = CGFloatRangeInBounds.ZeroToOne
+        }
       } else {
         self.trimRange = CGFloatRangeInBounds.ZeroToOne
       }
     } else {
-      self.trimRange = CGFloatRangeInBounds.ZeroToOne
+      if let index = chart.datesVector.firstIndex(of: date) {
+        if index == 0 {
+          self.trimRange = CGFloatRangeInBounds(range: 0...0.13, bounds: 0...1)
+        } else if index == 6 {
+          self.trimRange = CGFloatRangeInBounds(range: 0.87...1.0, bounds: 0...1)
+        } else {
+          let translatedIndex = CGFloat(index)/CGFloat(chart.datesVector.count)
+          let translatedStart = max(0, translatedIndex - 0.065)
+          let translatedEnd = min(1.0, translatedIndex + 0.065)
+          if translatedEnd - translatedStart > 0.12 {
+            self.trimRange = CGFloatRangeInBounds(range: translatedStart...translatedEnd, bounds: 0...1)
+          } else {
+            self.trimRange = CGFloatRangeInBounds.ZeroToOne
+          }
+        }
+        
+      } else {
+        self.trimRange = CGFloatRangeInBounds.ZeroToOne
+      }
     }
     
   }
