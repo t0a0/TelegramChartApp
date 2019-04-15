@@ -11,21 +11,9 @@ import UIKit
 
 class TGCAPieChartView: TGCAChartView {
   
-  //MARK: - Configs
-  var segmentLabelFont: UIFont = UIFont.systemFont(ofSize: 14) {
-    didSet {
-      textAttributes[.font] = segmentLabelFont
-    }
-  }
-  private let paragraphStyle: NSParagraphStyle = {
-    var p = NSMutableParagraphStyle()
-    p.alignment = .center
-    return p.copy() as! NSParagraphStyle
-  }()
   
-  private lazy var textAttributes: [NSAttributedString.Key: Any] = [
-    .paragraphStyle: self.paragraphStyle, .font: self.segmentLabelFont
-  ]
+  static let sizeForText = CGSize(width: 50, height: 20)
+  //MARK: - Configs
   
   var radius: CGFloat {
     return min(frame.width, frame.height) * 0.4
@@ -55,6 +43,15 @@ class TGCAPieChartView: TGCAChartView {
   }
   
   override func updateChartByHiding(at indexes: Set<Int>, originalHiddens: Set<Int>) {
+    CATransaction.begin()
+    CATransaction.setDisableActions(true)
+    for i in 0..<pieSegments.count {
+      let pieSegment = pieSegments[i]
+      let contains = hiddenDrawingIndicies.contains(i)
+      pieSegment.shapeLayer.opacity = contains ? 0 : 1
+      pieSegment.textLayer.opacity = contains ? 0 : 1
+    }
+    CATransaction.commit()
     updatePie()
   }
   
@@ -75,13 +72,9 @@ class TGCAPieChartView: TGCAChartView {
           .projected(by: radius * 0.67, angle: halfAngle)
       }
       
-      let textToRender = slice.text
-    
-      let textRenderSize = textToRender.size(withAttributes: textAttributes)
-      
       // The bounds that the text will occupy.
       let renderRect = CGRect(
-        centeredOn: segmentCenter, size: textRenderSize
+        centeredOn: segmentCenter, size: TGCAPieChartView.sizeForText
       )
       
       let textLayerr = textLayer(in: renderRect, text: slice.text, color: UIColor.black.cgColor)
@@ -107,23 +100,21 @@ class TGCAPieChartView: TGCAChartView {
     var newValues = [CGFloat]()
     var newAngles = [CGFloat]()
     var newTexts = [String]()
+    var newTextsPositions = [CGPoint]()
+    let onlyOneVisible = hiddenDrawingIndicies.count == chart.yVectors.count - 1
     forEachSlice(in: slices) { (slice, startAngle, endAngle) in
       let halfAngle = startAngle + (endAngle - startAngle) * 0.5;
       
       // Get the 'center' of the segment.
       var segmentCenter = center
-      if slices.count > 1 {
+      if !onlyOneVisible {
         segmentCenter = segmentCenter
           .projected(by: radius * 0.67, angle: halfAngle)
       }
       
-      let textToRender = slice.text
-      
-      let textRenderSize = textToRender.size(withAttributes: textAttributes)
-      
       // The bounds that the text will occupy.
       let renderRect = CGRect(
-        centeredOn: segmentCenter, size: textRenderSize
+        centeredOn: segmentCenter, size: TGCAPieChartView.sizeForText
       )
       
       let path = pieSlicePath(center: center, radius: radius, startAngle: startAngle, endAngle: endAngle)
@@ -131,32 +122,22 @@ class TGCAPieChartView: TGCAChartView {
       newValues.append(slice.value)
       newAngles.append(halfAngle)
       newTexts.append(slice.text)
+      newTextsPositions.append(renderRect.center)
     }
     for i in 0..<pieSegments.count {
       pieSegments[i].angle = newAngles[i]
       pieSegments[i].value = newValues[i]
       pieSegments[i].text = newTexts[i]
     }
-    animatePies(with: newPaths)
+    animatePies(with: newPaths, newTextsPositions: newTextsPositions)
   }
   
-  private func animatePies(with newPaths: [CGPath]) {
+  private func animatePies(with newPaths: [CGPath], newTextsPositions: [CGPoint]) {
     for i in 0..<pieSegments.count {
       let pieSegment = pieSegments[i]
-      
-//      var oldPath: Any?
-//      if let _ = pieSegment.shapeLayer.animation(forKey: "pathAnim") {
-//        oldPath = pieSegment.shapeLayer.presentation()?.value(forKey: "path")
-//        pieSegment.shapeLayer.removeAnimation(forKey: "pathAnim")
-//      }
-      
-      let anim = CABasicAnimation(keyPath: "path")
-      anim.duration = CHART_PATH_ANIMATION_DURATION
-      anim.timingFunction = CAMediaTimingFunction(name: .linear)
-      anim.fromValue = /*oldPath ?? */pieSegment.shapeLayer.path
       pieSegment.shapeLayer.path = newPaths[i]
-      anim.toValue = pieSegment.shapeLayer.path
-      pieSegment.shapeLayer.add(anim, forKey: "pathAnim")
+      pieSegment.textLayer.string = pieSegment.text
+      pieSegment.textLayer.position = newTextsPositions[i]
     }
   }
   
@@ -183,12 +164,12 @@ class TGCAPieChartView: TGCAChartView {
     return slices
   }
   
-  private func forEachSlice(in slices: [Slice],
+  private func forEachSlice(in slices: [Slice], startingAngle: CGFloat? = nil,
                             _ body: (Slice, _ startAngle: CGFloat,
     _ endAngle: CGFloat) -> Void
     ) {
     let valueCount = slices.map { $0.value }.sum()
-    var startAngle: CGFloat = -.pi * 0.5
+    var startAngle: CGFloat = startingAngle ?? -.pi * 0.5
     for pieSlice in slices {
       let endAngle = startAngle + .pi * 2 * (pieSlice.value / valueCount)
       defer {
@@ -226,7 +207,6 @@ class TGCAPieChartView: TGCAChartView {
     layer.path = pieSlicePath
     layer.fillColor = fillColor
     layer.strokeColor = fillColor
-    layer.lineWidth = 0.2
     layer.contentsScale = UIScreen.main.scale
     return layer
   }
@@ -234,12 +214,13 @@ class TGCAPieChartView: TGCAChartView {
   func textLayer(in rect: CGRect, text: String, color: CGColor) -> CATextLayer {
     let textLayer = CATextLayer()
     textLayer.frame = rect
-    textLayer.font = textAttributes[.font] as CFTypeRef
+    textLayer.font = ChartViewConstants.guideLabelsFont
     textLayer.fontSize = ChartViewConstants.guideLabelsFontSize
     textLayer.string = text
     textLayer.contentsScale = ChartViewConstants.contentScaleForText
     textLayer.foregroundColor = color
     textLayer.alignmentMode = .center
+    textLayer.frame.size = TGCAPieChartView.sizeForText
     return textLayer
   }
   

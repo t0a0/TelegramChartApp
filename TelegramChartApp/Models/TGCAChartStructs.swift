@@ -222,6 +222,9 @@ struct DataChart {
   }
   
   func sums(at indexes: [Int], includedIndicies: [Int]) -> [CGFloat] {
+    if includedIndicies.count == 0 {
+      return (0..<yVectors.count).map{ValueVector(yVectors[$0].vector[indexes.first!...indexes.last!]).sum()}
+    }
     let sums =  includedIndicies.map{ValueVector(yVectors[$0].vector[indexes.first!...indexes.last!]).sum()}
     var retVal = [CGFloat]()
     var j = 0
