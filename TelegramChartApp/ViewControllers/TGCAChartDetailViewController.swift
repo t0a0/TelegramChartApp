@@ -9,6 +9,7 @@
 import Foundation
 import UIKit
 
+
 class TGCAChartDetailViewController: UIViewController {
   
   let SECTION_HEADER_HEIGHT: CGFloat = 50.0
@@ -18,42 +19,7 @@ class TGCAChartDetailViewController: UIViewController {
   
   @IBOutlet weak var tableView: UITableView!
     
-  private class ChartContainer {
-    let chart: DataChart
-    var underlyingChartContainer: ChartContainer?
-
-    private(set) var hiddenIndicies: Set<Int>
-    private(set) var trimRange: CGFloatRangeInBounds
-    
-    
-    init(chart: DataChart, hiddenIndicies: Set<Int> = []) {
-      self.chart = chart
-      self.trimRange = CGFloatRangeInBounds.ZeroToOne
-      self.hiddenIndicies = hiddenIndicies
-    }
-    
-    func updateTrimRange(to newRange: CGFloatRangeInBounds) {
-      trimRange = newRange
-    }
-    
-    func toggleHiden(index: Int) {
-      if hiddenIndicies.contains(index) {
-        hiddenIndicies.remove(index)
-      } else {
-        hiddenIndicies.insert(index)
-      }
-    }
-    
-    func hideAll() {
-      hiddenIndicies = Set(0..<chart.yVectors.count)
-    }
-    
-    func showAll() {
-      hiddenIndicies = []
-    }
-    
-    
-  }
+  
   
   private let chartContainers = (1...5).map{TGCAJsonToChartService().parseJson(named: "overview", subDir: "contest/\($0)")!}.map{ChartContainer(chart: $0)}
   
@@ -104,12 +70,7 @@ class TGCAChartDetailViewController: UIViewController {
   }
   
   func registerCells() {
-    tableView.register(UINib(nibName: "TGCALinearChartTableViewCell", bundle: nil), forCellReuseIdentifier: TGCALinearChartTableViewCell.defaultReuseId)
-    tableView.register(UINib(nibName: "TGCASingleBarChartTableViewCell", bundle: nil), forCellReuseIdentifier: TGCASingleBarChartTableViewCell.defaultReuseId)
-    tableView.register(UINib(nibName: "TGCAStackedBarChartTableViewCell", bundle: nil), forCellReuseIdentifier: TGCAStackedBarChartTableViewCell.defaultReuseId)
-    tableView.register(UINib(nibName: "TGCAPercentageChartTableViewCell", bundle: nil), forCellReuseIdentifier: TGCAPercentageChartTableViewCell.defaultReuseId)
-    tableView.register(UINib(nibName: "TGCALinearChartWith2AxesTableViewCell", bundle: nil), forCellReuseIdentifier: TGCALinearChartWith2AxesTableViewCell.defaultReuseId)
-
+    tableView.register(UINib(nibName: "TGCAChartTableViewCell", bundle: nil), forCellReuseIdentifier: TGCAChartTableViewCell.defaultReuseIdd)
   }
   
   deinit {
@@ -177,94 +138,121 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
   }
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    var cell: TGCAChartTableViewCell!
-    let chartType = chartContainers[indexPath.section].chart.type
-    switch chartType {
-    case .linear:
-      cell = tableView.dequeueReusableCell(withIdentifier: TGCALinearChartTableViewCell.defaultReuseId) as! TGCALinearChartTableViewCell
-    case .linearWith2Axes:
-      cell = tableView.dequeueReusableCell(withIdentifier: TGCALinearChartWith2AxesTableViewCell.defaultReuseId) as! TGCALinearChartWith2AxesTableViewCell
-    case .percentage:
-      cell = tableView.dequeueReusableCell(withIdentifier: TGCAPercentageChartTableViewCell.defaultReuseId) as! TGCAPercentageChartTableViewCell
-    case .singleBar:
-      cell = tableView.dequeueReusableCell(withIdentifier: TGCASingleBarChartTableViewCell.defaultReuseId) as! TGCASingleBarChartTableViewCell
-    case .stackedBar:
-      cell = tableView.dequeueReusableCell(withIdentifier: TGCAStackedBarChartTableViewCell.defaultReuseId) as! TGCAStackedBarChartTableViewCell
-    }
+    let cell = tableView.dequeueReusableCell(withIdentifier: TGCAChartTableViewCell.defaultReuseIdd) as! TGCAChartTableViewCell
+    cell.configure(for: chartContainers[indexPath.section].underlyingChartContainer?.chart.type ?? chartContainers[indexPath.section].chart.type)
     configureChartCell(cell, section: indexPath.section)
     return cell
   }
   
   func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-    return view.bounds.height
+    return view.bounds.height - SECTION_HEADER_HEIGHT
   }
   
   
-  func configureChartCell(_ cell: TGCAChartTableViewCell, section: Int) {
+  func configureChartCell(_ cell: TGCAChartTableViewCell, section: Int, animateTrimmer: Bool = false) {
+    var isUnderlying = false
+    var chartContainer: ChartContainer
     
-    let chartContainer = chartContainers[section]
+    if let underlying = chartContainers[section].underlyingChartContainer {
+      chartContainer = underlying
+      isUnderlying = true
+    } else {
+      chartContainer = chartContainers[section]
+    }
     
     let translatedBounds = chartContainer.chart.translatedBounds(for: chartContainer.trimRange)
     let left = chartContainer.chart.datesVector[translatedBounds.lowerBound]
     let right = chartContainer.chart.datesVector[translatedBounds.upperBound]
+    
     cell.headerView.label.text = dateRangeFormatter.prettyDateStringFrom(left: left, right: right)
+    cell.headerView.label.textAlignment = isUnderlying ? .right : .center
+    cell.headerView.zoomOutButton.isHidden = !isUnderlying
     
     cell.headerView.onZoomOut = { [weak self] in
-      chartContainer.underlyingChartContainer = nil
+      guard let parentChartContainer = chartContainer.parentChartContainer else {
+        return
+      }
+      parentChartContainer.setUnderlyingChartContainer(nil)
       cell.headerView.zoomOutButton.isHidden = true
-      if let buttonsSetup = self?.getButtonsConfigurationFor(chartContainer: chartContainer, cell: cell, index: section) {
+      if let buttonsSetup = self?.getButtonsConfigurationFor(chartContainer: parentChartContainer, cell: cell, index: section) {
         cell.chartFiltersHeightConstraint.constant = cell.chartFiltersView?.setupButtons(buttonsSetup) ?? 0
       }
-      cell.chartView.transitionToMainChart()
-      cell.thumbnailChartView.transitionToMainChart()
-      cell.trimmerView?.setCurrentRange(chartContainer.trimRange, animated: true)
+      
+      cell.transition(to: parentChartContainer.chart.type)
+      self?.configureChartCell(cell, section: section, animateTrimmer: true)
     }
     
-    
-    cell.chartFiltersHeightConstraint.constant = cell.chartFiltersView?.setupButtons(getButtonsConfigurationFor(chartContainer: chartContainer, cell: cell, index: section)) ?? 0
+    if chartContainer.chart.type != .singleBar {
+      cell.chartFiltersHeightConstraint.constant = cell.chartFiltersView?.setupButtons(getButtonsConfigurationFor(chartContainer: chartContainer, cell: cell, index: section)) ?? 0
+      cell.chartFiltersView.isHidden = false
+    } else {
+      cell.chartFiltersView.isHidden = true
+      cell.chartFiltersHeightConstraint.constant = 0
+    }
     
     cell.chartView?.onAnnotationClick = {[weak self] date in
+      guard !isUnderlying else {
+        return false
+      }
+      if chartContainer.chart.type == .percentage {
+        if let generatedChart = chartContainer.chart.generatePieChart(for: date) {
+          let newContainer = ChartContainer(chart: generatedChart, hiddenIndicies: chartContainer.hiddenIndicies, trimForDate: date)
+          chartContainer.setUnderlyingChartContainer(newContainer)
+          cell.headerView.zoomOutButton.isHidden = false
+          if let buttonsSetup = self?.getButtonsConfigurationFor(chartContainer: newContainer, cell: cell, index: section) {
+            cell.chartFiltersHeightConstraint.constant = cell.chartFiltersView?.setupButtons(buttonsSetup) ?? 0
+          }
+          
+          cell.transition(to: newContainer.chart.type)
+          self?.configureChartCell(cell, section: section, animateTrimmer: true)
+          return true
+        }
+        return false
+      }
+
       if let underlyingChart = self?.loadZoomedInJSONDataFor(chartIndex: section, date: date) {
-        let newContainer = ChartContainer(chart: underlyingChart, hiddenIndicies: chartContainer.hiddenIndicies)
-        chartContainer.underlyingChartContainer = newContainer
+        let newContainer = underlyingChart.type == .threeDaysComparison ? ChartContainer(chart: underlyingChart, hiddenIndicies: chartContainer.hiddenIndicies) : ChartContainer(chart: underlyingChart, hiddenIndicies: chartContainer.hiddenIndicies, trimForDate: date)
+        chartContainer.setUnderlyingChartContainer(newContainer)
         cell.headerView.zoomOutButton.isHidden = false
         if let buttonsSetup = self?.getButtonsConfigurationFor(chartContainer: newContainer, cell: cell, index: section) {
            cell.chartFiltersHeightConstraint.constant = cell.chartFiltersView?.setupButtons(buttonsSetup) ?? 0
         }
        
-        
-        cell.chartView?.transitionToUnderlyingChart(underlyingChart, displayRange: newContainer.trimRange)
-        cell.thumbnailChartView?.transitionToUnderlyingChart(underlyingChart, displayRange: CGFloatRangeInBounds.ZeroToOne)
-        cell.trimmerView?.setCurrentRange(newContainer.trimRange, animated: true)
+        cell.transition(to: newContainer.chart.type)
+        self?.configureChartCell(cell, section: section, animateTrimmer: true)
         return true
       }
       return false
     }
 
+    cell.chartView.isUnderlying = isUnderlying
 
     cell.chartView?.configure(with: chartContainer.chart, hiddenIndicies: chartContainer.hiddenIndicies, displayRange: chartContainer.trimRange)
     cell.thumbnailChartView?.configure(with: chartContainer.chart, hiddenIndicies: chartContainer.hiddenIndicies, displayRange: CGFloatRangeInBounds.ZeroToOne)
     
     //trim view config
-    cell.trimmerView?.setCurrentRange(chartContainer.trimRange)
-    
-    cell.trimmerView?.onChange = {[weak self] (newRange, event) in
-      if event == .Started {
-        cell.chartView?.isUserInteractionEnabled = false
-      } else if event == .Ended {
-        cell.chartView?.isUserInteractionEnabled = true
+    if chartContainer.chart.type != .threeDaysComparison {
+      cell.trimmerView.isHidden = false
+      cell.trimmerView?.setCurrentRange(chartContainer.trimRange, animated: animateTrimmer)
+      
+      cell.trimmerView?.onChange = {[weak self] (newRange, event) in
+        if event == .Started {
+          cell.chartView?.isUserInteractionEnabled = false
+        } else if event == .Ended {
+          cell.chartView?.isUserInteractionEnabled = true
+        }
+        cell.chartView?.trimDisplayRange(to: newRange, with: event)
+        chartContainer.updateTrimRange(to: newRange)
+        
+        let translatedBounds = chartContainer.chart.translatedBounds(for: newRange)
+        let left = chartContainer.chart.datesVector[translatedBounds.lowerBound]
+        let right = chartContainer.chart.datesVector[translatedBounds.upperBound]
+        
+        cell.headerView.label.text = self?.dateRangeFormatter.prettyDateStringFrom(left: left, right: right)
       }
-      cell.chartView?.trimDisplayRange(to: newRange, with: event)
-      chartContainer.updateTrimRange(to: newRange)
-      
-      let translatedBounds = chartContainer.chart.translatedBounds(for: newRange)
-      let left = chartContainer.chart.datesVector[translatedBounds.lowerBound]
-      let right = chartContainer.chart.datesVector[translatedBounds.upperBound]
-      
-      cell.headerView.label.text = self?.dateRangeFormatter.prettyDateStringFrom(left: left, right: right)
+    } else {
+      cell.trimmerView.isHidden = true
     }
-    
-    
     
     let theme = UIApplication.myDelegate.currentTheme
     cell.headerView.label.textColor = theme.mainTextColor
@@ -329,6 +317,98 @@ extension TGCAChartDetailViewController: ThemeChangeObserving {
     } else {
       applyChanges()
     }
+  }
+  
+}
+
+
+class ChartContainer {
+  static let ONE_DAY: TimeInterval = 24*60*60
+  static let ONE_DAY_MINUS_1_HOUR: TimeInterval = 23*60*60
+  static let ONE_HOUR: TimeInterval = 60*60
+  
+  let chart: DataChart
+  private(set) var underlyingChartContainer: ChartContainer?
+  private(set) var parentChartContainer: ChartContainer?
+  
+  private(set) var hiddenIndicies: Set<Int>
+  private(set) var trimRange: CGFloatRangeInBounds
+  
+  
+  init(chart: DataChart, hiddenIndicies: Set<Int> = []) {
+    self.chart = chart
+    self.trimRange = CGFloatRangeInBounds.ZeroToOne
+    self.hiddenIndicies = hiddenIndicies
+  }
+  
+  init(chart: DataChart, hiddenIndicies: Set<Int> = [], trimForDate date: Date) {
+    self.chart = chart
+    self.hiddenIndicies = hiddenIndicies
+    
+    if chart.type != .pie {
+      if let endIndex = chart.datesVector.firstIndex(of: date.addingTimeInterval(ChartContainer.ONE_DAY_MINUS_1_HOUR)), let startIndex = chart.datesVector.firstIndex(of: date.addingTimeInterval(ChartContainer.ONE_HOUR)) {
+        
+        let translatedStart = max(0, CGFloat(startIndex)/CGFloat(chart.datesVector.count-1))
+        let translatedEnd = min(1.0, CGFloat(endIndex)/(CGFloat(chart.datesVector.count-1)))
+        if translatedEnd - translatedStart > 0.12 {
+          self.trimRange = CGFloatRangeInBounds(range: translatedStart...translatedEnd, bounds: 0...1)
+        } else {
+          self.trimRange = CGFloatRangeInBounds.ZeroToOne
+        }
+      } else {
+        self.trimRange = CGFloatRangeInBounds.ZeroToOne
+      }
+    } else {
+      if let index = chart.datesVector.firstIndex(of: date) {
+        if index == 0 {
+          self.trimRange = CGFloatRangeInBounds(range: 0...0.13, bounds: 0...1)
+        } else if index == 6 {
+          self.trimRange = CGFloatRangeInBounds(range: 0.87...1.0, bounds: 0...1)
+        } else {
+          let translatedIndex = CGFloat(index)/CGFloat(chart.datesVector.count)
+          let translatedStart = max(0, translatedIndex - 0.065)
+          let translatedEnd = min(1.0, translatedIndex + 0.065)
+          if translatedEnd - translatedStart > 0.12 {
+            self.trimRange = CGFloatRangeInBounds(range: translatedStart...translatedEnd, bounds: 0...1)
+          } else {
+            self.trimRange = CGFloatRangeInBounds.ZeroToOne
+          }
+        }
+        
+      } else {
+        self.trimRange = CGFloatRangeInBounds.ZeroToOne
+      }
+    }
+    
+  }
+  
+  func updateTrimRange(to newRange: CGFloatRangeInBounds) {
+    trimRange = newRange
+  }
+  
+  func toggleHiden(index: Int) {
+    if hiddenIndicies.contains(index) {
+      hiddenIndicies.remove(index)
+    } else {
+      hiddenIndicies.insert(index)
+    }
+  }
+  
+  func hideAll() {
+    hiddenIndicies = Set(0..<chart.yVectors.count)
+  }
+  
+  func showAll() {
+    hiddenIndicies = []
+  }
+  
+  func setUnderlyingChartContainer(_ underlyingChartContainer: ChartContainer?) {
+    self.underlyingChartContainer = underlyingChartContainer
+    self.underlyingChartContainer?.setParentChartContainer(self)
+  }
+  
+  func setParentChartContainer(_ parentChartContainer: ChartContainer) {
+    self.parentChartContainer = parentChartContainer
   }
   
 }

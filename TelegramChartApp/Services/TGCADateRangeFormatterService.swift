@@ -27,8 +27,18 @@ class TGCADateRangeFormatterService {
     return df
   }()
   
+  private lazy var calendar: Calendar = {
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.locale = Locale(identifier: "en_US")
+    if let timeZone = TimeZone(secondsFromGMT: 0) {
+      calendar.timeZone = timeZone
+    }
+    return calendar
+  }()
+  
   func prettyDateStringFrom(left: Date, right: Date) -> String {
-    if left != right {
+    
+    if !calendar.isDate(left, inSameDayAs: right) {
       return mediumDateFormatter.string(from: left) + " - " + mediumDateFormatter.string(from: right)
     }
     return fullDateFormatter.string(from: left)

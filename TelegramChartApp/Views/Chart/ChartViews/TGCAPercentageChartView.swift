@@ -22,10 +22,15 @@ class TGCAPercentageChartView: TGCAChartView {
   }
   
   override func getCurrentYVectorData() -> YVectorDataProtocol {
-    return YVectorData(yVectors: getPercentageYVectors().map{mapToChartBoundsHeight($0)}, yRangeData: PercentageYRangeData())
+    return YVectorData(yVectors: getPercentageYVectors().map{mapToLineLayerHeight($0)}, yRangeData: PercentageYRangeData())
   }
   
   override func updateYValueRange(with yRangeData: YRangeDataProtocol) -> YRangeChangeResultProtocol {
+    if hiddenDrawingIndicies.count == chart.yVectors.count {
+      hideHorizontalAxes()
+    } else {
+      revealHorizontalAxes()
+    }
     return PercentageChartYChangeResult()
   }
   
@@ -41,7 +46,7 @@ class TGCAPercentageChartView: TGCAChartView {
   
   override func addShapeSublayers(_ layers: [CAShapeLayer]) {
     layers.reversed().forEach{
-      lineLayer.addSublayer($0)
+      chartDrawingsLayer.addSublayer($0)
     }
   }
   
@@ -70,7 +75,7 @@ class TGCAPercentageChartView: TGCAChartView {
         shapeLayer.add(pathAnimation, forKey: "pathAnimation")
       }
       
-      if animatesPositionOnHide {
+      if !chartConfiguration.isThumbnail {
         positionChangeBlock()
       } else {
         if !hiddenDrawingIndicies.contains(i) && !(originalHiddens.contains(i) && indexes.contains(i)) {
@@ -93,7 +98,7 @@ class TGCAPercentageChartView: TGCAChartView {
         
         opacityAnimation.values = [oldOpacity ?? shapeLayer.opacity, targetOpacity]
         shapeLayer.opacity = targetOpacity
-        opacityAnimation.keyTimes = (!animatesPositionOnHide || hiddenDrawingIndicies.count == chart.yVectors.count || (hiddenDrawingIndicies.count == chart.yVectors.count - 1 && originalHiddens.contains(i))) ? [0.0, 1.0] : (originalHiddens.contains(i) ? [0.0, 0.25] : [0.75, 1.0])
+        opacityAnimation.keyTimes = (chartConfiguration.isThumbnail || hiddenDrawingIndicies.count == chart.yVectors.count || (hiddenDrawingIndicies.count == chart.yVectors.count - 1 && originalHiddens.contains(i))) ? [0.0, 1.0] : (originalHiddens.contains(i) ? [0.0, 0.25] : [0.75, 1.0])
         opacityAnimation.duration = CHART_FADE_ANIMATION_DURATION
         shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
       }
@@ -127,13 +132,11 @@ class TGCAPercentageChartView: TGCAChartView {
   }
   
   override func addHorizontalAxes() {
-    let boundsRight = bounds.origin.x + bounds.width
-
     
     let values: [CGFloat] = [0, 25, 50, 75, 100]
     let texts = values.map{chartLabelFormatterService.prettyValueString(from: $0)}
 
-    let spacing = chartBounds.height / CGFloat(values.count-1)
+    let spacing = chartHeightBounds.upperBound / CGFloat(values.count-1)
     
     let positions = (0..<values.count).map{chartBoundsBottom - (CGFloat($0) * spacing)}
 
@@ -142,16 +145,46 @@ class TGCAPercentageChartView: TGCAChartView {
     
     for i in 0..<positions.count {
       let position = positions[i]
-      let line = bezierLine(from: CGPoint(x: bounds.origin.x, y: 0), to: CGPoint(x: boundsRight, y: 0))
+      let line = bezierLine(from: CGPoint(x: axisLayer.frame.origin.x, y: 0), to: CGPoint(x: axisLayer.frame.origin.x + axisLayer.frame.width, y: 0))
       let lineLayer = shapeLayer(withPath: line.cgPath, color: axisColor, lineWidth: ChartViewConstants.axisLineWidth)
       lineLayer.position.y = position
-      let labelLayer = textLayer(origin: CGPoint(x: bounds.origin.x, y: position - 20), text: texts[i], color: axisYLabelColor)
+      let labelLayer = textLayer(origin: CGPoint(x: axisLayer.frame.origin.x, y: position - 20), text: texts[i], color: axisYLabelColor)
       labelLayer.alignmentMode = .left
-      axisLayer.addSublayer(lineLayer)
-      axisLayer.addSublayer(labelLayer)
+      //here i add not to axis layer because its gonna be clipped otherwise
+      layer.addSublayer(lineLayer)
+      layer.addSublayer(labelLayer)
       newAxis.append(PercentageHorizontalAxis(lineLayer: lineLayer, labelLayer: labelLayer, value: values[i]))
     }
     horizontalAxes = newAxis
+    
+    if hiddenDrawingIndicies.count == chart.yVectors.count {
+      hideHorizontalAxes()
+    } else {
+      revealHorizontalAxes()
+    }
+  }
+  
+  private func hideHorizontalAxes() {
+    
+    if let horizontalAxes = horizontalAxes {
+      for i in 1..<horizontalAxes.count {
+        let ax = horizontalAxes[i]
+        ax.labelLayer.isHidden = true
+        ax.lineLayer.isHidden = true
+      }
+      horizontalAxes.first?.labelLayer.isHidden = true
+    }
+  }
+  
+  private func revealHorizontalAxes() {
+    if let horizontalAxes = horizontalAxes {
+      for i in 1..<horizontalAxes.count {
+        let ax = horizontalAxes[i]
+        ax.labelLayer.isHidden = false
+        ax.lineLayer.isHidden = false
+      }
+      horizontalAxes.first?.labelLayer.isHidden = false
+    }
   }
   
   override func removeHorizontalAxes() {
@@ -176,7 +209,7 @@ class TGCAPercentageChartView: TGCAChartView {
     coloredValues.sort { (left, right) -> Bool in
       return left.value >= right.value
     }
-    return TGCAChartAnnotationView.AnnotationViewConfiguration(date: chart.datesVector[index], showsDisclosureIcon: true, mode: .Date, showsLeftColumn: true, coloredValues: coloredValues)
+    return TGCAChartAnnotationView.AnnotationViewConfiguration(date: chart.datesVector[index], showsDisclosureIcon: !isUnderlying, mode: isUnderlying ? .Time : .Date, showsLeftColumn: true, coloredValues: coloredValues)
   }
   
   override func addChartAnnotation(_ chartAnnotation: ChartAnnotationProtocol) {
@@ -184,7 +217,7 @@ class TGCAPercentageChartView: TGCAChartView {
       return
     }
     addSubview(chartAnnotation.annotationView)
-    lineLayer.addSublayer(chartAnnotation.lineLayer)
+    chartDrawingsLayer.addSublayer(chartAnnotation.lineLayer)
   }
   
   override func generateChartAnnotation(for index: Int, with annotationView: TGCAChartAnnotationView) -> ChartAnnotationProtocol {
@@ -212,7 +245,10 @@ class TGCAPercentageChartView: TGCAChartView {
   
   override func removeChartAnnotation() {
     if let annotation = currentChartAnnotation as? ChartAnnotation {
+      CATransaction.begin()
+      CATransaction.setDisableActions(true)
       annotation.lineLayer.removeFromSuperlayer()
+      CATransaction.commit()
       annotation.annotationView.removeFromSuperview()
       currentChartAnnotation = nil
     }
@@ -227,16 +263,6 @@ class TGCAPercentageChartView: TGCAChartView {
   }
   private func getPercentageYVectors() -> [ValueVector] {
     return chartPercentageYVectors
-  }
-  
-  // MARK: COnfiguration
-  
-  override func configureChartBounds() {
-    chartBounds = CGRect(x: bounds.origin.x,
-                         y: bounds.origin.y,
-                         width: bounds.width,
-                         height: bounds.height
-                          - (shouldDisplayAxesAndLabels ? ChartViewConstants.sizeForGuideLabels.height : 0))
   }
   
   // MARK: Private structs and classes

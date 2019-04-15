@@ -14,7 +14,7 @@ class TGCAStackedBarChartView: TGCASingleBarChartView {
   override func getNormalizedYVectors() -> NormalizedYVectors {
     let translatedBounds = chart.translatedBounds(for: currentTrimRange)
 
-    return valuesStartFromZero
+    return chartConfiguration.valuesStartFromZero
       ? chart.normalizedStackedYVectorsFromZeroMinimum(in: translatedBounds, excludedIndicies: hiddenDrawingIndicies)
       : chart.normalizedStackedYVectorsFromLocalMinimum(in: translatedBounds, excludedIndicies: hiddenDrawingIndicies)
   }
@@ -38,7 +38,7 @@ class TGCAStackedBarChartView: TGCASingleBarChartView {
         shapeLayer.add(pathAnimation, forKey: "pathAnimation")
       }
       
-      if animatesPositionOnHide {
+      if !chartConfiguration.isThumbnail {
         positionChangeBlock()
       } else {
         if !hiddenDrawingIndicies.contains(i) && !(originalHiddens.contains(i) && indexes.contains(i)) {
@@ -61,7 +61,7 @@ class TGCAStackedBarChartView: TGCASingleBarChartView {
         
         opacityAnimation.values = [oldOpacity ?? shapeLayer.opacity, targetOpacity]
         shapeLayer.opacity = targetOpacity
-        opacityAnimation.keyTimes = (!animatesPositionOnHide || hiddenDrawingIndicies.count == chart.yVectors.count || (hiddenDrawingIndicies.count == chart.yVectors.count - 1 && originalHiddens.contains(i))) ? [0.0, 1.0] : (originalHiddens.contains(i) ? [0.0, 0.25] : [0.75, 1.0])
+        opacityAnimation.keyTimes = (chartConfiguration.isThumbnail || hiddenDrawingIndicies.count == chart.yVectors.count || (hiddenDrawingIndicies.count == chart.yVectors.count - 1 && originalHiddens.contains(i))) ? [0.0, 1.0] : (originalHiddens.contains(i) ? [0.0, 0.25] : [0.75, 1.0])
         opacityAnimation.duration = CHART_FADE_ANIMATION_DURATION
         shapeLayer.add(opacityAnimation, forKey: "opacityAnimation")
       }
@@ -70,7 +70,7 @@ class TGCAStackedBarChartView: TGCASingleBarChartView {
   
   override func addShapeSublayers(_ layers: [CAShapeLayer]) {
     layers.reversed().forEach{
-      lineLayer.addSublayer($0)
+      chartDrawingsLayer.addSublayer($0)
     }
   }
 
@@ -92,7 +92,7 @@ class TGCAStackedBarChartView: TGCASingleBarChartView {
     if includedIndicies.count > 1 {
       coloredValues.append(TGCAChartAnnotationView.ColoredValue(title: "All", value: summ, color: nil))
     }
-    return TGCAChartAnnotationView.AnnotationViewConfiguration(date: chart.datesVector[index], showsDisclosureIcon: true, mode: .Date, showsLeftColumn: false, coloredValues: coloredValues)
+    return TGCAChartAnnotationView.AnnotationViewConfiguration(date: chart.datesVector[index], showsDisclosureIcon: !isUnderlying, mode: isUnderlying ? .Time : .Date, showsLeftColumn: false, coloredValues: coloredValues)
   }
 
 }

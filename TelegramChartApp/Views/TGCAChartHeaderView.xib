@@ -21,32 +21,34 @@
             <rect key="frame" x="0.0" y="0.0" width="307" height="197"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
-                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="uzP-rc-0gO">
-                    <rect key="frame" x="0.0" y="0.0" width="80" height="197"/>
-                    <constraints>
-                        <constraint firstAttribute="width" constant="80" id="Ofl-fv-Nq7"/>
-                    </constraints>
-                    <fontDescription key="fontDescription" type="system" pointSize="13"/>
-                    <state key="normal" title="&lt; Zoom out"/>
-                    <connections>
-                        <action selector="zoomOutTapped:" destination="-1" eventType="touchUpInside" id="4Kt-Vm-CrZ"/>
-                    </connections>
-                </button>
-                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="5" translatesAutoresizingMaskIntoConstraints="NO" id="G6F-9j-PGg">
-                    <rect key="frame" x="135.5" y="90" width="36" height="17"/>
-                    <fontDescription key="fontDescription" type="system" weight="medium" pointSize="14"/>
-                    <nil key="textColor"/>
-                    <nil key="highlightedColor"/>
-                </label>
+                <stackView opaque="NO" contentMode="scaleToFill" distribution="fillProportionally" alignment="center" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="X00-lg-cK8">
+                    <rect key="frame" x="0.0" y="0.0" width="307" height="197"/>
+                    <subviews>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="uzP-rc-0gO">
+                            <rect key="frame" x="0.0" y="84.5" width="80" height="28"/>
+                            <constraints>
+                                <constraint firstAttribute="width" constant="80" id="Ofl-fv-Nq7"/>
+                            </constraints>
+                            <fontDescription key="fontDescription" type="system" pointSize="13"/>
+                            <state key="normal" title="&lt; Zoom out"/>
+                            <connections>
+                                <action selector="zoomOutTapped:" destination="-1" eventType="touchUpInside" id="4Kt-Vm-CrZ"/>
+                            </connections>
+                        </button>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="5" translatesAutoresizingMaskIntoConstraints="NO" id="G6F-9j-PGg">
+                            <rect key="frame" x="90" y="90" width="217" height="17"/>
+                            <fontDescription key="fontDescription" type="system" weight="medium" pointSize="14"/>
+                            <nil key="textColor"/>
+                            <nil key="highlightedColor"/>
+                        </label>
+                    </subviews>
+                </stackView>
             </subviews>
             <constraints>
-                <constraint firstItem="G6F-9j-PGg" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="uzP-rc-0gO" secondAttribute="trailing" constant="8" id="EOB-bE-mmz"/>
-                <constraint firstAttribute="bottom" secondItem="uzP-rc-0gO" secondAttribute="bottom" id="PW0-hg-qNr"/>
-                <constraint firstItem="G6F-9j-PGg" firstAttribute="centerX" secondItem="iN0-l3-epB" secondAttribute="centerX" priority="750" id="Wb6-VN-AQM"/>
-                <constraint firstItem="uzP-rc-0gO" firstAttribute="leading" secondItem="iN0-l3-epB" secondAttribute="leading" id="cCO-rg-KVf"/>
-                <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="G6F-9j-PGg" secondAttribute="trailing" priority="750" id="dkv-WL-3Oe"/>
-                <constraint firstAttribute="top" secondItem="uzP-rc-0gO" secondAttribute="top" id="fMk-vI-Lfe"/>
-                <constraint firstItem="G6F-9j-PGg" firstAttribute="centerY" secondItem="iN0-l3-epB" secondAttribute="centerY" id="jxb-Bs-ocS"/>
+                <constraint firstItem="X00-lg-cK8" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" id="FaG-bq-d4q"/>
+                <constraint firstAttribute="trailing" secondItem="X00-lg-cK8" secondAttribute="trailing" id="aPd-Fe-O2g"/>
+                <constraint firstAttribute="bottom" secondItem="X00-lg-cK8" secondAttribute="bottom" id="o2M-sV-QEK"/>
+                <constraint firstItem="X00-lg-cK8" firstAttribute="leading" secondItem="iN0-l3-epB" secondAttribute="leading" id="zml-kv-JvW"/>
             </constraints>
             <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
             <point key="canvasLocation" x="51.449275362318843" y="-444.97767857142856"/>

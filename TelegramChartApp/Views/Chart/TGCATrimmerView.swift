@@ -27,7 +27,7 @@ class TGCATrimmerView: UIView {
     
     func changes() {
       let curRange = currentRange
-      if range.bounds == curRange.bounds {
+      if range.bounds == curRange.bounds && range.range == curRange.range {
         leftConstraint?.constant = curRange.range.lowerBound
         rightConstraint?.constant = -1 * (curRange.bounds.upperBound - curRange.range.upperBound)
       } else {
@@ -51,7 +51,7 @@ class TGCATrimmerView: UIView {
   }
   
   /// The minimum range allowed for the trimming. Between 0.0 and 1.0.
-  private let minimumRangeLength: CGFloat = 0.2
+  private let minimumRangeLength: CGFloat = 0.12
   
   // MARK: - Subviews
   
@@ -332,7 +332,7 @@ class TGCATrimmerView: UIView {
       if widthChangeCoefficient == CGFloat.infinity { widthChangeCoefficient = 0.0}
       lc.constant = round(lc.constant * widthChangeCoefficient)
       rc.constant = round(rc.constant * widthChangeCoefficient)
-//      layoutIfNeeded()
+      layoutIfNeeded()
     }
   }
   

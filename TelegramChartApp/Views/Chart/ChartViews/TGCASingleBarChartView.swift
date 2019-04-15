@@ -29,14 +29,37 @@ class TGCASingleBarChartView: TGCAChartView {
   
   //MARK: - Annotations
   
-
+  override func desiredOriginForChartAnnotationPlacing(chartAnnotation: ChartAnnotationProtocol) -> CGPoint {
+    let xPoint = drawings.xPositions[chartAnnotation.displayedIndex] + chartDrawingsLayer.frame.origin.x
+    let annotationSize = chartAnnotation.annotationView.bounds.size
+    let windowStart = scrollView.contentOffset.x
+    let windowEnd = scrollView.contentOffset.x + scrollView.frame.size.width
+    
+    var scaledGap: CGFloat = 10
+    if let a = drawings?.xPositions {
+      if a.count >= 3 {
+        scaledGap += a[3] - a[0]
+      }
+    }
+    
+    //hack with scaled gap
+    if xPoint + annotationSize.width + 10 + padding < windowEnd {
+      return CGPoint(x: max(0, min(frame.width - annotationSize.width, xPoint + scaledGap - windowStart)), y: ChartViewConstants.chartAnnotationYOrigin)
+    } else if xPoint - annotationSize.width - 10 - padding > windowStart {
+      return CGPoint(x: max(0, min(frame.width - annotationSize.width, xPoint - annotationSize.width - scaledGap - windowStart)), y: ChartViewConstants.chartAnnotationYOrigin)
+    }
+    let xPos = min(windowEnd - annotationSize.width, max(windowStart, xPoint - annotationSize.width/2 ))
+    return CGPoint(x: xPos - windowStart, y: ChartViewConstants.chartAnnotationYOrigin)
+  }
+  
+  
   override func addChartAnnotation(_ chartAnnotation: ChartAnnotationProtocol) {
     guard let chartAnnotation = chartAnnotation as? ChartAnnotation else {
       return
     }
     addSubview(chartAnnotation.annotationView)
-    lineLayer.addSublayer(chartAnnotation.leftMask)
-    lineLayer.addSublayer(chartAnnotation.rightMask)
+    chartDrawingsLayer.addSublayer(chartAnnotation.leftMask)
+    chartDrawingsLayer.addSublayer(chartAnnotation.rightMask)
   }
   
   override func generateChartAnnotation(for index: Int, with annotationView: TGCAChartAnnotationView) -> ChartAnnotationProtocol {
@@ -103,8 +126,11 @@ class TGCASingleBarChartView: TGCAChartView {
   
   override func removeChartAnnotation() {
     if let annotation = currentChartAnnotation as? ChartAnnotation {
+      CATransaction.begin()
+      CATransaction.setDisableActions(true)
       annotation.leftMask.removeFromSuperlayer()
       annotation.rightMask.removeFromSuperlayer()
+      CATransaction.commit()
       annotation.annotationView.removeFromSuperview()
       currentChartAnnotation = nil
     }
@@ -116,16 +142,6 @@ class TGCASingleBarChartView: TGCAChartView {
     let yPositions = drawings.yVectorData.yVectors[nonHiddenMaximumIndex]
     let xPositions = drawings.xPositions
     return squareBezierMaskAreas(topPoints: convertToPoints(xVector: xPositions, yVector: yPositions), bottom: chartBoundsBottom, visibleIdx: index)
-  }
-  
-  //MARK: - Configuration
-  
-  override func configureChartBounds() {
-    chartBounds = CGRect(x: bounds.origin.x,
-                         y: bounds.origin.y,
-                         width: bounds.width,
-                         height: bounds.height
-                          - (shouldDisplayAxesAndLabels ? ChartViewConstants.sizeForGuideLabels.height : 0))
   }
   
   //MARK: - Classes and structs

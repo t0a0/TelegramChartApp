@@ -18,16 +18,16 @@ struct CGFloatRangeInBounds {
   let bounds: ClosedRange<CGFloat>
 
   var scale: CGFloat {
-    return (bounds.upperBound - bounds.lowerBound) / (range.upperBound - range.lowerBound)
+    return bounds.distance / range.distance
   }
   
   var offset: CGFloat {
-    return range.lowerBound / (bounds.upperBound - bounds.lowerBound)
+    return range.lowerBound / bounds.distance
   }
   
   func mapTo(newBounds: ClosedRange<CGFloat>) -> CGFloatRangeInBounds {
-    let oldBoundsRange = bounds.upperBound - bounds.lowerBound
-    let newBoundsRange = newBounds.upperBound - newBounds.lowerBound
+    let oldBoundsRange = bounds.distance
+    let newBoundsRange = newBounds.distance
     
     let newLowerBound = (((range.lowerBound - bounds.lowerBound) * newBoundsRange) / oldBoundsRange) + newBounds.lowerBound
     let newUpperBound = (((range.upperBound - bounds.lowerBound) * newBoundsRange) / oldBoundsRange) + newBounds.lowerBound
@@ -35,19 +35,10 @@ struct CGFloatRangeInBounds {
     return CGFloatRangeInBounds(range: newLowerBound...newUpperBound, bounds: newBounds)
   }
   
-//  func integer(forValueInRange valueInRange: CGFloat, integerBounds: ClosedRange<Int>) -> Int {
-//    
-//    let oldBoundsRange = bounds.upperBound - bounds.lowerBound
-//    let newBoundsRange = CGFloat(integerBounds.upperBound - integerBounds.lowerBound)
-//    
-//    let newValue = (((range.lowerBound - bounds.lowerBound) * newBoundsRange) / oldBoundsRange) + CGFloat(integerBounds.lowerBound)
-//    return Int(round(newValue))
-//  }
-  
   func integerRange(withBounds integerBounds: ClosedRange<Int>) -> ClosedRange<Int> {
     
-    let oldBoundsRange = bounds.upperBound - bounds.lowerBound
-    let newBoundsRange = CGFloat(integerBounds.upperBound - integerBounds.lowerBound)
+    let oldBoundsRange = bounds.distance
+    let newBoundsRange = CGFloat(integerBounds.distance)
     
     let newLowerBound = (((range.lowerBound - bounds.lowerBound) * newBoundsRange) / oldBoundsRange) + CGFloat(integerBounds.lowerBound)
     let newUpperBound = (((range.upperBound - bounds.lowerBound) * newBoundsRange) / oldBoundsRange) + CGFloat(integerBounds.lowerBound)

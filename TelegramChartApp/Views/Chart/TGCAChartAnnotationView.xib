@@ -59,9 +59,9 @@
                     <rect key="frame" x="10" y="28" width="301" height="140"/>
                     <subviews>
                         <stackView hidden="YES" opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="equalSpacing" spacing="2" translatesAutoresizingMaskIntoConstraints="NO" id="nqq-l6-GDp">
-                            <rect key="frame" x="-35" y="0.0" width="35" height="140"/>
+                            <rect key="frame" x="-30" y="0.0" width="30" height="140"/>
                             <constraints>
-                                <constraint firstAttribute="width" constant="35" id="bkf-sM-qff"/>
+                                <constraint firstAttribute="width" constant="30" id="bkf-sM-qff"/>
                             </constraints>
                         </stackView>
                         <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="equalSpacing" spacing="2" translatesAutoresizingMaskIntoConstraints="NO" id="Y0e-uU-H5y">

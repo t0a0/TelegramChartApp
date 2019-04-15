@@ -19,22 +19,22 @@
                 <rect key="frame" x="0.0" y="0.0" width="320" height="359.5"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
-                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="SFj-Ql-WLy">
-                        <rect key="frame" x="15" y="10" width="290" height="334.5"/>
+                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="SFj-Ql-WLy">
+                        <rect key="frame" x="0.0" y="10" width="320" height="334.5"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="mxJ-0T-KrO" customClass="TGCAChartHeaderView" customModule="TelegramChartApp" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="0.0" width="290" height="20"/>
+                                <rect key="frame" x="15" y="0.0" width="290" height="20"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="20" id="I6E-lo-DKx"/>
                                 </constraints>
                             </view>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="w3S-ey-A4O" customClass="TGCAChartView" customModule="TelegramChartApp" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="30" width="290" height="200.5"/>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="w3S-ey-A4O">
+                                <rect key="frame" x="0.0" y="30" width="320" height="200.5"/>
                             </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hq7-6g-Yxo" customClass="TGCATrimmerView" customModule="TelegramChartApp" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="240.5" width="290" height="42"/>
+                                <rect key="frame" x="15" y="240.5" width="290" height="42"/>
                                 <subviews>
-                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="tH2-ne-gyz" customClass="TGCAChartView" customModule="TelegramChartApp" customModuleProvider="target">
+                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="tH2-ne-gyz">
                                         <rect key="frame" x="0.0" y="1" width="290" height="40"/>
                                     </view>
                                 </subviews>
@@ -47,25 +47,37 @@
                                 </constraints>
                             </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="kgU-u0-6KS" customClass="TGCAChartFiltersView" customModule="TelegramChartApp" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="292.5" width="290" height="42"/>
+                                <rect key="frame" x="15" y="292.5" width="290" height="42"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="42" id="YuX-WM-Bs5"/>
                                 </constraints>
                             </view>
                         </subviews>
+                        <constraints>
+                            <constraint firstAttribute="trailing" secondItem="kgU-u0-6KS" secondAttribute="trailing" constant="15" id="Ega-AO-ht1"/>
+                            <constraint firstItem="mxJ-0T-KrO" firstAttribute="leading" secondItem="SFj-Ql-WLy" secondAttribute="leading" constant="15" id="S7M-eu-MIp"/>
+                            <constraint firstItem="hq7-6g-Yxo" firstAttribute="leading" secondItem="SFj-Ql-WLy" secondAttribute="leading" constant="15" id="TST-wH-jhb"/>
+                            <constraint firstItem="w3S-ey-A4O" firstAttribute="leading" secondItem="SFj-Ql-WLy" secondAttribute="leading" id="bay-Rd-cXW"/>
+                            <constraint firstAttribute="trailing" secondItem="hq7-6g-Yxo" secondAttribute="trailing" constant="15" id="mCp-oU-v0J"/>
+                            <constraint firstAttribute="trailing" secondItem="mxJ-0T-KrO" secondAttribute="trailing" constant="15" id="nOo-hZ-olQ"/>
+                            <constraint firstItem="kgU-u0-6KS" firstAttribute="leading" secondItem="SFj-Ql-WLy" secondAttribute="leading" constant="15" id="xbJ-KQ-U6P"/>
+                            <constraint firstAttribute="trailing" secondItem="w3S-ey-A4O" secondAttribute="trailing" id="y5C-Th-YdH"/>
+                        </constraints>
                     </stackView>
                 </subviews>
                 <constraints>
                     <constraint firstItem="SFj-Ql-WLy" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" constant="10" id="2ZG-QX-qla"/>
                     <constraint firstAttribute="bottom" secondItem="SFj-Ql-WLy" secondAttribute="bottom" constant="15" id="Nu8-s2-mxh"/>
-                    <constraint firstAttribute="trailing" secondItem="SFj-Ql-WLy" secondAttribute="trailing" constant="15" id="pcj-Ya-Rdk"/>
-                    <constraint firstItem="SFj-Ql-WLy" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" constant="15" id="wGf-uG-p3E"/>
+                    <constraint firstAttribute="trailing" secondItem="SFj-Ql-WLy" secondAttribute="trailing" id="pcj-Ya-Rdk"/>
+                    <constraint firstItem="SFj-Ql-WLy" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" id="wGf-uG-p3E"/>
                 </constraints>
             </tableViewCellContentView>
             <viewLayoutGuide key="safeArea" id="njF-e1-oar"/>
             <connections>
                 <outlet property="chartFiltersHeightConstraint" destination="YuX-WM-Bs5" id="wAV-Fi-cXr"/>
                 <outlet property="chartFiltersView" destination="kgU-u0-6KS" id="EVW-aX-fXd"/>
+                <outlet property="containerForChartView" destination="w3S-ey-A4O" id="qwZ-Xc-UAM"/>
+                <outlet property="containerForThumbailChartView" destination="tH2-ne-gyz" id="J6S-yJ-Hcs"/>
                 <outlet property="headerView" destination="mxJ-0T-KrO" id="Mfl-iP-zal"/>
                 <outlet property="trimmerView" destination="hq7-6g-Yxo" id="kiU-Wa-U5P"/>
             </connections>
