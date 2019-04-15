@@ -19,7 +19,7 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     static let circlePointRadius: CGFloat = 4.0
     static let guideLabelsFont = "Helvetica" as CFTypeRef
     static let guideLabelsFontSize: CGFloat = 12
-    static let contentScaleForShapes: CGFloat = 1.0
+    static let contentScaleForShapes: CGFloat = max(UIScreen.main.scale - 1.0, 1.0)
     static let contentScaleForText = UIScreen.main.scale
     /// The axes are drawn from the bottom of the bounds to the top of the bounds, capped by this value.
     static let capHeightMultiplierForHorizontalAxes: CGFloat = 0.85
