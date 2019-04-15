@@ -145,7 +145,7 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
   }
   
   func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-    return view.bounds.height - SECTION_HEADER_HEIGHT
+    return min(617.0, view.bounds.height - SECTION_HEADER_HEIGHT)
   }
   
   
