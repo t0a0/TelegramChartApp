@@ -108,17 +108,17 @@ class TGCAChartDetailViewController: UIViewController {
       }
       
       button.onLongTap = {
-        if cell.chartFiltersView?.isAnyButtonChecked ?? false {
-          cell.chartFiltersView?.uncheckAll()
-          cell.chartView?.hideAll()
-          cell.thumbnailChartView?.hideAll()
-          chartContainer.hideAll()
-        } else {
-          cell.chartFiltersView?.checkAll()
-          cell.chartView?.showAll()
-          cell.thumbnailChartView?.showAll()
-          chartContainer.showAll()
-        }
+//        if cell.chartFiltersView?.isAnyButtonChecked ?? false {
+          cell.chartFiltersView?.uncheckAll(except: i)
+          cell.chartView?.hideAll(except: i)
+          cell.thumbnailChartView?.hideAll(except: i)
+          chartContainer.hideAll(except: i)
+//        } else {
+//          cell.chartFiltersView?.checkAll()
+//          cell.chartView?.showAll()
+//          cell.thumbnailChartView?.showAll()
+//          chartContainer.showAll()
+//        }
       }
       
       buttons.append(button)
@@ -394,8 +394,8 @@ class ChartContainer {
     }
   }
   
-  func hideAll() {
-    hiddenIndicies = Set(0..<chart.yVectors.count)
+  func hideAll(except index: Int) {
+    hiddenIndicies = Set(0..<chart.yVectors.count).filter{$0 != index}
   }
   
   func showAll() {
