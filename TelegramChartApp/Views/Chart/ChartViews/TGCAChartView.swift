@@ -288,10 +288,11 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   }
   
   func hideAll(except index: Int) {
-    toggleHidden(at: Set((0..<chart.yVectors.count).filter{!hiddenDrawingIndicies.contains($0) && $0 != index}))
     if hiddenDrawingIndicies.contains(index) {
       toggleHidden(at: [index])
     }
+    toggleHidden(at: Set((0..<chart.yVectors.count).filter{!hiddenDrawingIndicies.contains($0) && $0 != index}))
+    
   }
   
   func showAll() {
