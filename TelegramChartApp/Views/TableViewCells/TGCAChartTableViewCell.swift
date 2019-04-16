@@ -86,6 +86,8 @@ class TGCAChartTableViewCell: UITableViewCell, CAAnimationDelegate {
   //MARK: Transition
   
   func transition(to newType: DataChartType) {
+    
+    trimmerView.deactivateGestures()
     let oldChartView = containerForChartView.subviews.first!
     let oldThumbnaiView = containerForThumbailChartView.subviews.first!
     
@@ -125,6 +127,7 @@ class TGCAChartTableViewCell: UITableViewCell, CAAnimationDelegate {
         $0.removeFromSuperview()
       }
     }
+    trimmerView.reactivateGestureRecognizers()
   }
   
   func fadeTransition() -> CATransition{
