@@ -246,7 +246,12 @@ class TGCATrimmerView: UIView {
     }
   }
   
-  private func reactivateGestureRecognizers() {
+  func deactivateGestures() {
+    deactivateShoulderGestureRecognizers()
+    deactivateTrimmedAreaGestureRecognizers()
+  }
+  
+  func reactivateGestureRecognizers() {
     [trimmedAreaView, leftShoulderView, rightShoulderView].forEach{$0.gestureRecognizers?.forEach{$0.isEnabled = true}}
   }
   

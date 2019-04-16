@@ -271,7 +271,10 @@ class TGCAChartView: UIView, ThemeChangeObserving {
   }
   
   private func trimXDisplayRange(to newRange: ClosedRange<Int>, with event: DisplayRangeChangeEvent) {
-    
+    //to fix trimming crash while transitioning
+    guard drawings != nil else {
+      return
+    }
     
     if drawings.shapeLayers.first?.animation(forKey: ChartViewConstants.AnimationKeys.updateByTrimming) != nil && event == .Scrolled {
       return
@@ -284,8 +287,12 @@ class TGCAChartView: UIView, ThemeChangeObserving {
     }
   }
   
-  func hideAll() {
-    toggleHidden(at: Set((0..<chart.yVectors.count).filter{!hiddenDrawingIndicies.contains($0)}))
+  func hideAll(except index: Int) {
+    if hiddenDrawingIndicies.contains(index) {
+      toggleHidden(at: [index])
+    }
+    toggleHidden(at: Set((0..<chart.yVectors.count).filter{!hiddenDrawingIndicies.contains($0) && $0 != index}))
+    
   }
   
   func showAll() {

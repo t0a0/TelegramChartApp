@@ -56,9 +56,15 @@ class TGCAChartFiltersView: UIView {
     return curY + TGCAFilterButton.buttonHeight
   }
   
-  func uncheckAll() {
-    buttons?.forEach{
-      $0.uncheck()
+  func uncheckAll(except index: Int) {
+    if let buttons = buttons {
+      for i in 0..<buttons.count {
+        if i != index {
+          buttons[i].uncheck()
+        } else {
+          buttons[i].check()
+        }
+      }
     }
   }
   
