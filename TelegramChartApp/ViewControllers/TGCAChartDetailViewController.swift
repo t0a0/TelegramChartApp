@@ -21,18 +21,19 @@ class TGCAChartDetailViewController: UIViewController {
     
   
   
-  private let chartContainers = (1...5).map{TGCAJsonToChartService().parseJson(named: "overview", subDir: "contest/\($0)")!}.map{ChartContainer(chart: $0)}
-  
-  /*override func awakeFromNib() {
+//  private let chartContainers = (1...5).map{TGCAJsonToChartService().parseJson(named: "overview", subDir: "contest/\($0)")!}.map{ChartContainer(chart: $0)}
+  private var chartContainers: [ChartContainer]!
+  override func awakeFromNib() {
     super.awakeFromNib()
 
-    /*if let charts = TGCAJsonToChartService().parseJson(named: "overview", subDir: "contest/4"){
+    if let charts = TGCAJsonToChartService().parseJson(named: "chart_data", subDir: ""){
+      chartContainers = charts.map{ChartContainer(chart: $0)}
     } else {
       let alert = UIAlertController(title: "Could not parse JSON", message: nil, preferredStyle: .alert)
       alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: nil))
       present(alert, animated: true, completion: nil)
-    }*/
-  }*/
+    }
+  }
   
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -82,8 +83,9 @@ class TGCAChartDetailViewController: UIViewController {
   }
   
   func loadZoomedInJSONDataFor(chartIndex: Int, date: Date) -> DataChart? {
-    let pc = dateToPathComponentsService .pathComponents(for: date)
-    return jsonToChartService.parseJson(named: pc.fileName, subDir: "contest/\(chartIndex+1)/\(pc.folder)")
+    return nil
+//    let pc = dateToPathComponentsService .pathComponents(for: date)
+//    return jsonToChartService.parseJson(named: pc.fileName, subDir: "contest/\(chartIndex+1)/\(pc.folder)")
   }
   
   private func getButtonsConfigurationFor(chartContainer: ChartContainer, cell: TGCAChartTableViewCell, index: Int) -> [TGCAFilterButton] {
@@ -191,6 +193,7 @@ extension TGCAChartDetailViewController: UITableViewDataSource {
     }
     
     cell.chartView?.onAnnotationClick = {[weak self] date in
+      return false
       guard !isUnderlying else {
         return false
       }

@@ -11,15 +11,15 @@ import UIKit
 
 struct TGCAJsonToChartService/*: JsonParserServiceProtocol*/ {
   
-  func parseJson(named resourceName: String, subDir: String) -> DataChart? {
+  func parseJson(named resourceName: String, subDir: String) -> [DataChart]? {
     guard
       let url = Bundle.main.url(forResource: resourceName, withExtension: "json", subdirectory: subDir),
       let data = try? Data(contentsOf: url),
-      let charts = try? JSONDecoder().decode(JsonCharts.JsonChart.self, from: data) else {
+      let charts = try? JSONDecoder().decode(JsonCharts.self, from: data) else {
         return nil
     }
     
-    return jsonChartToLinearChart(charts)
+    return charts.charts.map{jsonChartToLinearChart($0)}
   }
   
   private func jsonChartToLinearChart(_ jsonChart: JsonCharts.JsonChart) -> DataChart {
